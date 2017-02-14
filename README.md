@@ -48,9 +48,9 @@ The GUI can be lanched through the main script:
 
 The following scripts can also be used standalone, without a GUI:
 
-   ./extractors/jar_extract.py [-h] input_file [output_dir]
-   ./extractors/from_binary.py [-h] input_file [output_dir]
-   ./extractors/web_extract.py [-h] input_url [output_dir]
+    ./extractors/jar_extract.py [-h] input_file [output_dir]
+    ./extractors/from_binary.py [-h] input_file [output_dir]
+    ./extractors/web_extract.py [-h] input_url [output_dir]
 
 
 ## Typical workflow
