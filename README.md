@@ -1,6 +1,6 @@
 # pbtk - Reverse engineering Protobuf apps
 
-**[Protobuf](https://developers.google.com/protocol-buffers/) is a serialization format** developed by Google and used in an increasing number of Android, web, desktop and more applications. It consists of a **language for declaring data structures**, which is then compiled to code or another kind of structure depending on the target implementation.
+**[Protobuf](https://developers.google.com/protocol-buffers/) is a serialization format** developed by Google and used in an increasing number of Android, web, desktop and more applications. It consists of a language for declaring data structures, which is then compiled to code or another kind of structure depending on the target implementation.
 
 pbtk (*Protobuf toolkit*) is a full-fledged set of scripts, accessible through an unified GUI, that provides two main features:
 
@@ -24,13 +24,7 @@ $ yaourt -S pbtk-git
 $ pbtk
 ```
 
-On most other distributions, you may want to run the Docker image:
-
-```
-a
-```
-
-Or run it directly if you have the required dependencies:
+On most other distributions, you'll want to run it directly:
 
 ```
 $ git clone https://github.com/marin-m/pbtk
