@@ -1,6 +1,6 @@
-# pbtk - Reverse engineering and fuzzing Protobuf apps
+# pbtk - Reverse engineering Protobuf apps
 
-[Protobuf](https://developers.google.com/protocol-buffers/) is a **serialization format** developed by Google and used in an increasing number of Android, web, desktop and more applications. It consists of a language for **declaring data structures**, which is then compiled to code or another kind of structure depending on the target implementation.
+**[Protobuf](https://developers.google.com/protocol-buffers/) is a serialization format** developed by Google and used in an increasing number of Android, web, desktop and more applications. It consists of a language for declaring data structures, which is then compiled to code or another kind of structure depending on the target implementation.
 
 pbtk (*Protobuf toolkit*) is a full-fledged set of scripts, accessible through an unified GUI, that provides two main features:
 
@@ -69,10 +69,12 @@ This being done, you jump to `~/.pbtk/protos/<your APK name>` (either through th
 
 Back in your decompiler, you stumbled upon the class that constructs data sent to the HTTPS endpoint that interests you. It serializes the Protobuf message by calling a class made of generated code.
 
+![Your decompiler](https://i.imgur.com/LcjS45S.png)
+
 This latter class should have a perfect match inside your .protos directory (i.e `com.foo.bar.a.b` will match `com/foo/bar/a/b.proto`). Either way, grepping its name should enable you to reference it.
 
 That's great: the next thing is going **Step 2**, selecting your desired input .proto, and filling some information about your endpoint.
-[https://i.imgur.com/jhu68pG.png]
+![Endpoint creation form](https://i.imgur.com/jhu68pG.png)
 
 ## Local data storage
 
