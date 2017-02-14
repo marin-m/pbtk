@@ -20,17 +20,20 @@ PBTK requires Python ≥ 3.6, PyQt 5, Python-Protobuf 3, and a handful of execut
 Archlinux users can install directly through the [package](https://aur.archlinux.org/packages/pbtk-git/):
 
 ```$ yaourt -S pbtk-git
-$ pbtk```
+$ pbtk
+```
 
 On most other distributions, you may want to run the Docker image:
 
-```a```
+```a
+```
 
 Or run it directly if you have the required dependencies:
 
 ```$ git clone https://github.com/marin-m/pbtk
 $ cd pbtk
-$ ./gui.py```
+$ ./gui.py
+```
 
 Windows support is untested yet. Once you run the GUI, it should warn you on what you are missing depending on what you try to do.
 
