@@ -28,7 +28,7 @@ class RawPOST():
         pb_msg.ParseFromString(bytes.fromhex(sample))
     
     def perform_request(self, pb_data, tab_data):
-        return post(url, pb_data.SerializeToString(), headers=USER_AGENT)
+        return post(self.url, pb_data.SerializeToString(), headers=USER_AGENT)
 
 my_quote = lambda x: quote_plus(str(x), safe='~()*!.')
 

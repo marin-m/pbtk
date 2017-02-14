@@ -1,15 +1,17 @@
-[Protobuf](https://developers.google.com/protocol-buffers/) is a serialization format developed by Google and used in an increasing number of Android, web, desktop and more applications. It consists of a language for declaring data structures, which is then compiled to code or another kind of structure depending on the target implementation.
+# pbtk - Reverse engineering and fuzzing Protobuf apps
+
+[Protobuf](https://developers.google.com/protocol-buffers/) is a **serialization format** developed by Google and used in an increasing number of Android, web, desktop and more applications. It consists of a language for **declaring data structures**, which is then compiled to code or another kind of structure depending on the target implementation.
 
 pbtk (*Protobuf toolkit*) is a full-fledged set of scripts, accessible through an unified GUI, that provides two main features:
 
 - **Extracting Protobuf structures from programs**, converting them back into readable *.proto*s, supporting various implementations:
   - All the main Java runtimes (base, Lite, Nano, Micro, J2ME), with full Proguard support,
   - Binaries containing embedded reflection metadata (typically C++, sometimes Java and most other bindings),
-  - Web applications using the JsPbUrl runtime.
+  - Web applications using the JsProtoUrl runtime.
 
 - **Editing, replaying and fuzzing data** sent to Protobuf network endpoints, through a handy graphical interface that allows you to edit live the fields for a Protobuf message and view the result.
 
-![The pbtk editor GUI](https://i.imgur.com/H7O8Hyu.png)
+![The pbtk editor GUI](https://i.imgur.com/7w6ABqy.png)
 
 ## Installation
 
@@ -56,10 +58,12 @@ The following scripts can also be used standalone, without a GUI:
 Let's say you're reverse engineering an Android application. You explored a bit the application with your favorite decompiler, and figured it transports Protobuf as POST data over HTTPS in a typical way.
 
 You open PBTK and are greeted in a meaningful manner:
+
 ![The welcome screen](https://i.imgur.com/oVsypWN.png)
 
 The first step is getting your .protos into text format. If you're targeting an Android app, dropping in an APK and waiting should do the magic work! (unless it's a really exotic implementation)
-*Done screen*
+
+![Done screen](https://i.imgur.com/Pn7lFvG.png)
 
 This being done, you jump to `~/.pbtk/protos/<your APK name>` (either through the command line, or the button on the bottom of the welcome screen to open your file browser, the way you prefer). All the app's .protos are indeed here.
 
@@ -67,9 +71,8 @@ Back in your decompiler, you stumbled upon the class that constructs data sent t
 
 This latter class should have a perfect match inside your .protos directory (i.e `com.foo.bar.a.b` will match `com/foo/bar/a/b.proto`). Either way, grepping its name should enable you to reference it.
 
-
-
-*More screenshots*
+That's great: the next thing is going **Step 2**, selecting your desired input .proto, and filling some information about your endpoint.
+[https://i.imgur.com/jhu68pG.png]
 
 ## Local data storage
 
@@ -153,6 +156,7 @@ class MyTransport():
 
 The following could be coming for further releases:
 * Finishing the automatic fuzzing part.
+* In-interface support for renaming .proto fields.
 * Support for extracting extensions out of Java code.
 * Support for the JSPB (main JavaScript) runtime.
 * If there's any other platform you wish to see supported, just drop an issue and I'll look at it.
