@@ -1,6 +1,6 @@
 # pbtk - Reverse engineering Protobuf apps
 
-**[Protobuf](https://developers.google.com/protocol-buffers/) is a serialization format** developed by Google and used in an increasing number of Android, web, desktop and more applications. It consists of a language for declaring data structures, which is then compiled to code or another kind of structure depending on the target implementation.
+**[Protobuf](https://developers.google.com/protocol-buffers/) is a serialization format** developed by Google and used in an increasing number of Android, web, desktop and more applications. It consists of a **language for declaring data structures**, which is then compiled to code or another kind of structure depending on the target implementation.
 
 pbtk (*Protobuf toolkit*) is a full-fledged set of scripts, accessible through an unified GUI, that provides two main features:
 
@@ -63,26 +63,37 @@ You open PBTK and are greeted in a meaningful manner:
 
 The first step is getting your .protos into text format. If you're targeting an Android app, dropping in an APK and waiting should do the magic work! (unless it's a really exotic implementation)
 
-![Done screen](https://i.imgur.com/Pn7lFvG.png)
+![Done screen](https://i.imgur.com/uC9dnWV.png)
 
 This being done, you jump to `~/.pbtk/protos/<your APK name>` (either through the command line, or the button on the bottom of the welcome screen to open your file browser, the way you prefer). All the app's .protos are indeed here.
 
 Back in your decompiler, you stumbled upon the class that constructs data sent to the HTTPS endpoint that interests you. It serializes the Protobuf message by calling a class made of generated code.
 
-![Your decompiler](https://i.imgur.com/LcjS45S.png)
+![Your decompiler](https://i.imgur.com/x9YAChW.png)
 
 This latter class should have a perfect match inside your .protos directory (i.e `com.foo.bar.a.b` will match `com/foo/bar/a/b.proto`). Either way, grepping its name should enable you to reference it.
 
-That's great: the next thing is going **Step 2**, selecting your desired input .proto, and filling some information about your endpoint.
+That's great: the next thing is going to **Step 2**, selecting your desired input .proto, and filling some information about your endpoint.
+
 ![Endpoint creation form](https://i.imgur.com/jhu68pG.png)
+
+You may need to give some sample raw Protobuf data, that was sent to this endpoint, captured through mitmproxy or Wireshark, and that you'll paste in a hex-encoded form.
+
+**Step 3** is about the fun part of clicking buttons and see what happens! You have a tree view representing every field in the Protobuf struture (repeated fields are suffixed by "+", required fields don't have checkboxes).
+
+Just hover a field to have focus. If the fields is an integer type, use the mouse wheel to increment/decrement it. Enum information appears on hovering too.
+
+Here is it! You can determine the meaning of every field with that. If you extracted information out of minified code, you should be able to rename fields according to what you notice they mean, using your favorite text editor.
+
+Happy reversing! 👌🎉
 
 ## Local data storage
 
-PBTK stores extracted .proto information into ~/.pbtk/protos/ (or possibly AppData on Windows, this in an untested platform).
+PBTK stores extracted .proto information into `~/.pbtk/protos/` (or possibly AppData on Windows, this in an untested platform).
 
 You can move in, move out, rename, edit or erase data from this directory directly through your regular file browser and text editor, it's the expected way to do it and won't interfere with PBTK.
 
-HTTP-based endpoints are stored into ~/.pbtk/endpoints/ as JSON objects. These objects are arrays of pairs of request/response information, which looks like this:
+HTTP-based endpoints are stored into `~/.pbtk/endpoints/` as JSON objects. These objects are arrays of pairs of request/response information, which looks like this:
 
 ```javascript
 [{
