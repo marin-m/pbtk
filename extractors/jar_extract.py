@@ -99,14 +99,12 @@ def handle_jar(path):
                (has_nano_constructor and has_relevant_nano_string):
                 while pkg in pkg_to_codedinputstream:
                     pkg += '_'
-                print('>INPKG', pkg, '/', cls)
                 pkg_to_codedinputstream[pkg] = cls
             
             elif (b'Unpaired surrogate at index ' in binr and b'wrap' in binr) or \
                  (b'write as much data as' in binr and b'a byte array' not in binr): # CodedOutputStream
                 while pkg in pkg_to_codedoutputstream:
                     pkg += '_'
-                print('>OUTPKG', pkg, '/', cls)
                 pkg_to_codedoutputstream[pkg] = cls
             
             # Other classes that may be called for (de)serializing objects
@@ -586,8 +584,6 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
                 
                 fmsg1 = fmsg1.split('(')[1].rsplit('.', 2)[0] if '.valueOf(' in fmsg1 else fmsg1.rsplit('.', 1)[0]
                 fmsg2 = fmsg2.split('(')[1].rsplit('.', 2)[0] if '.valueOf(' in fmsg2 else fmsg2.rsplit('.', 1)[0]
-                
-                print('->', ftype1, fmsg1, ftype2, fmsg2)
                 
                 fields[fnumber] = create_map(cls, jar, enums, code.pkg, var, fnumber, ftype1, fmsg1, ftype2, fmsg2, \
                                              msg_to_referrers, msg_path_to_obj)

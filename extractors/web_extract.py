@@ -304,6 +304,7 @@ console.log(JSON.stringify(['__HOOK', [parseMsg(b, '', 'Top'), c.join('')[0] ===
                     childrenVar, indexOffsetVar = search('\w=\w\.(\w+)\[\w\],\w=a\[\w\+\(?b\.(\w+)', src).groups()
                     before = src.split(target)[0]
                     sid_to_vars[sid] = defaultVar, msgChildrenVar, childrenVar, indexOffsetVar
+                    
                     send(ws, 'Debugger.setBreakpoint', {
                         'location': {
                             'scriptId': sid,
@@ -346,6 +347,7 @@ def logUrl(url):
                         qsl[k2+'1'], qsl[k2+'2'] = map(unquote_plus, v.split('/'))
                         url = url.replace(k + v, k + '{%s1}/{%s2}' % (k2, k2))
                 qs = urlencode(qsl)
+                
                 pb_param = next(k for k, v in qsl.items() if v == unquote_plus(data))
                 endpoints.append({
                     'transport': 'pburl_private',
@@ -355,6 +357,7 @@ def logUrl(url):
                     'pb_param': pb_param,
                     'samples': [GMapsAPIPrivate(pb_param, url).serialize_sample(qs)]
                 })
+
             else:
                 endpoints.append({
                     'transport': 'pburl_public',
@@ -363,11 +366,13 @@ def logUrl(url):
                     'url': url,
                     'samples': [GMapsAPIPublic(None, url).serialize_sample(qs)]
                 })
+            
             print('[Captured]', url, qs, data)
             if proto not in proto_to_urls:
                 proto_to_urls[proto] = set()
             proto_to_urls[proto].add(url)
             return
+    
     print('[Not captured]', url, data)
 
 if __name__ == '__main__':

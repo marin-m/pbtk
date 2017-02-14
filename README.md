@@ -1,17 +1,15 @@
-# pbtk - A toolset for reverse engineering and fuzzing Protobuf-based apps
-
 [Protobuf](https://developers.google.com/protocol-buffers/) is a serialization format developed by Google and used in an increasing number of Android, web, desktop and more applications. It consists of a language for declaring data structures, which is then compiled to code or another kind of structure depending on the target implementation.
 
 pbtk (*Protobuf toolkit*) is a full-fledged set of scripts, accessible through an unified GUI, that provides two main features:
 
-- **Extracting** Protobuf structures from programs, converting them back into readable *.proto*s, supporting various implementations:
--- All the main Java runtimes (base, Lite, Nano, Micro, J2ME), with full Proguard support,
--- Binaries containing embedded reflection metadata (typically C++, sometimes Java and most other bindings),
--- Web applications using the JsPbUrl runtime.
+- **Extracting Protobuf structures from programs**, converting them back into readable *.proto*s, supporting various implementations:
+  - All the main Java runtimes (base, Lite, Nano, Micro, J2ME), with full Proguard support,
+  - Binaries containing embedded reflection metadata (typically C++, sometimes Java and most other bindings),
+  - Web applications using the JsPbUrl runtime.
 
-- **Editing**, replaying and fuzzing data sent to Protobuf network endpoints, through a handy graphical interface that allows you to edit live the fields for a Protobuf message and view the result.
+- **Editing, replaying and fuzzing data** sent to Protobuf network endpoints, through a handy graphical interface that allows you to edit live the fields for a Protobuf message and view the result.
 
-*The pbtk editor GUI*
+![The pbtk editor GUI](https://i.imgur.com/H7O8Hyu.png)
 
 ## Installation
 
@@ -58,7 +56,7 @@ The following scripts can also be used standalone, without a GUI:
 Let's say you're reverse engineering an Android application. You explored a bit the application with your favorite decompiler, and figured it transports Protobuf as POST data over HTTPS in a typical way.
 
 You open PBTK and are greeted in a meaningful manner:
-*The welcome screen*
+![The welcome screen](https://i.imgur.com/oVsypWN.png)
 
 The first step is getting your .protos into text format. If you're targeting an Android app, dropping in an APK and waiting should do the magic work! (unless it's a really exotic implementation)
 *Done screen*
@@ -164,5 +162,5 @@ I've tried to do my best to produce thoroughly readable and commented code (exce
 
 ## Licensing
 
-As pbtk uses PyQt, it is released under the [https://www.gnu.org/licenses/gpl-3.0.html](GNU GPL) license (I, hereby, etc.) I would likely have chosen something public domain-like otherwise. By contributing to this repository, you accept to have your code used by 13 year-olds trying hesitatingly to get into hacking and be legally bound to Satan.
+As pbtk uses PyQt, it is released under the [GNU GPL](https://www.gnu.org/licenses/gpl-3.0.html) license (I, hereby, etc.) I would likely have chosen something public domain-like otherwise. By contributing to this repository, you accept to have your code used by 13 year-olds trying hesitatingly to get into hacking and be legally bound to Satan.
 

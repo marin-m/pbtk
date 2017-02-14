@@ -40,7 +40,7 @@ def walk_binary(binr):
         
         if cursor == -1:
             break
-        cursor += 6 + 5 * (binr[cursor:cursor + 5] == b'devel')
+        cursor += 6 + (binr[cursor:cursor + 5] == b'devel') * 5
         
         # Search back for the (1, length-delimited) marker
         start = binr.rfind(b'\x0a', max(cursor - 128, 0), cursor)
