@@ -28,8 +28,7 @@ On most other distributions, you'll want to run the cx_freeze image:
 
 ```
 $ wget https://github.com/marin-m/pbtk/releases/download/0.9/pbtk-0.9-linux-cxfreeze.tar.gz
-$ tar xvf pbtk-0.9-linux-cxfreeze.tar.gz
-$ cd pbtk-0.9-linux-cxfreeze
+$ tar xvf pbtk-0.9-linux-cxfreeze.tar.gz && cd pbtk-0.9-linux-cxfreeze
 $ ./gui
 ```
 
