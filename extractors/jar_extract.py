@@ -85,6 +85,7 @@ def handle_jar(path):
             """
             
             SIG_NANO = b'([BII)V' # CodedInputByteBufferNano(final byte[] buffer, final int off, final int len)
+            SIG_NANO_2 = b'([BI)V' # CodedInputByteBufferNano(final byte[] buffer, final int bufferSize)
             SIG_DEF = b'([BIIZ)L%s;' % raw_cls # static CodedInputStream newInstance(final byte[] buf, final int off, final int len, final boolean bufferIsImmutable)
             SIG_DEF_2 = b'([BII)L%s;' % raw_cls # static CodedInputStream newInstance(final byte[] buf, final int off, final int len)
             SIG_CALL = b'([BIIZ)V' # private ArrayDecoder(final byte[] buffer, final int offset, final int len, boolean immutable)
@@ -92,7 +93,7 @@ def handle_jar(path):
             
             has_constructor = SIG_DEF in binr or SIG_DEF_2 in binr
             calls_arraydecoder = SIG_CALL in binr or SIG_CALL_2 in binr
-            has_nano_constructor = SIG_NANO in binr
+            has_nano_constructor = SIG_NANO in binr or SIG_NANO_2 in binr
             has_relevant_string = b'message contained an invalid tag' in binr
             has_relevant_nano_string = b'is beyond current' in binr
             
@@ -293,12 +294,14 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
                 call_ret = call_ret.split('.')[-1]
                 
                 if wire_type == 0: # Varint
-                    ftype = {'int': 'uint32', 'long': 'int64', 'boolean': 'bool'}[call_ret]
+                    ftype = {'long': 'int64', 'boolean': 'bool'}.get(call_ret, 'uint32')
                     # We'll distinguish a uint32 from a int32 on step 2.
                     # We can't know signedness for (u)int64, (s)fixed32 or (s)fixed64, so pick the most common case.
                     
                     if ('!= 0' in case and not '.arraycopy' in case) or 'oolean' in case:
                         ftype = 'bool'
+                    elif 'Long' in ftype and ftype == 'uint32':
+                        ftype = 'int64'
                     
                     # Look for enums
                     if ftype == 'uint32':
@@ -311,12 +314,12 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
                                 break
                 
                 elif wire_type == 1:
-                    ftype = {'long': 'fixed64', 'double': 'double'}[call_ret]
+                    ftype = {'double': 'double'}.get(call_ret, 'fixed64')
                     if 'longBitsToDouble' in case:
                         ftype = 'double'
                     
                 elif wire_type == 5:
-                    ftype = {'int': 'fixed32', 'float': 'float'}[call_ret]
+                    ftype = {'float': 'float'}.get(call_ret, 'fixed32')
                     if 'intBitsToFloat' in case:
                         ftype = 'float'
                 

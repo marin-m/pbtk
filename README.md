@@ -187,3 +187,5 @@ I've tried to do my best to produce thoroughly readable and commented code (exce
 
 As pbtk uses PyQt, it is released under the [GNU GPL](https://www.gnu.org/licenses/gpl-3.0.html) license (I, hereby, etc.) I would likely have chosen something public domain-like otherwise.
 
+There's no formalized rule for the letter case of the project name, the rule is just about following your heart ❤️️
+
