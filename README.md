@@ -24,7 +24,7 @@ $ yaourt -S pbtk-git
 $ pbtk
 ```
 
-On most other distributions, you'll want to run the cx_freeze image:
+On most distributions, you'll want to run the cx_freeze image (an executable bundling Python 3.6 along with all modules):
 
 ```
 $ wget https://github.com/marin-m/pbtk/releases/download/0.9/pbtk-0.9-linux-cxfreeze.tar.gz
@@ -81,7 +81,7 @@ That's great: the next thing is going to **Step 2**, selecting your desired inpu
 
 ![Endpoint creation form](https://i.imgur.com/jhu68pG.png)
 
-You may need to give some sample raw Protobuf data, that was sent to this endpoint, captured through mitmproxy or Wireshark, and that you'll paste in a hex-encoded form.
+You may also give some sample raw Protobuf data, that was sent to this endpoint, captured through mitmproxy or Wireshark, and that you'll paste in a hex-encoded form.
 
 **Step 3** is about the fun part of clicking buttons and seeing what happens! You have a tree view representing every field in the Protobuf structure (repeated fields are suffixed by "+", required fields don't have checkboxes).
 

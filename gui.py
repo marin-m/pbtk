@@ -320,7 +320,7 @@ class PBTKGUI(QApplication):
             self.transport_meta = transports[data['request']['transport']]
             self.transport = self.transport_meta['func'](self.pb_param, self.base_url)
             
-            sample = None
+            sample = ''
             if data['request'].get('samples'):
                 sample = data['request']['samples'][sample_id]
             self.get_params = self.transport.load_sample(sample, self.pb_request)
@@ -344,7 +344,7 @@ class PBTKGUI(QApplication):
             # Fill the request samples combo box if we're loading a new
             # endpoint.
             if type(item) != int:
-                if len(data['request']['samples']) > 1:
+                if len(data['request'].get('samples', [])) > 1:
                     self.fuzzer.comboBox.clear()
                     for sample_id, sample in enumerate(data['request']['samples']):
                         self.fuzzer.comboBox.addItem(sample[self.pb_param] if self.pb_param else str(sample), (data, sample_id))
