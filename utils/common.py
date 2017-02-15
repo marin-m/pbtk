@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 #-*- encoding: Utf-8 -*-
+from google.protobuf.message import Message
 from tempfile import TemporaryDirectory
 from inspect import getmembers, isclass
 from os import environ, name, makedirs
@@ -157,12 +158,16 @@ def load_proto_msgs(proto_path):
         PATH.append(arg_python_out)
         module = import_module(module_name)
         PATH.remove(arg_python_out)
+    
+    # Recursively iterate over class members to list Protobuf messages
 
-    from google.protobuf.message import Message # Import here in order not to slow up GUI app launch
+    yield from iterate_proto_msg(module, '')
 
+def iterate_proto_msg(module, base):
     for name, cls in getmembers(module):
         if isclass(cls) and issubclass(cls, Message):
-            yield name, cls
+            yield base + name, cls
+            yield from iterate_proto_msg(cls, base + name + '.')
 
 # Routine for saving data returned by an extractor
 
