@@ -121,7 +121,7 @@ class ClassWrapper:
             annote = search('\n {4,}//(?:[* ] {0,3}[0-9]{1,5}){2}:.+(?:\n {4,}//.+)*', self.raw, flags=MULTILINE)
             if not annote:
                 break
-            self.annotes.extend(findall('<Method( .+)>', annote.group(0)))
+            self.annotes.extend(findall('<Method ([\w.$\[\]]+) ([\w.$]+)\.([\w$]+)\((.*)\)>', annote.group(0)))
             self.raw = self.raw[:annote.start()] + self.raw[annote.end():]
         
         self.pkg = search('^package (.+?);', self.raw, flags=MULTILINE) or ''
@@ -131,6 +131,10 @@ class ClassWrapper:
         self.extends = search(' extends ([\w.$]+)', self.raw) or ''
         if self.extends:
             self.extends = self.extends.group(1)
+        if 'write as much data as' in self.raw and 'return new ' in self.raw:
+            self.extends = self.raw.split('return new ')[1].split('(')[0]
+            if self.pkg and '.' not in self.extends:
+                self.extends = self.pkg + '.' + self.extends
         
         self.jar = jar
         self.cls = cls
@@ -245,19 +249,12 @@ class ClassWrapper:
     Jad annotations.
     """
     def prototype_from_annote(self, name):
-        pattern = '.%s(' % name
-        annote = next((i for i, v in enumerate(self.annotes) if pattern in v), None)
+        annote = next((i for i, v in enumerate(self.annotes) if v[2] == name), None)
         if annote is None:
-            print("Error: Jad annotation couldn't be parsed:", repr(pattern), '/', self.cls, '/', self.annotes)
+            print("Error: Jad annotation couldn't be parsed:", repr(name), '/', self.cls, '/', self.annotes)
             raise ValueError
-        annote = self.annotes.pop(annote)
         
-        # Operate split-based parsing, for the sake and greatness of it
-        before, pattern, after = annote.rpartition(pattern)
-        ret, call = (before + pattern[:-1]).rsplit(' ', 2)[1:]
-        ret, obj, name, args = (ret, *call.rsplit('.', 1), after.split(')')[0])
-        
-        return ret, obj, name, args
+        return self.annotes.pop(annote)
     
     """
     Return the code for a given method in the Java class, along with

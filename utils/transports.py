@@ -1,13 +1,13 @@
 #!/usr/bin/python3
 #-*- encoding: Utf-8 -*-
-from urllib.parse import quote_plus, urlencode, parse_qsl, urlparse
+from urllib.parse import quote_plus, urlencode, parse_qsl, urlparse, unquote
 from utils.pburl_decoder import proto_url_encode, proto_url_decode
 from utils.common import register_transport
 from collections import OrderedDict
 from requests import get, post
 from functools import reduce
+from re import sub, match
 from json import loads
-from re import sub
 
 USER_AGENT = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36'}
 
@@ -78,20 +78,25 @@ class GMapsAPIPublic():
         self.url = url.split('?')[0]
     
     def serialize_sample(self, sample):
-        sample = OrderedDict(parse_qsl(sample, True))
+        sample = self.parse_qs(sample)
         if 'token' in sample:
             del sample['token']
         if 'callback' in sample:
             sample['callback'] = ''
         return self.rebuild_qs(sample)
     
+    def parse_qs(self, sample):
+        pb = match('(?:&?\d[^&=]+)+', sample)
+        return OrderedDict([(pb.group(0), ''),
+                            *parse_qsl(sample[pb.end() + 1:], True)])
+    
     def rebuild_qs(self, sample):
-        return '&'.join(my_quote(k) if k[0].isdigit()
-                        else my_quote(k) + '=' + my_quote(v)
+        return '&'.join(k if not k or k[0].isdigit() else
+                        my_quote(k) + '=' + my_quote(v)
                         for k, v in sample.items())
     
     def load_sample(self, sample, pb_msg):
-        sample = OrderedDict(parse_qsl(sample, True))
+        sample = self.parse_qs(sample)
         pb_data = '&'.join(k for k in sample.keys() if k[0].isdigit())
         get_data = {k: v for k, v in sample.items() if not k[0].isdigit()}
         if 'callback' in get_data:
@@ -100,7 +105,7 @@ class GMapsAPIPublic():
         return get_data
     
     def perform_request(self, pb_data, tab_data):
-        params = OrderedDict(parse_qsl(proto_url_encode(pb_data, '&'), True))
+        params = OrderedDict({proto_url_encode(pb_data, '&'): ''})
         params.update(tab_data)
         params['token'] = self.hash_token(urlparse(self.url).path + '?' + self.rebuild_qs(params))
         return get(self.url + '?' + self.rebuild_qs(params), headers=USER_AGENT)
