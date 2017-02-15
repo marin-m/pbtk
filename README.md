@@ -83,13 +83,13 @@ That's great: the next thing is going to **Step 2**, selecting your desired inpu
 
 You may need to give some sample raw Protobuf data, that was sent to this endpoint, captured through mitmproxy or Wireshark, and that you'll paste in a hex-encoded form.
 
-**Step 3** is about the fun part of clicking buttons and seeing what happens! You have a tree view representing every field in the Protobuf struture (repeated fields are suffixed by "+", required fields don't have checkboxes).
+**Step 3** is about the fun part of clicking buttons and seeing what happens! You have a tree view representing every field in the Protobuf structure (repeated fields are suffixed by "+", required fields don't have checkboxes).
 
 ![Endpoint creation form](https://i.imgur.com/2lVmGoG.png)
 
 Just hover a field to have focus. If the fields is an integer type, use the mouse wheel to increment/decrement it. Enum information appears on hovering too.
 
-Here is it! You can determine the meaning of every field with that. If you extracted information out of minified code, you should be able to rename fields according to what you notice they mean, using your favorite text editor.
+Here it is! You can determine the meaning of every field with that. If you extracted .protos out of minified code, you should be able to rename fields according to what you notice they mean, using your favorite text editor.
 
 Happy reversing! 👌 🎉
 

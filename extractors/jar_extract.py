@@ -17,23 +17,23 @@ from extractors.from_binary import walk_binary
 from utils.java_wrapper import JarWrapper
 
 """
-This script aimes to provide a complete Protobuf structure extraction
-routine for the different Java target implementations that exist.
+    This script aimes to provide a complete Protobuf structure extraction
+    routine for the different Java target implementations that exist.
 
-Most of these (Lite, Nano, Micro) share a common structure in generated
-code. In a common logic for processing them, important library classes
-(such as CommonInputStream/CommonOutputStream) are first recognized
-through simple string signatures.
+    Most of these (Lite, Nano, Micro) share a common structure in generated
+    code. In a common logic for processing them, important library classes
+    (such as CommonInputStream/CommonOutputStream) are first recognized
+    through simple string signatures.
 
-Then, generated classes are decompiled and parsed based on a regexp
-system (somewhat less burdensome than following bytecode structure),
-calls to library classes and their context are analyzed, and this
-information is used to reconstruct the Protobuf structure.
+    Then, generated classes are decompiled and parsed based on a regexp
+    system (somewhat less burdensome than following bytecode structure),
+    calls to library classes and their context are analyzed, and this
+    information is used to reconstruct the Protobuf structure.
 
-The decompiler used is Jad. Although slighty outdated, it produces more
-complete output on erroring classes (rather than failing or omitting
-code, like other tools), and is blazing fast. Dex-to-Jar conversion is
-operated using dex2jar.
+    The decompiler used is Jad. Although slighty outdated, it produces more
+    complete output on erroring classes (rather than failing or omitting
+    code, like other tools), and is blazing fast. Dex-to-Jar conversion is
+    operated using dex2jar.
 """
 
 @register_extractor(name = 'jar_extract',
