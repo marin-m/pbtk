@@ -211,8 +211,6 @@ class ClassWrapper:
                     for match in reversed(list(finditer('\.(\w+)\((?=([^;]+))', nostrings_line))):
                         (name, args), (call_start, call_end) = match.groups(), match.span()
                         
-                        # If type is known, put call into the method calls array
-                        # if obj in self.jar.classes:
                         call_sig = self.prototype_from_annote(name)
                         
                         self.method_calls[call_start + pos] = (call_sig, call_end + pos)

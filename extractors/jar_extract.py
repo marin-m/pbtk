@@ -9,7 +9,8 @@ from ctypes import c_int, c_long
 from ast import literal_eval
 
 from os.path import dirname, realpath
-__import__('sys').path.append(dirname(realpath(__file__)) + '/..')
+if '__file__' in globals():
+    __import__('sys').path.append(dirname(realpath(__file__)) + '/..')
 from utils.common import register_extractor, extractor_main
 from utils.nest_messages import nest_and_print_to_files
 from extractors.from_binary import walk_binary

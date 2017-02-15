@@ -4,7 +4,8 @@ from google.protobuf.descriptor_pb2 import FileDescriptorProto
 from google.protobuf.internal.decoder import _DecodeVarint
 
 from os.path import dirname, realpath
-__import__('sys').path.append(dirname(realpath(__file__)) + '/..')
+if '__file__' in globals():
+    __import__('sys').path.append(dirname(realpath(__file__)) + '/..')
 from utils.common import register_extractor, extractor_main
 from utils.descpb_to_proto import descpb_to_proto
 

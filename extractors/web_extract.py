@@ -15,7 +15,8 @@ from shutil import which
 from time import sleep
 
 from os.path import dirname, realpath
-__import__('sys').path.append(dirname(realpath(__file__)) + '/..')
+if '__file__' in globals():
+    __import__('sys').path.append(dirname(realpath(__file__)) + '/..')
 from utils.transports import GMapsAPIPublic, GMapsAPIPrivate
 from utils.common import register_extractor, extractor_main
 

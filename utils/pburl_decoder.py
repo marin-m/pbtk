@@ -69,7 +69,7 @@ def consume(obj, pb, sep):
         
         elif type_ == fd.TYPE_BYTES:
             val = urlsafe_b64decode(val + '=' * (-len(val) % 4))
-        
+
         elif type_ == "base64_string":
             val = urlsafe_b64decode(val + '=' * (-len(val) % 4)).decode('utf8')
         

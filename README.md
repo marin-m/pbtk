@@ -24,7 +24,16 @@ $ yaourt -S pbtk-git
 $ pbtk
 ```
 
-On most other distributions, you'll want to run it directly:
+On most other distributions, you'll want to run the cx_freeze image:
+
+```
+$ wget https://github.com/marin-m/pbtk/releases/download/0.9/pbtk-0.9-linux-cxfreeze.tar.gz
+$ tar xvf pbtk-0.9-linux-cxfreeze.tar.gz
+$ cd pbtk-0.9-linux-cxfreeze
+$ ./gui
+```
+
+Or run it directly if you have the required dependencies:
 
 ```
 $ git clone https://github.com/marin-m/pbtk
@@ -45,6 +54,8 @@ The following scripts can also be used standalone, without a GUI:
     ./extractors/jar_extract.py [-h] input_file [output_dir]
     ./extractors/from_binary.py [-h] input_file [output_dir]
     ./extractors/web_extract.py [-h] input_url [output_dir]
+
+Scripts don't have an extension and are at root of archive when you use the cx_freeze image.
 
 
 ## Typical workflow
@@ -170,10 +181,10 @@ The following could be coming for further releases:
 * Support for the JSPB (main JavaScript) runtime.
 * If there's any other platform you wish to see supported, just drop an issue and I'll look at it.
 
-I've tried to do my best to produce thoroughly readable and commented code (except for parts that are mostly self-describing, like connecting GUI signals) that you'll enjoy looking at, so you can contribute.
+I've tried to do my best to produce thoroughly readable and commented code (except for parts that are mostly self-describing, like connecting GUI signals) for most modules, so you can contribute.
 
 
 ## Licensing
 
-As pbtk uses PyQt, it is released under the [GNU GPL](https://www.gnu.org/licenses/gpl-3.0.html) license (I, hereby, etc.) I would likely have chosen something public domain-like otherwise. By contributing to this repository, you accept to have your code used by 13 year-olds trying hesitatingly to get into hacking and be legally bound to Satan.
+As pbtk uses PyQt, it is released under the [GNU GPL](https://www.gnu.org/licenses/gpl-3.0.html) license (I, hereby, etc.) I would likely have chosen something public domain-like otherwise.
 
