@@ -17,7 +17,7 @@ from extractors.from_binary import walk_binary
 from utils.java_wrapper import JarWrapper
 
 """
-    This script aimes to provide a complete Protobuf structure extraction
+    This script aims to provide a complete Protobuf structure extraction
     routine for the different Java target implementations that exist.
 
     Most of these (Lite, Nano, Micro) share a common structure in generated
