@@ -24,7 +24,7 @@ $ yaourt -S pbtk-git
 $ pbtk
 ```
 
-On most distributions, you'll want to run the cx_freeze image (an executable bundling Python 3.6 along with all modules):
+On most distributions, you'll want to run the cx_freeze executable (bundling Python 3.6 along with all modules):
 
 ```
 $ wget https://github.com/marin-m/pbtk/releases/download/0.9/pbtk-0.9-linux-cxfreeze.tar.gz
@@ -87,7 +87,7 @@ You may also give some sample raw Protobuf data, that was sent to this endpoint,
 
 ![Endpoint creation form](https://i.imgur.com/2lVmGoG.png)
 
-Just hover a field to have focus. If the fields is an integer type, use the mouse wheel to increment/decrement it. Enum information appears on hovering too.
+Just hover a field to have focus. If the field is an integer type, use the mouse wheel to increment/decrement it. Enum information appears on hover too.
 
 Here it is! You can determine the meaning of every field with that. If you extracted .protos out of minified code, you should be able to rename fields according to what you notice they mean, using your favorite text editor.
 

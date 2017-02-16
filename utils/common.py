@@ -92,6 +92,7 @@ def insert_endpoint(base_path, obj):
                 if obj2['request']['transport'] == 'pburl_private':
                     new_samples = []
                     lite_samples = []
+                    
                     for i in obj2['request']['samples'] + obj['request'].pop('samples'):
                         # Simplify Protobuf-URL payloads
                         lite = {k: sub('(!\d+[^esz]|!\d+s(?=\d+|0x[a-f0-9]+:0x[a-f0-9]+(!|$)))[^!]+', r'\1', v)
@@ -100,6 +101,7 @@ def insert_endpoint(base_path, obj):
                         if lite not in lite_samples:
                             new_samples.append(i)
                         lite_samples.append(lite)
+                    
                     obj2['request']['samples'] = new_samples
                 
                 else:

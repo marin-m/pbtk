@@ -131,6 +131,8 @@ class ClassWrapper:
         self.extends = search(' extends ([\w.$]+)', self.raw) or ''
         if self.extends:
             self.extends = self.extends.group(1)
+        
+        # Handle CodedOutputStream subclasses
         if 'write as much data as' in self.raw and 'return new ' in self.raw:
             self.extends = self.raw.split('return new ')[1].split('(')[0]
             if self.pkg and '.' not in self.extends:
