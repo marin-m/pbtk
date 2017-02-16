@@ -9,6 +9,12 @@ from re import match
 """
     This file contains encoding/decoding routines for the serialization
     used for Protobuf data in Google Maps' private and public API URLs.
+    
+    A payload meant for private API will look like this:
+    !3m1!4b1!4m20!4m19!1m5!1m1!1s0x1e955fe737bd22e5:0xf5b813675e007ba8!2m2!1d28.3023579!2d-25.7297871!1m5!1m1!1s0x1e955e5c875906fd:0xa65176214cdebc80!2m2!1d28.3374283!2d-25.7657075!1m5!1m1!1s0x1e9560c06dba5b73:0x57122f60632be1a1!2m2!1d28.274954!2d-25.7832822!3e0
+    
+    Data for the public API will be the same, except the separator is "&"
+    instead of "!" and encoding will somewhat differ.
 """
 
 types_dec = {
@@ -69,7 +75,6 @@ def consume(obj, pb, sep):
         
         elif type_ == fd.TYPE_BYTES:
             val = urlsafe_b64decode(val + '=' * (-len(val) % 4))
-
         elif type_ == "base64_string":
             val = urlsafe_b64decode(val + '=' * (-len(val) % 4)).decode('utf8')
         
@@ -78,7 +83,6 @@ def consume(obj, pb, sep):
         
         elif type_ in (fd.TYPE_DOUBLE, fd.TYPE_FLOAT):
             val = float(val)
-        
         else:
             val = int(val)
         
@@ -87,25 +91,11 @@ def consume(obj, pb, sep):
         else:
             getattr(pb, field).append(val)
 
-types_enc = {
-    fd.TYPE_BYTES: "B",
-    fd.TYPE_BOOL: "b",
-    fd.TYPE_DOUBLE: "d",
-    fd.TYPE_ENUM: "e",
-    fd.TYPE_FLOAT: "f",
-    fd.TYPE_SFIXED32: "g",
-    fd.TYPE_SFIXED64: "h",
-    fd.TYPE_INT32: "i",
-    fd.TYPE_INT64: "j",
-    fd.TYPE_MESSAGE: "m",
-    fd.TYPE_SINT32: "n",
-    fd.TYPE_SINT64: "o",
-    fd.TYPE_STRING: "s",
-    fd.TYPE_UINT32: "u",
-    fd.TYPE_UINT64: "v",
-    fd.TYPE_FIXED32: "x",
-    fd.TYPE_FIXED64: "y"
-}
+"""
+    Same, with encoding instead of decoding.
+"""
+
+types_enc = {v: k for k, v in types_dec.items()}
 
 def proto_url_encode(pbmsg, sep='!'):
     return sep.join(produce([''] * (sep == '!'), pbmsg, sep))
