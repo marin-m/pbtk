@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 #-*- encoding: Utf-8 -*-
+from google.protobuf.descriptor_pb2 import FileDescriptorSet
 from google.protobuf.message import Message
 from tempfile import TemporaryDirectory
 from inspect import getmembers, isclass
@@ -122,9 +123,9 @@ def insert_endpoint(base_path, obj):
     with open(path, 'w') as fd:
         dump(json, fd, ensure_ascii=False, indent=4)
 
-# Turn a .proto input into Python classes
+# Turn a .proto input into Python classes.
 
-def load_proto_msgs(proto_path):
+def load_proto_msgs(proto_path, ret_source_info=False):
     # List imports that we need to specify to protoc for the necessary *_pb2.py to be generated
     
     proto_dir = Path(proto_path).parent
@@ -148,9 +149,20 @@ def load_proto_msgs(proto_path):
     # Execute protoc and import the actual module from a tmp
     
     with TemporaryDirectory() as arg_python_out:
-        cmd = run(['protoc', '--proto_path=%s' % arg_proto_path, '--python_out=' + arg_python_out, *arg_proto_files], stderr=PIPE, encoding='utf8')
+        args = ['protoc', '--proto_path=%s' % arg_proto_path, '--python_out=' + arg_python_out, *arg_proto_files]
+        if ret_source_info:
+            args += ['-o%s' % (Path(arg_python_out) / 'desc_info'), '--include_source_info', '--include_imports']
+        
+        cmd = run(args, stderr=PIPE, encoding='utf8')
         if cmd.returncode:
             raise ValueError(cmd.stderr)
+        
+        if ret_source_info:
+            with open(Path(arg_python_out) / 'desc_info', 'rb') as fd:
+                yield FileDescriptorSet.FromString(fd.read()), arg_proto_path
+                return
+        
+        # Do actual import
         
         module_name = str(proto_dir).replace(str(arg_proto_path), '').strip('/\\').replace('/', '.')
         if module_name:

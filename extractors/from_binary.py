@@ -41,7 +41,8 @@ def walk_binary(binr):
         
         if cursor == -1:
             break
-        cursor += 6 + (binr[cursor:cursor + 5] == b'devel') * 5
+        cursor += len('.proto')
+        cursor += (binr[cursor:cursor + 5] == b'devel') * 5
         
         # Search back for the (1, length-delimited) marker
         start = binr.rfind(b'\x0a', max(cursor - 128, 0), cursor)
@@ -51,6 +52,8 @@ def walk_binary(binr):
         
         # Look just after for subsequent markers
         tags = b'\x12\x1a\x22\x2a\x32\x3a\x42\x4a\x50\x58\x62'
+        if binr[cursor] not in tags:
+            continue
         
         while cursor < len(binr) and binr[cursor] in tags:
             tags = tags[tags.index(binr[cursor]):]

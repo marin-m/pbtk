@@ -1,10 +1,11 @@
 #!/usr/bin/python3
 #-*- encoding: Utf-8 -*-
-from PyQt5.QtWidgets import QTreeWidgetItem, QLineEdit, QCheckBox, QAbstractSpinBox
+from PyQt5.QtWidgets import QTreeWidgetItem, QLineEdit, QCheckBox, QAbstractSpinBox, QInputDialog, QMessageBox
 from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QByteArray, QRegExp
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtGui import QRegExpValidator
 
+from google.protobuf.descriptor_pb2 import FileDescriptorSet
 from xml.dom.minidom import parseString
 from subprocess import run, PIPE
 from functools import partial
@@ -13,11 +14,14 @@ from zipfile import ZipFile
 from zlib import decompress
 from struct import unpack
 from io import BytesIO
+from re import match
 
 # Monkey-patch enum value checking, and then do Protobuf imports
 from google.protobuf.internal import type_checkers
 type_checkers.SupportsOpenEnums = lambda x: True
 from google.protobuf.internal.type_checkers import _VALUE_CHECKERS
+
+from utils.common import load_proto_msgs
 
 """
     We extend QWebEngineView with a method that parses responses and
@@ -185,6 +189,7 @@ class ProtobufItem(QTreeWidgetItem):
         self.repeated = ds.label == ds.LABEL_REPEATED
         self.void = True
         self.dupped = False
+        self.dupe_obj, self.orig_obj = None, None
         self.value = None
         self.selfPb = None
         self.parentPb = None
@@ -194,7 +199,7 @@ class ProtobufItem(QTreeWidgetItem):
         self.settingDefault = False
         
         if not ds.full_name in path:
-            super().__init__(item, [ds.name + '+' * self.repeated + '  ', type_txt + '  '])
+            super().__init__(item, [ds.full_name.split('.')[-1] + '+' * self.repeated + '  ', type_txt + '  '])
         else:
             super().__init__(item, ['...' + '  ', ''])
             self.updateCheck = self.createCollapsed
@@ -382,7 +387,7 @@ class ProtobufItem(QTreeWidgetItem):
                 self.selfPb = None # So that if we're repeated we're recreated further
                 self.void = True
     
-    def createCollapsed(self, recursive=False):
+    def createCollapsed(self, recursive=False, col=None):
         if not recursive:
             self.path = []
             
@@ -420,12 +425,14 @@ class ProtobufItem(QTreeWidgetItem):
                 if self.isMsg:
                     self.app.parse_desc(self.ds.message_type, newObj, self.path + [self.ds.full_name])
                 
+                self.dupe_obj = newObj
+                newObj.orig_obj = self
                 return newObj
     
     # A message is checked -> all parents are checked
     # A message is unchecked -> all children are unchecked
     
-    def updateCheck(self, recursive=False):
+    def updateCheck(self, recursive=False, col=None):
         if not self.required and self.lastCheckState != self.checkState(0):
             self.lastCheckState = self.checkState(0)
             
@@ -456,9 +463,93 @@ class ProtobufItem(QTreeWidgetItem):
                 
                 self.getSelfPb().Clear()
                 self.update(None)
+
+            if not recursive:
+                self.app.update_fuzzer()
         
-        if not recursive:
-            self.app.update_fuzzer()
+        elif col == 0:
+            self.promptRename()
+        
+    
+    """
+        Wheck field name is clicked, offer to rename the field
+        
+        In order to rewrite field name in the .proto without discarding
+        comments or other information, we'll ask protoc to generate file
+        source information [1], that we'll parse and that will give us
+        text offset for it.
+        
+        [1] https://github.com/google/protobuf/blob/7f3e23/src/google/protobuf/descriptor.proto#L715
+    """
+    
+    def promptRename(self):
+        text, good = QInputDialog.getText(self.app.view, ' ', 'Rename this field:', text=self.text(0).strip('+ '))
+        if text:
+            if not match('^\w+$', text):
+                QMessageBox.warning(self.app.view, ' ', 'This is not a valid alphanumeric name.')
+                self.promptRename()
+            else:
+                try:
+                    if self.doRename(text):
+                        return
+                except Exception:
+                    pass
+                QMessageBox.warning(self.app.view, ' ', 'Field was not found in .proto, did you edit it elsewhere?')
+    
+    def doRename(self, new_name):
+        file_set, proto_path = next(load_proto_msgs(self.app.current_req_proto, True), None)
+        file_set = file_set.file
+        
+        """
+        First, recursively iterate over descriptor fields until we have
+        a numeric path that leads to it in the structure, as explained
+        in [1] above
+        """
+        
+        for file_ in file_set:
+            field_path = self.findPathForField(file_.message_type, [4], file_.package)
+            
+            if field_path:
+                for location in file_.source_code_info.location:
+                    if location.path == field_path:
+                        start_line, start_col, end_col = location.span[:3]
+                        
+                        # Once we have file position information, do
+                        # write the new field name in .proto
+                        
+                        file_path = proto_path / file_.name
+                        with open(file_path) as fd:
+                            lines = fd.readlines()
+                        assert lines[start_line][start_col:end_col] == self.text(0).strip('+ ')
+                        
+                        lines[start_line] = lines[start_line][:start_col] + new_name + \
+                                            lines[start_line][end_col:]
+                        with open(file_path, 'w') as fd:
+                            fd.writelines(lines)
+                        
+                        # Update the name on GUI items corresponding to
+                        # this field and its duplicates (if repeated)
+                        
+                        obj = self
+                        while obj.orig_obj:
+                            obj = obj.orig_obj
+                        while obj:
+                            obj.ds.full_name = obj.ds.full_name.rsplit('.', 1)[0] + '.' + new_name
+                            obj.setText(0, new_name + '+' * self.repeated + '  ')
+                            obj = obj.dupe_obj
+                        return True
+    
+    def findPathForField(self, msgs, path, cur_name):
+        if cur_name:
+            cur_name += '.'
+        
+        for i, msg in enumerate(msgs):
+            if self.ds.full_name.startswith(cur_name + msg.name + '.'):
+                for j, field in enumerate(msg.field):
+                    if cur_name + msg.name + '.' + field.name == self.ds.full_name:
+                        return path + [i, 2, j, 1]
+                
+                return self.findPathForField(msg.nested_type, path + [i, 3], cur_name + msg.name)
     
     def _edit(self, ev=None):
         if not self.widget.hasFocus():

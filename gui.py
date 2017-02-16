@@ -78,7 +78,7 @@ class PBTKGUI(QApplication):
         
         for tree in (self.fuzzer.pbTree, self.fuzzer.getTree):
             tree.itemEntered.connect(lambda item, _: item.edit() if hasattr(item, 'edit') else None)
-            tree.itemClicked.connect(lambda item, _: item.updateCheck())
+            tree.itemClicked.connect(lambda item, col: item.updateCheck(col=col))
             tree.header().setSectionResizeMode(QHeaderView.ResizeToContents)
         
         self.welcome.mydirLabel.setText(self.welcome.mydirLabel.text() % BASE_PATH)
@@ -306,7 +306,9 @@ class PBTKGUI(QApplication):
             data, sample_id = item.data(Qt.UserRole), 0
         
         if data and assert_installed(self.view, binaries=['protoc']):
-            self.pb_request = load_proto_msgs(BASE_PATH / 'protos' / data['request']['proto_path'])
+            self.current_req_proto = BASE_PATH / 'protos' / data['request']['proto_path']
+            
+            self.pb_request = load_proto_msgs(self.current_req_proto)
             self.pb_request = dict(self.pb_request)[data['request']['proto_msg']]()
             
             if data.get('response') and data['response']['format'] == 'raw_pb':

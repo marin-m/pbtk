@@ -89,7 +89,7 @@ You may also give some sample raw Protobuf data, that was sent to this endpoint,
 
 Just hover a field to have focus. If the field is an integer type, use the mouse wheel to increment/decrement it. Enum information appears on hover too.
 
-Here it is! You can determine the meaning of every field with that. If you extracted .protos out of minified code, you should be able to rename fields according to what you notice they mean, using your favorite text editor.
+Here it is! You can determine the meaning of every field with that. If you extracted .protos out of minified code, you can rename fields according to what you notice they mean, by clicking their names.
 
 Happy reversing! 👌 🎉
 
@@ -175,7 +175,6 @@ class MyTransport():
 
 The following could be coming for further releases:
 * Finishing the automatic fuzzing part.
-* In-interface support for renaming .proto fields.
 * Support for extracting extensions out of Java code.
 * Support for the JSPB (main JavaScript) runtime.
 * If there's any other platform you wish to see supported, just drop an issue and I'll look at it.
