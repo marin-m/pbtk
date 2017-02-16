@@ -27,8 +27,8 @@ $ pbtk
 On most distributions, you'll want to run the cx_freeze executable (bundling Python 3.6 along with all modules):
 
 ```
-$ wget https://github.com/marin-m/pbtk/releases/download/0.9/pbtk-0.9-linux-cxfreeze.tar.gz
-$ tar xvf pbtk-0.9-linux-cxfreeze.tar.gz && cd pbtk-0.9-linux-cxfreeze
+$ wget https://github.com/marin-m/pbtk/releases/download/1.0/pbtk-1.0-linux-cxfreeze.tar.gz
+$ tar xvf pbtk-1.0-linux-cxfreeze.tar.gz && cd pbtk-1.0-linux-cxfreeze
 $ ./gui
 ```
 
@@ -186,5 +186,5 @@ I've tried to do my best to produce thoroughly readable and commented code (exce
 
 As pbtk uses PyQt, it is released under the [GNU GPL](https://www.gnu.org/licenses/gpl-3.0.html) license (I, hereby, etc.) I would likely have chosen something public domain-like otherwise.
 
-There's no formalized rule for the letter case of the project name, the rule is just about following your heart ❤️️
+There's no formalized rule for the letter case of the project name, the rule is just about following your heart ❤
 
