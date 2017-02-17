@@ -128,6 +128,8 @@ class ClassWrapper:
             self.annotes.extend(findall('<Method ([\w.$\[\]]+) ([\w.$]+)\.([\w$]+)\((.*)\)>', annote.group(0)))
             self.raw = self.raw[:annote.start()] + self.raw[annote.end():]
         
+        # Parse package/extends directives
+        
         self.pkg = search('^package (.+?);', self.raw, flags=MULTILINE) or ''
         if self.pkg:
             self.pkg = self.pkg.group(1)
@@ -135,6 +137,9 @@ class ClassWrapper:
         self.extends = search(' extends ([\w.$]+)', self.raw) or ''
         if self.extends:
             self.extends = self.extends.group(1)
+            
+            if self.annotes and '.'.join(self.annotes[0][1:3]) == self.extends:
+                self.annotes.pop(0)
         
         # Handle CodedOutputStream subclasses
         if 'write as much data as' in self.raw and 'return new ' in self.raw:
