@@ -38,7 +38,7 @@ from utils.java_wrapper import JarWrapper
 
 @register_extractor(name = 'jar_extract',
                     desc = 'Extract Protobuf structures from any Java code (*.jar, *.dex, *.apk)',
-                    depends={'binaries': []})
+                    depends={'binaries': ['java']})
 def handle_jar(path):
     # Scan classes for Java Protobuf string signatures
     
