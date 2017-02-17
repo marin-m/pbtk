@@ -24,7 +24,7 @@ $ yaourt -S pbtk-git
 $ pbtk
 ```
 
-On most distributions, you'll want run it directly:
+On most other distributions, you'll want run it directly:
 
 ```
 $ sudo pip3 install protobuf pyqt5 requests
