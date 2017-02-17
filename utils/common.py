@@ -8,6 +8,7 @@ from os import environ, name, makedirs
 from importlib.util import find_spec
 from importlib import import_module
 from argparse import ArgumentParser
+from collections import OrderedDict
 from urllib.parse import urlparse
 from subprocess import run, PIPE
 from sys import path as PATH
@@ -21,10 +22,10 @@ if name != 'nt':
     BASE_PATH = Path(environ['HOME']) / '.pbtk'
 else:
     BASE_PATH = Path(environ['APPDATA']) / 'pbtk'
-makedirs(BASE_PATH / 'protos', exist_ok=True)
-makedirs(BASE_PATH / 'endpoints', exist_ok=True)
+makedirs(str(BASE_PATH / 'protos'), exist_ok=True)
+makedirs(str(BASE_PATH / 'endpoints'), exist_ok=True)
 
-extractors = {}
+extractors = OrderedDict()
 """
 def register_extractor(name = None, # Used to refer to internally
                        desc = None, # Used to describe extractor in GUI
@@ -37,7 +38,7 @@ def register_extractor(**kwargs):
         return func
     return register_extractor_decorate
 
-transports = {}
+transports = OrderedDict()
 """
 def register_transport(name, # Used to refer to in JSON data files
                        desc, # Used to describe protocol in GUI
@@ -77,8 +78,8 @@ def insert_endpoint(base_path, obj):
     path = base_path / (urlparse(url).netloc + '.json')
     
     json = []
-    if exists(path):
-        with open(path) as fd:
+    if exists(str(path)):
+        with open(str(path)) as fd:
             json = load(fd)
     
     # Try to merge objects
@@ -119,8 +120,8 @@ def insert_endpoint(base_path, obj):
     if not inserted:
         json.append(obj)
     
-    makedirs(path.parent, exist_ok=True)
-    with open(path, 'w') as fd:
+    makedirs(str(path.parent), exist_ok=True)
+    with open(str(path), 'w') as fd:
         dump(json, fd, ensure_ascii=False, indent=4)
 
 # Turn a .proto input into Python classes.
@@ -135,7 +136,7 @@ def load_proto_msgs(proto_path, ret_source_info=False):
     
     while to_import:
         next_import = to_import.pop()
-        while not exists(arg_proto_path / next_import) and \
+        while not exists(str(arg_proto_path / next_import)) and \
               str(arg_proto_path.parent).startswith(str(BASE_PATH)):
             arg_proto_path = arg_proto_path.parent
         next_import = str(arg_proto_path / next_import)
@@ -158,7 +159,7 @@ def load_proto_msgs(proto_path, ret_source_info=False):
             raise ValueError(cmd.stderr)
         
         if ret_source_info:
-            with open(Path(arg_python_out) / 'desc_info', 'rb') as fd:
+            with open(str(Path(arg_python_out) / 'desc_info'), 'rb') as fd:
                 yield FileDescriptorSet.FromString(fd.read()), arg_proto_path
                 return
         
@@ -197,8 +198,8 @@ def extractor_save(base_path, folder, outputs):
             else:
                 path = base_path / name
             
-            makedirs(path.parent, exist_ok=True)
-            with open(path, 'w') as fd:
+            makedirs(str(path.parent), exist_ok=True)
+            with open(str(path), 'w') as fd:
                 fd.write(contents)
             
             if name not in name_to_path:

@@ -104,7 +104,8 @@ def handle_jar(path):
                 pkg_to_codedinputstream[pkg] = cls
             
             elif (b'Unpaired surrogate at index ' in binr and b'wrap' in binr) or \
-                 (b'write as much data as' in binr and b'a byte array' not in binr): # CodedOutputStream
+                 ((b'write as much data as' in binr or b'UTF-8 not supported.' in binr) and \
+                   b'a byte array' not in binr): # CodedOutputStream
                 while pkg in pkg_to_codedoutputstream:
                     pkg += '_'
                 pkg_to_codedoutputstream[pkg] = cls

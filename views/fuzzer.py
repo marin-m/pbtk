@@ -517,7 +517,7 @@ class ProtobufItem(QTreeWidgetItem):
                         # Once we have file position information, do
                         # write the new field name in .proto
                         
-                        file_path = proto_path / file_.name
+                        file_path = str(proto_path / file_.name)
                         with open(file_path) as fd:
                             lines = fd.readlines()
                         assert lines[start_line][start_col:end_col] == self.text(0).strip('+ ')

@@ -275,13 +275,13 @@ class PBTKGUI(QApplication):
     def load_endpoints(self):
         self.choose_endpoint.endpoints.clear()
         
-        for name in listdir(BASE_PATH / 'endpoints'):
+        for name in listdir(str(BASE_PATH / 'endpoints')):
             if name.endswith('.json'):
                 item = QListWidgetItem(name.split('.json')[0], self.choose_endpoint.endpoints)
                 item.setFlags(item.flags() & ~Qt.ItemIsEnabled)
                 
                 pb_msg_to_endpoints = defaultdict(list)
-                with open(BASE_PATH / 'endpoints' / name) as fd:
+                with open(str(BASE_PATH / 'endpoints' / name)) as fd:
                     for endpoint in load(fd):
                         pb_msg_to_endpoints[endpoint['request']['proto_msg'].split('.')[-1]].append(endpoint)
                 
@@ -417,7 +417,7 @@ class PBTKGUI(QApplication):
     
     def delete_endpoint(self):
         if QMessageBox.question(self.view, ' ', 'Delete this endpoint?') == QMessageBox.Yes:
-            path = BASE_PATH / 'endpoints' / (urlparse(self.base_url).netloc + '.json')
+            path = str(BASE_PATH / 'endpoints' / (urlparse(self.base_url).netloc + '.json'))
             
             with open(path) as fd:
                 json = load(fd)
