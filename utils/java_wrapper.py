@@ -6,9 +6,12 @@ from tempfile import TemporaryDirectory
 from collections import OrderedDict
 from zipfile import ZipFile
 from os.path import exists
-from shutil import which
 
 from extractors.from_binary import walk_binary
+
+from os.path import dirname, realpath
+external = dirname(realpath(__file__)) + '/external/'
+
 
 """
     This is a catch-all class that will handle either a JAR, DEX or APK file.
@@ -28,7 +31,7 @@ class JarWrapper(TemporaryDirectory):
         with open(fname, 'rb') as fd:
             if fd.read(4) == b'dex\n':
                 new_jar = self.name + '/classes-dex2jar.jar'
-                run([which('d2j-dex2jar') or 'dex2jar', fname, '-f', '-o', new_jar, '-e', '/dev/null'], stderr=DEVNULL, check=True)
+                run([external + 'dex2jar/d2j-dex2jar.sh', fname, '-f', '-o', new_jar, '-e', '/dev/null'], stderr=DEVNULL, check=True)
                 fname = new_jar
     
         with ZipFile(fname) as jar:
@@ -92,7 +95,7 @@ class ClassWrapper:
         inpath = jar.name + '/' + cls.replace('.', '/') + '.class'
         outpath = jar.name + '/' + cls.replace('.', '/') + '.java'
         
-        jad_args = ['jad', '-af', '-b', '-d', jar.name, '-dead', '-f', '-i', '-ff', '-noinner', '-o', '-r', '-radix10', '-s', '.java', inpath]
+        jad_args = [external + 'jad', '-af', '-b', '-d', jar.name, '-dead', '-f', '-i', '-ff', '-noinner', '-o', '-r', '-radix10', '-s', '.java', inpath]
         if no_parse:
             jad_args.remove('-af')
             jad_args.insert(1, '-nofd')

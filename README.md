@@ -15,7 +15,7 @@ pbtk (*Protobuf toolkit*) is a full-fledged set of scripts, accessible through a
 
 ## Installation
 
-PBTK requires Python ≥ 3.6, PyQt 5, Python-Protobuf 3, and a handful of executable programs (chromium, jad, dex2jar-2.0...) for running extractor scripts.
+PBTK requires Python ≥ 3.6, PyQt 5, Python-Protobuf 3, and a handful of executable programs (chromium, jad, dex2jar...) for running extractor scripts.
 
 Archlinux users can install directly through the [package](https://aur.archlinux.org/packages/pbtk-git/):
 
@@ -27,8 +27,8 @@ $ pbtk
 On most distributions, you'll want to run the cx_freeze executable (bundling Python 3.6 along with all modules):
 
 ```
-$ wget https://github.com/marin-m/pbtk/releases/download/1.0/pbtk-1.0-linux-cxfreeze.tar.gz
-$ tar xvf pbtk-1.0-linux-cxfreeze.tar.gz && cd pbtk-1.0-linux-cxfreeze
+$ wget https://github.com/marin-m/pbtk/releases/download/1.0.1/pbtk-1.0.1-linux-cxfreeze.tar.gz
+$ tar xvf pbtk-1.0.1-linux-cxfreeze.tar.gz && cd pbtk-1.0.1-linux-cxfreeze
 $ ./gui
 ```
 

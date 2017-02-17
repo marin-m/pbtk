@@ -7,7 +7,6 @@ from itertools import count, product
 from string import ascii_lowercase
 from ctypes import c_int, c_long
 from ast import literal_eval
-from shutil import which
 
 from os.path import dirname, realpath
 if '__file__' in globals():
@@ -39,7 +38,7 @@ from utils.java_wrapper import JarWrapper
 
 @register_extractor(name = 'jar_extract',
                     desc = 'Extract Protobuf structures from any Java code (*.jar, *.dex, *.apk)',
-                    depends={'binaries': [which('d2j-dex2jar') or 'dex2jar', 'jad']})
+                    depends={'binaries': []})
 def handle_jar(path):
     # Scan classes for Java Protobuf string signatures
     
