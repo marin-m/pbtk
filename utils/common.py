@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 #-*- encoding: Utf-8 -*-
 from google.protobuf.descriptor_pb2 import FileDescriptorSet
+from collections import OrderedDict, defaultdict
 from google.protobuf.message import Message
 from tempfile import TemporaryDirectory
 from inspect import getmembers, isclass
@@ -8,7 +9,6 @@ from os import environ, name, makedirs
 from importlib.util import find_spec
 from importlib import import_module
 from argparse import ArgumentParser
-from collections import OrderedDict
 from urllib.parse import urlparse
 from subprocess import run, PIPE
 from sys import path as PATH
@@ -53,25 +53,25 @@ def register_transport(**kwargs):
     return register_transport_decorate
 
 def assert_installed(win=None, modules=[], binaries=[]):
-    missing = {'modules': [], 'binaries': []}
+    missing = defaultdict(list)
     for items, what, func in ((modules, 'modules', find_spec),
                               (binaries, 'binaries', which)):
         for item in items:
             if not func(item):
                 missing[what].append(item)
-    wrong = bool(missing['binaries'] or missing['modules'])
-    if wrong:
+    if missing:
         msg = []
-        for what in ('binaries', 'modules'):
-            if missing[what]:
-                msg.append('%s "%s"' % (what, '", "'.join(missing[what])))
+        for subject, names in missing.items():
+            if len(names) == 1:
+                subject = {'modules': 'module', 'binaries': 'binary'}[subject]
+            msg.append('%s "%s"' % (subject, '", "'.join(names)))
         msg = 'You are missing the %s for this.' % ' and '.join(msg)
         if win:
             from PyQt5.QtWidgets import QMessageBox
-            QMessageBox.critical(win, ' ', msg)
+            QMessageBox.warning(win, ' ', msg)
         else:
             raise ImportError(msg)
-    return not wrong
+    return not missing
 
 def insert_endpoint(base_path, obj):
     url = obj['request']['url']

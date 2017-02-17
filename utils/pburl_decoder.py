@@ -14,7 +14,7 @@ from re import match
     !3m1!4b1!4m20!4m19!1m5!1m1!1s0x1e955fe737bd22e5:0xf5b813675e007ba8!2m2!1d28.3023579!2d-25.7297871!1m5!1m1!1s0x1e955e5c875906fd:0xa65176214cdebc80!2m2!1d28.3374283!2d-25.7657075!1m5!1m1!1s0x1e9560c06dba5b73:0x57122f60632be1a1!2m2!1d28.274954!2d-25.7832822!3e0
     
     Data for the public API will be the same, except the separator is "&"
-    instead of "!" and encoding will somewhat differ.
+    instead of "!" and string encoding somewhat differs.
 """
 
 types_dec = {
@@ -103,6 +103,7 @@ def proto_url_encode(pbmsg, sep='!'):
 def produce(obj, pb, sep):
     for ds, val in pb.ListFields():
         for val in (val if ds.label == ds.LABEL_REPEATED else [val]):
+            
             if ds.type == ds.TYPE_MESSAGE:
                 origlen = len(obj)
                 produce(obj, val, sep)
