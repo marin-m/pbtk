@@ -28,17 +28,10 @@ On most other distributions, you'll want run it directly:
 
 ```
 $ sudo pip3 install protobuf pyqt5 requests
+
 $ git clone https://github.com/marin-m/pbtk
 $ cd pbtk
 $ ./gui.py
-```
-
-Alternatively, you may try to run the cx_freeze executable (bundling Python along with all modules):
-
-```
-$ wget https://github.com/marin-m/pbtk/releases/download/1.0.1/pbtk-1.0.1-linux-cxfreeze.tar.gz
-$ tar xvf pbtk-1.0.1-linux-cxfreeze.tar.gz && cd pbtk-1.0.1-linux-cxfreeze
-$ ./gui
 ```
 
 Windows support is untested yet. Once you run the GUI, it should warn you on what you are missing depending on what you try to do.
@@ -54,8 +47,6 @@ The following scripts can also be used standalone, without a GUI:
     ./extractors/jar_extract.py [-h] input_file [output_dir]
     ./extractors/from_binary.py [-h] input_file [output_dir]
     ./extractors/web_extract.py [-h] input_url [output_dir]
-
-Scripts don't have an extension and are at root of archive when you use the cx_freeze image.
 
 
 ## Typical workflow
