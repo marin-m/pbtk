@@ -15,7 +15,7 @@ pbtk (*Protobuf toolkit*) is a full-fledged set of scripts, accessible through a
 
 ## Installation
 
-PBTK requires Python ≥ 3.6, PyQt 5, Python-Protobuf 3, and a handful of executable programs (chromium, jad, dex2jar...) for running extractor scripts.
+PBTK requires Python ≥ 3.6, PyQt 5, Python-Protobuf 3, and a handful of executable programs (chromium, jad, dex2jar-2.0...) for running extractor scripts.
 
 Archlinux users can install directly through the [package](https://aur.archlinux.org/packages/pbtk-git/):
 
