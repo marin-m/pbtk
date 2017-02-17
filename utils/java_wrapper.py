@@ -6,6 +6,7 @@ from tempfile import TemporaryDirectory
 from collections import OrderedDict
 from zipfile import ZipFile
 from os.path import exists
+from shutil import which
 
 from extractors.from_binary import walk_binary
 
@@ -27,7 +28,7 @@ class JarWrapper(TemporaryDirectory):
         with open(fname, 'rb') as fd:
             if fd.read(4) == b'dex\n':
                 new_jar = self.name + '/classes-dex2jar.jar'
-                run(['dex2jar', fname, '-f', '-o', new_jar, '-e', '/dev/null'], stderr=DEVNULL, check=True)
+                run([which('d2j-dex2jar') or 'dex2jar', fname, '-f', '-o', new_jar, '-e', '/dev/null'], stderr=DEVNULL, check=True)
                 fname = new_jar
     
         with ZipFile(fname) as jar:
