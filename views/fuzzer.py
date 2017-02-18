@@ -209,9 +209,7 @@ class ProtobufItem(QTreeWidgetItem):
             self.setCheckState(0, Qt.Unchecked)
             self.lastCheckState = Qt.Unchecked
         
-        if not hasattr(ds, '_items'):
-            ds._items = {}
-        ds._items[tuple(path)] = self # Hierarchy array
+        self.app.ds_items[id(ds)][tuple(path)] = self # Hierarchy array
         
         if self.isMsg:
             return

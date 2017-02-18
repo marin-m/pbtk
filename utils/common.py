@@ -154,9 +154,9 @@ def load_proto_msgs(proto_path, ret_source_info=False):
         if ret_source_info:
             args += ['-o%s' % (Path(arg_python_out) / 'desc_info'), '--include_source_info', '--include_imports']
         
-        cmd = run(args, stderr=PIPE, encoding='utf8')
+        cmd = run(args, stderr=PIPE)
         if cmd.returncode:
-            raise ValueError(cmd.stderr)
+            raise ValueError(cmd.stderr.decode('utf8'))
         
         if ret_source_info:
             with open(str(Path(arg_python_out) / 'desc_info'), 'rb') as fd:

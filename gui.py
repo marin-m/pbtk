@@ -329,6 +329,7 @@ class PBTKGUI(QApplication):
             
             # Get initial data into the Protobuf tree view
             self.fuzzer.pbTree.clear()
+            self.ds_items = defaultdict(dict)
             self.parse_desc(self.pb_request.DESCRIPTOR, self.fuzzer.pbTree)
             self.parse_fields(self.pb_request)
             
@@ -365,8 +366,8 @@ class PBTKGUI(QApplication):
         Parsing and rendering the Protobuf message to a tree view:
 
         Every Protobuf field is fed to ProtobufItem (a class inheriting
-        QTreeWidgetItem), and the created object is saved in the _items
-        property of the corresponding descriptor.
+        QTreeWidgetItem), and the created object is saved in the ds_items
+        entry for the corresponding descriptor.
     """
     
     # First, parse the descriptor (structure) of the Protobuf message.
@@ -384,23 +385,23 @@ class PBTKGUI(QApplication):
             if ds.label == ds.LABEL_REPEATED:
                 for val_index, val_value in enumerate(val):
                     if ds.type == ds.TYPE_MESSAGE:
-                        ds._items[tuple(path)].setExpanded(True)
-                        ds._items[tuple(path)].setDefault(parent=msg, msg=val, index=val_index)
+                        self.ds_items[id(ds)][tuple(path)].setExpanded(True)
+                        self.ds_items[id(ds)][tuple(path)].setDefault(parent=msg, msg=val, index=val_index)
                         self.parse_fields(val_value, path + [ds.full_name])
                     
                     else:
-                        ds._items[tuple(path)].setDefault(val_value, parent=msg, msg=val, index=val_index)
+                        self.ds_items[id(ds)][tuple(path)].setDefault(val_value, parent=msg, msg=val, index=val_index)
                     
-                    ds._items[tuple(path)].duplicate(True)
+                    self.ds_items[id(ds)][tuple(path)].duplicate(True)
             
             else:
                 if ds.type == ds.TYPE_MESSAGE:
-                    ds._items[tuple(path)].setExpanded(True)
-                    ds._items[tuple(path)].setDefault(parent=msg, msg=val)
+                    self.ds_items[id(ds)][tuple(path)].setExpanded(True)
+                    self.ds_items[id(ds)][tuple(path)].setDefault(parent=msg, msg=val)
                     self.parse_fields(val, path + [ds.full_name])
                 
                 else:
-                    ds._items[tuple(path)].setDefault(val, parent=msg, msg=val)
+                    self.ds_items[id(ds)][tuple(path)].setDefault(val, parent=msg, msg=val)
     
     def update_fuzzer(self):
         resp = self.transport.perform_request(self.pb_request, self.get_params)
