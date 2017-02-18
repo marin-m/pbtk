@@ -177,7 +177,7 @@ class ClassWrapper:
         for line in self.raw.splitlines(True):
             indent = (len(line) - len(line.lstrip(' '))) / 4
 
-            if line.strip().startswith('throw') or line.strip().startswith('implements ') or line.strip().startswith('//'):
+            if line.strip().startswith('throws') or line.strip().startswith('implements ') or line.strip().startswith('//'):
                 pos += len(line)
                 continue
             
@@ -218,7 +218,7 @@ class ClassWrapper:
                         if match.group(1) not in ('if', 'for', 'while', 'switch', 'catch', 'super', 'this', 'synchronized', 'getClass'):
                             call_sig, args = match.groups()
                             
-                            ret, obj, name, args = self.prototype_from_annote(call_sig)
+                            ret, obj, name, args = self.prototype_from_annote(call_sig, args)
                             
                             method_loc_calls.append((ret, name, args))
                     
@@ -226,7 +226,7 @@ class ClassWrapper:
                     for match in reversed(list(finditer('\.(\w+)\((?=([^;]+))', nostrings_line))):
                         (name, args), (call_start, call_end) = match.groups(), match.span()
                         
-                        call_sig = self.prototype_from_annote(name)
+                        call_sig = self.prototype_from_annote(name, args)
                         
                         self.method_calls[call_start + pos] = (call_sig, call_end + pos)
                         
@@ -259,10 +259,18 @@ class ClassWrapper:
     Return the method signature for a given method call, parsed out of
     Jad annotations.
     """
-    def prototype_from_annote(self, name):
-        annote = next((i for i, v in enumerate(self.annotes) if v[2] == name), None)
+    def prototype_from_annote(self, name, args):
+        # Perform minimal disambiguation
+        has_args = args[0] != ')'
+        while search('\(.*?\)', args):
+            args = sub('\((.*?)\)', lambda x: sub('[^()]', '', x.group(1)), args)
+        num_commas = args.split(')')[0].count(',')
+        
+        annote = next((i for i, v in enumerate(self.annotes) if v[2] == name and \
+                                                                (has_args == bool(v[3])) and \
+                                                                (v[3].count(',') == num_commas)), None)
         if annote is None:
-            print("Error: Jad annotation couldn't be parsed:", repr(name), '/', self.cls, '/', self.annotes)
+            print("Error: Jad annotation couldn't be parsed:", repr(name + '(' + args), '/', self.cls, '/', self.annotes)
             raise ValueError
         
         return self.annotes.pop(annote)
@@ -281,6 +289,8 @@ class ClassWrapper:
         
         if merged is None:
             merged = set()
+        elif (ret, self.cls, name, args) in merged:
+            return ''
         merged.add((ret, self.cls, name, args))
         
         if self.extends and self.extends != self.cls and ret_method not in self.method_cache:

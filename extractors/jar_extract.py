@@ -510,7 +510,7 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
                           '\(([\w$]+) [!=]= null\)',
                           '\(\!([\w$]+)\..+?\(\)\)',
                           '(?:unmodifiableMap|Arrays\.equals)\(([a-zA-Z_][\w$]*)',
-                          'Bits\(([a-zA-Z_][\w$]*)\)',
+                          'Bits\((?:\(+[\w.]+\))?([a-zA-Z_][\w$]*)\)',
                           '([a-zA-Z_][\w$]*)\.(?:getMap|entrySet)\(',
                          ['([a-zA-Z_][\w$]*)\(\)\.(?:getMap|entrySet)\(', 'return ([a-zA-Z_][\w$]*);'],
                           ' = \(java\.lang\.String\)([a-zA-Z_][\w$]*)',
