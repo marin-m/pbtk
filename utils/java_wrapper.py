@@ -10,7 +10,7 @@ from os.path import exists
 from extractors.from_binary import walk_binary
 
 from os.path import dirname, realpath
-external = dirname(realpath(__file__)) + '/../extractors/external/'
+external = dirname(realpath(__file__)) + '/external/'
 
 
 """
