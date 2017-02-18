@@ -59,7 +59,9 @@ def nest_and_print_to_files(msg_path_to_obj, msg_to_referrers):
             in_pkg = [(field, referrer) for field, referrer, _ in referrers \
                       if (get_pkg(referrer) == msg_pkg or not msg_pkg) \
                       and msg_to_topmost.get(referrer, referrer) != msg \
-                      and not msg_path_to_obj[referrer].options.map_entry]
+                      and not msg_path_to_obj[referrer].options.map_entry \
+                      and ('$' not in msg or msg.split('.')[-1].split('$')[0] == \
+                                        referrer.split('.')[-1].split('$')[0])]
             
             if len({i for _, i in in_pkg}) != 1:
                 # It doesn't. Keep for the next step
@@ -118,18 +120,25 @@ def nest_and_print_to_files(msg_path_to_obj, msg_to_referrers):
     
     # Turn messages into individual files and stringify.
     
+    path_to_file = OrderedDict()
+    path_to_defines = defaultdict(list)
+    
     for msg, msg_obj in msg_path_to_obj.items():
         if msg not in msg_to_topmost:
-            file_obj = FileDescriptorProto()
-            file_obj.syntax = 'proto2'
-            file_obj.package = get_pkg(msg)
-            file_obj.name = msg.replace('$', '/').replace('.', '/') + '.proto'
+            path = msg.split('$')[0].replace('.', '/') + '.proto'
+            
+            if path not in path_to_file:
+                path_to_file[path] = FileDescriptorProto()
+                path_to_file[path].syntax = 'proto2'
+                path_to_file[path].package = get_pkg(msg)
+                path_to_file[path].name = path
+            file_obj = path_to_file[path]
             
             for imported in msg_to_imports[msg]:
-                if imported != msg and imported not in msg_to_topmost:
-                    file_name = imported.replace('$', '/').replace('.', '/') + '.proto'
-                    if file_name not in file_obj.dependency:
-                        file_obj.dependency.append(file_name)
+                import_path = imported.split('$')[0].replace('.', '/') + '.proto'
+                if import_path != path and imported not in msg_to_topmost:
+                    if import_path not in file_obj.dependency:
+                        file_obj.dependency.append(import_path)
 
             if isinstance(msg_obj, DescriptorProto):
                 nested = file_obj.message_type.add()
@@ -137,10 +146,14 @@ def nest_and_print_to_files(msg_path_to_obj, msg_to_referrers):
                 nested = file_obj.enum_type.add()
             nested.MergeFrom(msg_obj)
 
-            name, proto = descpb_to_proto(file_obj)
-            header_lines = ['/**', 'Messages defined in this file:\n', msg]
-            header_lines += [k for k, v in msg_to_topmost.items() if v == msg and '$map' not in k]
-            yield name, '\n * '.join(header_lines) + '\n */\n\n' + proto
+            path_to_defines[path].append(msg)
+            path_to_defines[path] += [k for k, v in msg_to_topmost.items() if v == msg and '$map' not in k]
+
+    for path, file_obj in path_to_file.items():
+        name, proto = descpb_to_proto(file_obj)
+        header_lines = ['/**', 'Messages defined in this file:\n']
+        header_lines += path_to_defines[path]
+        yield name, '\n * '.join(header_lines) + '\n */\n\n' + proto
 
 def merge_and_rename(msg, referrer, msg_pkg, is_group,
     msg_to_referrers, msg_to_topmost, msg_to_newloc, msg_to_imports, msg_path_to_obj, newloc_to_msg):

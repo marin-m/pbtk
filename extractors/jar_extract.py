@@ -376,6 +376,14 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
                 else:
                     raise ValueError
                 
+                if not fenumormsg and ftype in ('group', 'bytes'):
+                    msg_obj = search('([\w$.]+) [\w$]+ = new ', case)
+                    
+                    if msg_obj and msg_obj.group(1) in gen_classes:
+                        fenumormsg = msg_obj.group(1)
+                        if ftype == 'bytes':
+                            ftype = 'message'
+                
                 # General case: store information for step 2
                 if call_obj not in map_entry_cls or len(call_args.split(', ')) != 8:
                     fields[fnumber] = (ftype, fenumormsg)

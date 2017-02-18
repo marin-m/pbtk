@@ -158,7 +158,7 @@ class ClassWrapper:
         2. Store bounds for methods and first-level conditions blocks.
         """
     
-        self.method_cache = {}
+        self.method_cache = OrderedDict()
 
         self.method_calls = OrderedDict()
 
