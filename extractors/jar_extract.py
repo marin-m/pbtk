@@ -497,12 +497,10 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
             # Perform a few checks about what we couldn't see from step 1
             
             flabel = 'optional'
-            if not from_condition:
-                flabel = 'required'
-            elif 'for(' in cond or 'while(' in cond:
+            if 'for(' in cond or 'while(' in cond:
                 flabel = 'repeated'
-            elif not cond.strip().startswith('if'):
-                raise ValueError
+            elif 'if(' not in cond:
+                flabel = 'required'
             
             if ftype in ('uint32', 'int64'):
                 if not callee:
@@ -545,8 +543,8 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
                           'if\(\!([\w$]+)\..+?\(\)\)',
                           '(?:unmodifiableMap|Arrays\.equals)\(([a-zA-Z_][\w$]*)',
                           'Bits\((?:\(+[\w.]+\))?([a-zA-Z_][\w$]*)\)',
-                          '([a-zA-Z_][\w$]*)\.(?:getMap|entrySet)\(',
-                         ['([a-zA-Z_][\w$]*)\(\)\.(?:getMap|entrySet)\(', 'return ([a-zA-Z_][\w$]*);'],
+                          '([a-zA-Z_][\w$]*)\.(?:getMap|entrySet|iterator)\(',
+                         ['([a-zA-Z_][\w$]*)\(\)\.(?:getMap|entrySet|iterator)\(', 'return ([a-zA-Z_][\w$]*);'],
                           ' = \(java\.lang\.String\)([a-zA-Z_][\w$]*)',
                           ', \(java.+?\)([a-zA-Z_][\w$]*)[).]',
                          ['\(\d+, ([a-zA-Z_][\w$]*)\(\)+\)', ' = \(.+?\)([a-zA-Z_][\w$]*);', 'return ([a-zA-Z_][\w$]*);'],
