@@ -26,7 +26,7 @@ class JarWrapper(TemporaryDirectory):
         self.bonus_protos = {}
         
         self.handle_file(fname)
-    
+
     def handle_file(self, fname):
         with open(fname, 'rb') as fd:
             if fd.read(4) == b'dex\n':

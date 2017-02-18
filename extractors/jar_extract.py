@@ -65,7 +65,7 @@ def handle_jar(path):
             if i % 10 == 0:
                 yield '_progress', ('Scanning Java package contents...', (i / len(jar.classes)) * 0.5)
             
-            pkg = cls[:cls.rfind('.')]
+            pkg = cls[:cls.rfind('.')] if '.' in cls else ''
             binr = jar.read(cls)
             
             # Search for CodedInputStream/CodedOutputStream
@@ -105,7 +105,8 @@ def handle_jar(path):
             
             elif (b'Unpaired surrogate at index ' in binr and b'wrap' in binr) or \
                  ((b'write as much data as' in binr or b'UTF-8 not supported.' in binr) and \
-                   b'a byte array' not in binr): # CodedOutputStream
+                   b'byte array' not in binr) or \
+                   (b'Converting ill-formed UTF-16.' in binr and b'Pos:' not in binr): # CodedOutputStream
                 while pkg in pkg_to_codedoutputstream:
                     pkg += '_'
                 pkg_to_codedoutputstream[pkg] = cls
@@ -152,7 +153,6 @@ def handle_jar(path):
             if i % 10 == 0:
                 yield '_progress', ('Scanning Java package contents...', (i / len(jar.classes)) * 0.5 + 0.5)
             
-            pkg = cls[:cls.rfind('.')]
             binr = jar.read(cls)
             
             # Search for metadata descriptors
@@ -517,6 +517,7 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
                           ', \(.+?\)([a-zA-Z_][\w$]*)[).]',
                          ['\(\d+, ([a-zA-Z_][\w$]*)\(\)+\)', ' = \(.+?\)([a-zA-Z_][\w$]*);', 'return ([a-zA-Z_][\w$]*);'],
                           '\s+([a-zA-Z_][\w$]*)\.[\w$]+\(\);',
+                          '\d+, [\w$]+\.\w+\(([a-zA-Z_][\w$]*)\)',
                           ', ([a-zA-Z_][\w$]*)[).]',
                           '(?<!flag)(?<!flag\d) = ([a-zA-Z_][\w$]*);',
                           ' = ([a-zA-Z_][\w$]*)\[',
@@ -545,7 +546,7 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
                 
                 # Search for the line defining the default value for this variable
                 
-                fdefault = findall('\s+%s(?:\[\])* = (.+?);' % escape(var), code.raw, flags=MULTILINE)
+                fdefault = findall('\s+(?:super\.)?%s(?:\[\])* = (.+?);' % escape(var), code.raw, flags=MULTILINE)
                 if not fdefault:
                     print('Error: no first definition for variable:', var, '/', regex, '/', cls, '/', cond)
                     raise IndexError
