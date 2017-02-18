@@ -226,7 +226,7 @@ class ProtobufItem(QTreeWidgetItem):
             self.widget.setFrame(False)
             self.widget.setStyleSheet('padding: 1px 0')
             self.widget.textEdited.connect(self.valueChanged)
-            default = ''
+            default = '' if ds.type != ds.TYPE_BYTES else b''
         
         else:
             if ds.cpp_type in (ds.CPPTYPE_DOUBLE, ds.CPPTYPE_FLOAT):
