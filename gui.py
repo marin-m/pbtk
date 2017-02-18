@@ -9,12 +9,12 @@ from signal import signal, SIGINT, SIG_DFL
 from os.path import dirname, realpath
 from collections import defaultdict
 from urllib.parse import urlparse
-from sys import argv, executable
 from os import listdir, remove
 from functools import partial
 from json import load, dump
 from binascii import crc32
 from pathlib import Path
+from sys import argv
 
 from utils.common import extractors, transports, BASE_PATH, assert_installed, extractor_save, insert_endpoint, load_proto_msgs
 from views.fuzzer import ProtobufItem, ProtocolDataItem
@@ -33,10 +33,7 @@ class PBTKGUI(QApplication):
         super().__init__(argv)
         signal(SIGINT, SIG_DFL)
         
-        if '__file__' in globals():
-            views = dirname(realpath(__file__)) + '/views/'
-        else:
-            views = dirname(realpath(executable)) + '/views/'
+        views = dirname(realpath(__file__)) + '/views/'
         
         self.welcome = loadUi(views + 'welcome.ui')
         self.choose_extractor = loadUi(views + 'choose_extractor.ui')
@@ -78,7 +75,7 @@ class PBTKGUI(QApplication):
         
         for tree in (self.fuzzer.pbTree, self.fuzzer.getTree):
             tree.itemEntered.connect(lambda item, _: item.edit() if hasattr(item, 'edit') else None)
-            tree.itemClicked.connect(lambda item, col: item.updateCheck(col=col))
+            tree.itemClicked.connect(lambda item, col: item.update_check(col=col))
             tree.header().setSectionResizeMode(QHeaderView.ResizeToContents)
         
         self.welcome.mydirLabel.setText(self.welcome.mydirLabel.text() % BASE_PATH)
@@ -331,7 +328,7 @@ class PBTKGUI(QApplication):
             self.fuzzer.pbTree.clear()
             
             self.ds_items = defaultdict(dict)
-            self.ds_full_names = defaultdict(dict)
+            self.ds_full_names = {}
             
             self.parse_desc(self.pb_request.DESCRIPTOR, self.fuzzer.pbTree)
             self.parse_fields(self.pb_request)

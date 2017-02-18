@@ -191,12 +191,12 @@ class ProtobufItem(QTreeWidgetItem):
         self.dupped = False
         self.dupe_obj, self.orig_obj = None, None
         self.value = None
-        self.selfPb = None
-        self.parentPb = None
+        self.self_pb = None
+        self.parent_pb = None
         self.app = app
         self.path = path
-        self.isMsg = ds.type == ds.TYPE_MESSAGE
-        self.settingDefault = False
+        self.is_msg = ds.type == ds.TYPE_MESSAGE
+        self.setting_default = False
         
         self.full_name = self.app.ds_full_names.setdefault(id(ds), ds.full_name)
         
@@ -204,28 +204,28 @@ class ProtobufItem(QTreeWidgetItem):
             super().__init__(item, [self.full_name.split('.')[-1] + '+' * self.repeated + '  ', type_txt + '  '])
         else:
             super().__init__(item, ['...' + '  ', ''])
-            self.updateCheck = self.createCollapsed
+            self.update_check = self.create_collapsed
             return
         
         if not self.required:
             self.setCheckState(0, Qt.Unchecked)
-            self.lastCheckState = Qt.Unchecked
+            self.last_check_state = Qt.Unchecked
         
         self.app.ds_items[id(ds)][tuple(path)] = self # Hierarchy array
         
-        if self.isMsg:
+        if self.is_msg:
             return
         
         elif ds.type == ds.TYPE_BOOL:
             self.widget = QCheckBox()
-            self.widget.stateChanged.connect(self.valueChanged)
+            self.widget.stateChanged.connect(self.value_changed)
             default = False
         
         elif ds.cpp_type == ds.CPPTYPE_STRING:
             self.widget = QLineEdit()
             self.widget.setFrame(False)
             self.widget.setStyleSheet('padding: 1px 0')
-            self.widget.textEdited.connect(self.valueChanged)
+            self.widget.textEdited.connect(self.value_changed)
             default = '' if ds.type != ds.TYPE_BYTES else b''
         
         else:
@@ -239,7 +239,7 @@ class ProtobufItem(QTreeWidgetItem):
             
             self.widget.setFrame(False)
             self.widget.setFixedWidth(120)
-            self.widget.valueChanged.connect(self.valueChanged)
+            self.widget.valueChanged.connect(self.value_changed)
         
         if ds.type == ds.TYPE_ENUM:
             tooltip = '\n'.join('%d : %s' % (i.number, i.name) for i in ds.enum_type.values)
@@ -261,10 +261,10 @@ class ProtobufItem(QTreeWidgetItem):
     """
     
     def unvoid(self, recur=True):
-        if self.void or self.isMsg:
+        if self.void or self.is_msg:
             if not self.required:
                 self.setCheckState(0, Qt.Checked)
-                self.lastCheckState = Qt.Checked
+                self.last_check_state = Qt.Checked
             
             if recur and self.parent():
                 self.parent().unvoid(True)
@@ -272,16 +272,16 @@ class ProtobufItem(QTreeWidgetItem):
             self.void = False
     
     def setDefault(self, val=None, parent=None, msg=None, index=None, unvoid=True):
-        self.settingDefault = True
+        self.setting_default = True
         
         if parent:
-            self.parentPb = parent
-            self.selfPb = msg
+            self.parent_pb = parent
+            self.self_pb = msg
             self.index = index
             if index is not None:
-                item_indices.setdefault(id(self.selfPb), [])
-                assert index == len(item_indices[id(self.selfPb)])
-                item_indices[id(self.selfPb)].append(self)
+                item_indices.setdefault(id(self.self_pb), [])
+                assert index == len(item_indices[id(self.self_pb)])
+                item_indices[id(self.self_pb)].append(self)
         
         if val:
             if type(val) == bool:
@@ -297,10 +297,10 @@ class ProtobufItem(QTreeWidgetItem):
             self.unvoid(False)
         
         self.value = val
-        self.settingDefault = False
+        self.setting_default = False
     
-    def valueChanged(self, val):
-        if not self.settingDefault:
+    def value_changed(self, val):
+        if not self.setting_default:
             if self.ds.type == self.ds.TYPE_BYTES:
                 val = val.encode('utf8')
             elif self.ds.type == self.ds.TYPE_BOOL:
@@ -309,48 +309,48 @@ class ProtobufItem(QTreeWidgetItem):
             self.update(val)
             self.app.update_fuzzer()
     
-    def getParentPb(self):
-        if self.parentPb is None:
+    def get_parent_pb(self):
+        if self.parent_pb is None:
             if self.parent():
-                self.parentPb = self.parent().getSelfPb()
+                self.parent_pb = self.parent().get_self_pb()
             else:
-                self.parentPb = self.app.pb_request
+                self.parent_pb = self.app.pb_request
         
-        return self.parentPb
+        return self.parent_pb
     
-    def getSelfPb(self):
-        if self.selfPb is None:
-            self.selfPb = getattr(self.getParentPb(), self.ds.name)
+    def get_self_pb(self):
+        if self.self_pb is None:
+            self.self_pb = getattr(self.get_parent_pb(), self.ds.name)
                 
             if self.repeated:
-                self.index = len(self.selfPb)
+                self.index = len(self.self_pb)
                 
-                item_indices.setdefault(id(self.selfPb), [])
-                item_indices[id(self.selfPb)].append(self)
+                item_indices.setdefault(id(self.self_pb), [])
+                item_indices[id(self.self_pb)].append(self)
                 
-                if self.isMsg:
-                    self.selfPb.add()
+                if self.is_msg:
+                    self.self_pb.add()
                     
-            if self.isMsg:
+            if self.is_msg:
                 for i in range(self.childCount()):
                     if self.child(i).required:
-                        self.child(i).parentPb = None
-                        self.child(i).selfPb = None
+                        self.child(i).parent_pb = None
+                        self.child(i).self_pb = None
                         self.child(i).update(self.child(i).value)
                 
-                if hasattr(self.selfPb, 'SetInParent'):
-                    self.selfPb.SetInParent()
+                if hasattr(self.self_pb, 'SetInParent'):
+                    self.self_pb.SetInParent()
                 
                 if not self.required:
                     self.setCheckState(0, Qt.Checked)
-                    self.lastCheckState = Qt.Checked
+                    self.last_check_state = Qt.Checked
         
-        # Return value is for getParentPb recursion
-        if self.isMsg:
+        # Return value is for get_parent_pb recursion
+        if self.is_msg:
             if not self.repeated:
-                return self.selfPb
+                return self.self_pb
             else:
-                return self.selfPb[self.index]
+                return self.self_pb[self.index]
     
     def update(self, val):
         if val is not None:
@@ -358,36 +358,36 @@ class ProtobufItem(QTreeWidgetItem):
             self.duplicate()
             self.value = val
         
-        self.getSelfPb() # Ensure created
+        self.get_self_pb() # Ensure created
         
         if not self.repeated:
             if val is not None:
-                setattr(self.parentPb, self.ds.name, val)
+                setattr(self.parent_pb, self.ds.name, val)
             
             else:
-                self.parentPb._fields.pop(self.ds, None)
-                self.selfPb = None
+                self.parent_pb._fields.pop(self.ds, None)
+                self.self_pb = None
                 self.void = True
         
         else:
             if val is not None:
-                if len(self.selfPb) > self.index: # We exist already
-                    self.selfPb[self.index] = val
+                if len(self.self_pb) > self.index: # We exist already
+                    self.self_pb[self.index] = val
                 
-                else: # We were just created by getSelfPb
-                    self.selfPb.append(val)
+                else: # We were just created by get_self_pb
+                    self.self_pb.append(val)
             
             else: # We must have existed already right?
-                del self.selfPb[self.index]
-                del item_indices[id(self.selfPb)][self.index]
+                del self.self_pb[self.index]
+                del item_indices[id(self.self_pb)][self.index]
                 
-                for i in range(self.index, len(item_indices[id(self.selfPb)])):
-                    item_indices[id(self.selfPb)][i].index -= 1
+                for i in range(self.index, len(item_indices[id(self.self_pb)])):
+                    item_indices[id(self.self_pb)][i].index -= 1
                 
-                self.selfPb = None # So that if we're repeated we're recreated further
+                self.self_pb = None # So that if we're repeated we're recreated further
                 self.void = True
     
-    def createCollapsed(self, recursive=False, col=None):
+    def create_collapsed(self, recursive=False, col=None):
         if not recursive:
             self.path = []
             
@@ -401,74 +401,74 @@ class ProtobufItem(QTreeWidgetItem):
                 index = self.treeWidget().indexOfTopLevelItem(self)
                 self.treeWidget().takeTopLevelItem(index)
     
-    def duplicate(self, settingDefault=False, force=False):
+    def duplicate(self, setting_default=False, force=False):
         if not self.dupped:
             self.dupped = True
             
-            if self.parent() and not settingDefault:
+            if self.parent() and not setting_default:
                 self.parent().duplicate()
             
             if self.repeated or force:
-                newObj = ProtobufItem(None, self.ds, self.app, self.path)
+                new_obj = ProtobufItem(None, self.ds, self.app, self.path)
                 
                 if self.parent():
                     index = self.parent().indexOfChild(self)
-                    self.parent().insertChild(index + 1, newObj)
+                    self.parent().insertChild(index + 1, new_obj)
                 
                 else:
                     index = self.treeWidget().indexOfTopLevelItem(self)
-                    self.treeWidget().insertTopLevelItem(index + 1, newObj)
+                    self.treeWidget().insertTopLevelItem(index + 1, new_obj)
                 
-                if hasattr(newObj, 'widget'):
-                    self.app.fuzzer.pbTree.setItemWidget(newObj, 2, newObj.widget)
+                if hasattr(new_obj, 'widget'):
+                    self.app.fuzzer.pbTree.setItemWidget(new_obj, 2, new_obj.widget)
                 
-                if self.isMsg:
-                    self.app.parse_desc(self.ds.message_type, newObj, self.path + [self.full_name])
+                if self.is_msg:
+                    self.app.parse_desc(self.ds.message_type, new_obj, self.path + [self.full_name])
                 
-                self.dupe_obj = newObj
-                newObj.orig_obj = self
-                return newObj
+                self.dupe_obj = new_obj
+                new_obj.orig_obj = self
+                return new_obj
     
     # A message is checked -> all parents are checked
     # A message is unchecked -> all children are unchecked
     
-    def updateCheck(self, recursive=False, col=None):
-        if not self.required and self.lastCheckState != self.checkState(0):
-            self.lastCheckState = self.checkState(0)
+    def update_check(self, recursive=False, col=None):
+        if not self.required and self.last_check_state != self.checkState(0):
+            self.last_check_state = self.checkState(0)
             
-            if not self.isMsg:
-                if self.lastCheckState == Qt.Checked:
+            if not self.is_msg:
+                if self.last_check_state == Qt.Checked:
                     self.update(self.value)
                 else:
                     self.update(None)
             
-            elif not self.selfPb: # We have just checked the message !
-                assert self.lastCheckState == Qt.Checked
-                self.getSelfPb() # Recreates parent
+            elif not self.self_pb: # We have just checked the message !
+                assert self.last_check_state == Qt.Checked
+                self.get_self_pb() # Recreates parent
                 
                 for i in range(self.childCount()):
                     if self.child(i).required:
-                        self.child(i).parentPb = None
-                        self.child(i).selfPb = None
+                        self.child(i).parent_pb = None
+                        self.child(i).self_pb = None
                         self.child(i).update(self.child(i).value)
             
             else: # We have just unchecked the message !
-                assert self.lastCheckState != Qt.Checked
+                assert self.last_check_state != Qt.Checked
                 for i in range(self.childCount()):
                     if not self.child(i).required:
                         self.child(i).setCheckState(0, Qt.Unchecked)
-                        self.child(i).updateCheck(True)
-                        self.child(i).parentPb = None
-                        self.child(i).selfPb = None
+                        self.child(i).update_check(True)
+                        self.child(i).parent_pb = None
+                        self.child(i).self_pb = None
                 
-                self.getSelfPb().Clear()
+                self.get_self_pb().Clear()
                 self.update(None)
 
             if not recursive:
                 self.app.update_fuzzer()
         
         elif col == 0:
-            self.promptRename()
+            self.prompt_rename()
         
     
     """
@@ -482,21 +482,21 @@ class ProtobufItem(QTreeWidgetItem):
         [1] https://github.com/google/protobuf/blob/7f3e23/src/google/protobuf/descriptor.proto#L715
     """
     
-    def promptRename(self):
+    def prompt_rename(self):
         text, good = QInputDialog.getText(self.app.view, ' ', 'Rename this field:', text=self.text(0).strip('+ '))
         if text:
-            if not match('^\w+$', text):
+            if not match('^[a-zA-Z0-9_]+$', text):
                 QMessageBox.warning(self.app.view, ' ', 'This is not a valid alphanumeric name.')
-                self.promptRename()
+                self.prompt_rename()
             else:
                 try:
-                    if self.doRename(text):
+                    if self.do_rename(text):
                         return
                 except Exception:
                     pass
                 QMessageBox.warning(self.app.view, ' ', 'Field was not found in .proto, did you edit it elsewhere?')
     
-    def doRename(self, new_name):
+    def do_rename(self, new_name):
         file_set, proto_path = next(load_proto_msgs(self.app.current_req_proto, True), None)
         file_set = file_set.file
         
@@ -507,7 +507,7 @@ class ProtobufItem(QTreeWidgetItem):
         """
         
         for file_ in file_set:
-            field_path = self.findPathForField(file_.message_type, [4], file_.package)
+            field_path = self.find_path_for_field(file_.message_type, [4], file_.package)
             
             if field_path:
                 for location in file_.source_code_info.location:
@@ -540,7 +540,7 @@ class ProtobufItem(QTreeWidgetItem):
                             obj = obj.dupe_obj
                         return True
     
-    def findPathForField(self, msgs, path, cur_name):
+    def find_path_for_field(self, msgs, path, cur_name):
         if cur_name:
             cur_name += '.'
         
@@ -550,7 +550,7 @@ class ProtobufItem(QTreeWidgetItem):
                     if cur_name + msg.name + '.' + field.name == self.full_name:
                         return path + [i, 2, j, 1]
                 
-                return self.findPathForField(msg.nested_type, path + [i, 3], cur_name + msg.name)
+                return self.find_path_for_field(msg.nested_type, path + [i, 3], cur_name + msg.name)
     
     def _edit(self, ev=None):
         if not self.widget.hasFocus():
@@ -572,12 +572,12 @@ class ProtocolDataItem(QTreeWidgetItem):
         
         if not self.required:
             self.setCheckState(0, Qt.Checked)
-            self.lastCheckState = Qt.Checked
+            self.last_check_state = Qt.Checked
 
         self.widget = QLineEdit()
         self.widget.setFrame(False)
         self.widget.setStyleSheet('padding: 1px 0')
-        self.widget.textEdited.connect(self.valueChanged)
+        self.widget.textEdited.connect(self.value_changed)
         self.app.fuzzer.getTree.setItemWidget(self, 1, self.widget)
         
         self.widget.setText(val)
@@ -586,16 +586,16 @@ class ProtocolDataItem(QTreeWidgetItem):
         self.widget.setMouseTracking(True)
         self.widget.enterEvent = self.edit
     
-    def valueChanged(self, val):
+    def value_changed(self, val):
         self.app.get_params[self.name] = val
         self.value = val
         
         self.app.update_fuzzer()
     
-    def updateCheck(self):
-        if not self.required and self.lastCheckState != self.checkState(0):
-            self.lastCheckState = self.checkState(0)
-            if self.lastCheckState != Qt.Checked:
+    def update_check(self):
+        if not self.required and self.last_check_state != self.checkState(0):
+            self.last_check_state = self.checkState(0)
+            if self.last_check_state != Qt.Checked:
                 del self.app.get_params[self.name]
             else:
                 self.app.get_params[self.name] = self.value

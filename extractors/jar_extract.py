@@ -9,8 +9,7 @@ from ctypes import c_int, c_long
 from ast import literal_eval
 
 from os.path import dirname, realpath
-if '__file__' in globals():
-    __import__('sys').path.append(dirname(realpath(__file__)) + '/..')
+__import__('sys').path.append(dirname(realpath(__file__)) + '/..')
 from utils.common import register_extractor, extractor_main
 from utils.nest_messages import nest_and_print_to_files
 from extractors.from_binary import walk_binary
@@ -78,6 +77,7 @@ def handle_jar(path):
                subclasses (cc8ca5b - oct 2016)
             2. CodedInputStream, after it was
             3. CodedInputByteBufferNano
+            4. CodedInputStreamMicro
             
             The second case doesn't provide intelligible strings to
             search for, so we'll use method signatures (the different
@@ -89,27 +89,45 @@ def handle_jar(path):
             SIG_DEF = b'([BIIZ)L%s;' % raw_cls # static CodedInputStream newInstance(final byte[] buf, final int off, final int len, final boolean bufferIsImmutable)
             SIG_DEF_2 = b'([BII)L%s;' % raw_cls # static CodedInputStream newInstance(final byte[] buf, final int off, final int len)
             SIG_CALL = b'([BIIZ)V' # private ArrayDecoder(final byte[] buffer, final int offset, final int len, boolean immutable)
-            SIG_CALL_2 = b'([BIIZL' # CodedInputStream$ArrayDecoder(byte abyte0[], int i, int j, boolean flag, com.google.protobuf.CodedInputStream$1 codedinputstream$1)
+            SIG_CALL_2 = b'([BII)V' # private ArrayDecoder(final byte[] buffer, final int offset, final int len)
+            SIG_CALL_3 = b'([BIIZL' # CodedInputStream$ArrayDecoder(byte abyte0[], int i, int j, boolean flag, com.google.protobuf.CodedInputStream$1 codedinputstream$1)
             
             has_constructor = SIG_DEF in binr or SIG_DEF_2 in binr
-            calls_arraydecoder = SIG_CALL in binr or SIG_CALL_2 in binr
-            has_nano_constructor = SIG_NANO in binr or SIG_NANO_2 in binr
+            calls_arraydecoder = SIG_CALL in binr or SIG_CALL_2 in binr or SIG_CALL_3 in binr
+            is_legit_class = b'Beginning index' not in binr and b'Number too large' not in binr and b'a byte array' not in binr
+            
+            has_constructor_nano = SIG_NANO in binr or SIG_NANO_2 in binr
             has_relevant_string = b'message contained an invalid tag' in binr
-            has_relevant_nano_string = b'is beyond current' in binr
+            has_relevant_string_nano = b'is beyond current' in binr
+            has_relevant_string_micro = b"when buffer wasn't empty" in binr
             
-            if (has_constructor and (calls_arraydecoder or has_relevant_string)) or \
-               (has_nano_constructor and has_relevant_nano_string):
-                while pkg in pkg_to_codedinputstream:
-                    pkg += '_'
-                pkg_to_codedinputstream[pkg] = cls
+            """
+            Try to match CodedOutputStream before CodedInputStream, as
+            it may have common points in signatures but always has a
+            recognizable string.
+            """
             
-            elif (b'Unpaired surrogate at index ' in binr and b'wrap' in binr) or \
-                 ((b'write as much data as' in binr or b'UTF-8 not supported.' in binr) and \
-                   b'byte array' not in binr) or \
-                   (b'Converting ill-formed UTF-16.' in binr and b'Pos:' not in binr): # CodedOutputStream
+            has_out_constructor = b'([BII' in binr
+            has_out_relevant_string = b'write as much data as' in binr
+            has_out_relevant_string_old = b'UTF-8 not supported.' in binr
+            has_out_relevant_string_nano = b'Unpaired surrogate at index ' in binr and b'wrap' in binr
+            has_out_relevant_string_2 = b'Converting ill-formed UTF-16.' in binr and b'Pos:' not in binr
+            is_legit_out_class = b'byte array' not in binr
+            
+            if has_out_constructor and (\
+               ((has_out_relevant_string or has_out_relevant_string_old) and is_legit_out_class) or \
+                 has_out_relevant_string_nano or has_out_relevant_string_2): # CodedOutputStream
+                
                 while pkg in pkg_to_codedoutputstream:
                     pkg += '_'
                 pkg_to_codedoutputstream[pkg] = cls
+            
+            elif (has_constructor and is_legit_class and (calls_arraydecoder or has_relevant_string)) or \
+               (has_constructor_nano and (has_relevant_string_nano or has_relevant_string_micro)): # CodedInputStream
+                
+                while pkg in pkg_to_codedinputstream:
+                    pkg += '_'
+                pkg_to_codedinputstream[pkg] = cls
             
             # Other classes that may be called for (de)serializing objects
             
@@ -136,6 +154,10 @@ def handle_jar(path):
                 while pkg in pkg_to_j2me_protobuftype:
                     pkg += '_'
                 pkg_to_j2me_protobuftype[pkg] = (protobuftype_cls, default_consts)
+        
+        for pkg in list(pkg_to_codedinputstream):
+            if pkg not in pkg_to_codedoutputstream:
+                del pkg_to_codedinputstream[pkg]
         
         """
         Second iteration on classes: look for generated classes, that
@@ -272,10 +294,17 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
                 if label_to_val and start < label_to_val[0][0]: # We're before the current switch case...
                     continue
                 while label_to_val and start > label_to_val[0][1][1]: # We're after the next one in method...
-                    _, (lazy_tag, _) = label_to_val.pop(0)
+                    lazy_start, (lazy_tag, lazy_end) = label_to_val.pop(0)
+                    
                     if lazy_tag and lazy_tag >> 3 not in fields:
-                        assert lazy_tag & 7 == 2
-                        fields[lazy_tag >> 3] = ('bytes', None)
+                        lazy_obj = search('([\w$.]+) [\w$]+ = new ', code.raw[lazy_start:lazy_end])
+                        fenumormsg = None
+                        if lazy_obj and lazy_obj.group(1) in gen_classes:
+                            fenumormsg = lazy_obj.group(1)
+                        
+                        ftype = {3: 'group', 2: 'bytes'}[lazy_tag & 7]
+                        fields[lazy_tag >> 3] = (ftype, fenumormsg)
+                
                 if not label_to_val: # We have seen every case...
                     break
                 
@@ -366,10 +395,15 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
     
     # Store any remaining fields that weren't parsed
     while label_to_val:
-        _, (lazy_tag, _) = label_to_val.pop(0)
+        lazy_start, (lazy_tag, lazy_end) = label_to_val.pop(0)
         if lazy_tag and lazy_tag >> 3 not in fields:
-            assert lazy_tag & 7 == 2
-            fields[lazy_tag >> 3] = ('bytes', None)
+            lazy_obj = search('([\w$.]+) [\w$]+ = new ', code.raw[lazy_start:lazy_end])
+            fenumormsg = None
+            if lazy_obj and lazy_obj.group(1) in gen_classes:
+                fenumormsg = lazy_obj.group(1)
+            
+            ftype = {3: 'group', 2: 'bytes'}[lazy_tag & 7]
+            fields[lazy_tag >> 3] = (ftype, fenumormsg)
     
     """
     Step 2: Look for calls to CodedOutputStream (or CodedOutputByteBufferNano, or GeneratedMessage) methods
@@ -507,14 +541,14 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
                           '([\w$]+)\.(?:size\(\)|length) > ',
                           ' >= ([\w$]+)\.(?:size\(\)|length)',
                          ['([\w$]+)\(\)\.(?:size\(\)|length)', 'return ([a-zA-Z_][\w$]*);', 'return new [\w.$]+\(([a-zA-Z_][\w$]*),'],
-                          '\(([\w$]+) [!=]= null\)',
-                          '\(\!([\w$]+)\..+?\(\)\)',
+                          'if\(([\w$]+) [!=]= null\)',
+                          'if\(\!([\w$]+)\..+?\(\)\)',
                           '(?:unmodifiableMap|Arrays\.equals)\(([a-zA-Z_][\w$]*)',
                           'Bits\((?:\(+[\w.]+\))?([a-zA-Z_][\w$]*)\)',
                           '([a-zA-Z_][\w$]*)\.(?:getMap|entrySet)\(',
                          ['([a-zA-Z_][\w$]*)\(\)\.(?:getMap|entrySet)\(', 'return ([a-zA-Z_][\w$]*);'],
                           ' = \(java\.lang\.String\)([a-zA-Z_][\w$]*)',
-                          ', \(.+?\)([a-zA-Z_][\w$]*)[).]',
+                          ', \(java.+?\)([a-zA-Z_][\w$]*)[).]',
                          ['\(\d+, ([a-zA-Z_][\w$]*)\(\)+\)', ' = \(.+?\)([a-zA-Z_][\w$]*);', 'return ([a-zA-Z_][\w$]*);'],
                           '\s+([a-zA-Z_][\w$]*)\.[\w$]+\(\);',
                           '\d+, [\w$]+\.\w+\(([a-zA-Z_][\w$]*)\)',
@@ -524,6 +558,7 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
                           ' = \(.+?\)([a-zA-Z_][\w$]*)',
                           ' = \(\(.+?\)([a-zA-Z_][\w$]*)\)\.',
                           ' = ([a-zA-Z_][\w$]*);',
+                          ', \(.+?\)([a-zA-Z_][\w$]*)[).]',
                           '\(\!?([a-zA-Z_][\w$]*)\)']
                 
                 for regex in regexps:
@@ -537,10 +572,12 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
                             for regex2 in regex[1:]:
                                 if not var:
                                     var = search(regex2, func)
+                    if var and var.group(1) in ('super', 'false', 'true'):
+                        var = None
                     if var:
                         break
 
-                if not var or var.group(1) == 'super':
+                if not var:
                     continue
                 var = var.group(1)
                 
