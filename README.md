@@ -24,9 +24,9 @@ $ yaourt -S pbtk-git
 $ pbtk
 ```
 
-On most other distributions, you'll want run it directly:
+On most other distributions, you'll want to run it directly:
 
-```
+```bash
 # For Ubuntu/Debian testing derivates:
 $ sudo apt install python3-pip protobuf-compiler git openjdk-9-jre
 
