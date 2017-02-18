@@ -26,7 +26,7 @@ $ pbtk
 
 On most other distributions, you'll want to run it directly:
 
-```
+```tcl
 # For Ubuntu/Debian testing derivates:
 $ sudo apt install python3-pip protobuf-compiler git openjdk-9-jre
 
