@@ -198,8 +198,10 @@ class ProtobufItem(QTreeWidgetItem):
         self.isMsg = ds.type == ds.TYPE_MESSAGE
         self.settingDefault = False
         
-        if not ds.full_name in path:
-            super().__init__(item, [ds.full_name.split('.')[-1] + '+' * self.repeated + '  ', type_txt + '  '])
+        self.full_name = self.app.ds_full_names.setdefault(id(ds), ds.full_name)
+        
+        if not self.full_name in path:
+            super().__init__(item, [self.full_name.split('.')[-1] + '+' * self.repeated + '  ', type_txt + '  '])
         else:
             super().__init__(item, ['...' + '  ', ''])
             self.updateCheck = self.createCollapsed
@@ -421,7 +423,7 @@ class ProtobufItem(QTreeWidgetItem):
                     self.app.fuzzer.pbTree.setItemWidget(newObj, 2, newObj.widget)
                 
                 if self.isMsg:
-                    self.app.parse_desc(self.ds.message_type, newObj, self.path + [self.ds.full_name])
+                    self.app.parse_desc(self.ds.message_type, newObj, self.path + [self.full_name])
                 
                 self.dupe_obj = newObj
                 newObj.orig_obj = self
@@ -532,7 +534,8 @@ class ProtobufItem(QTreeWidgetItem):
                         while obj.orig_obj:
                             obj = obj.orig_obj
                         while obj:
-                            obj.ds.full_name = obj.ds.full_name.rsplit('.', 1)[0] + '.' + new_name
+                            obj.full_name = obj.full_name.rsplit('.', 1)[0] + '.' + new_name
+                            self.app.ds_full_names[id(obj.ds)] = obj.full_name
                             obj.setText(0, new_name + '+' * self.repeated + '  ')
                             obj = obj.dupe_obj
                         return True
@@ -542,9 +545,9 @@ class ProtobufItem(QTreeWidgetItem):
             cur_name += '.'
         
         for i, msg in enumerate(msgs):
-            if self.ds.full_name.startswith(cur_name + msg.name + '.'):
+            if self.full_name.startswith(cur_name + msg.name + '.'):
                 for j, field in enumerate(msg.field):
-                    if cur_name + msg.name + '.' + field.name == self.ds.full_name:
+                    if cur_name + msg.name + '.' + field.name == self.full_name:
                         return path + [i, 2, j, 1]
                 
                 return self.findPathForField(msg.nested_type, path + [i, 3], cur_name + msg.name)

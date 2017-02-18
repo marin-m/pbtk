@@ -329,7 +329,10 @@ class PBTKGUI(QApplication):
             
             # Get initial data into the Protobuf tree view
             self.fuzzer.pbTree.clear()
+            
             self.ds_items = defaultdict(dict)
+            self.ds_full_names = defaultdict(dict)
+            
             self.parse_desc(self.pb_request.DESCRIPTOR, self.fuzzer.pbTree)
             self.parse_fields(self.pb_request)
             

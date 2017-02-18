@@ -27,6 +27,9 @@ $ pbtk
 On most other distributions, you'll want run it directly:
 
 ```
+# For Ubuntu/Debian testing derivates:
+$ sudo apt install python3-pip protobuf-compiler git openjdk-9-jre
+
 $ sudo pip3 install protobuf pyqt5 requests
 
 $ git clone https://github.com/marin-m/pbtk
