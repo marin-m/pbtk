@@ -871,7 +871,6 @@ def extract_j2me(jar, cls, enums, gen_classes_j2me, protobuftype_cls, consts,
                 
                 field.name = next(my_namer)
                 field.number = int(fnumber)
-                field.type = type_consts[ftype]
                 field.label = label_consts[flabel]
                 
                 if fdefaultormsg != 'null':
@@ -896,6 +895,11 @@ def extract_j2me(jar, cls, enums, gen_classes_j2me, protobuftype_cls, consts,
                 
                 else:
                     fdefaultormsg = None
+                    
+                    if ftype in ('group', 'message'):
+                        ftype = 'bytes'
+
+                field.type = type_consts[ftype]
 
                 summary[int(fnumber)] = (flabel, ftype, fdefaultormsg)
         

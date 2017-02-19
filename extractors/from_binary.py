@@ -46,6 +46,9 @@ def walk_binary(binr):
         # Search back for the (1, length-delimited) marker
         start = binr.rfind(b'\x0a', max(cursor - 128, 0), cursor)
         
+        if start > 0 and binr[start - 1] == 0x0a == (cursor - start - 1):
+            start -= 1
+        
         if start == -1 or (cursor - start - 2) != binr[start + 1]:
             continue
         
