@@ -90,7 +90,7 @@ Happy reversing! 👌 🎉
 
 ## Local data storage
 
-PBTK stores extracted .proto information into `~/.pbtk/protos/` (or possibly AppData on Windows, this in an untested platform).
+PBTK stores extracted .proto information into `~/.pbtk/protos/` (or possibly AppData on Windows, this is an untested platform).
 
 You can move in, move out, rename, edit or erase data from this directory directly through your regular file browser and text editor, it's the expected way to do it and won't interfere with PBTK.
 

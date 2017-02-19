@@ -110,8 +110,8 @@ def nest_and_print_to_files(msg_path_to_obj, msg_to_referrers):
                 msg_pkg += '.'
             
             if new_name != msg_obj.name:
-                while msg_pkg + new_name in msg_path_to_obj and \
-                      msg_pkg + new_name not in msg_to_topmost:
+                while newloc_to_msg.get(msg_pkg + new_name, msg_pkg + new_name) in msg_path_to_obj and \
+                      newloc_to_msg.get(msg_pkg + new_name, msg_pkg + new_name) not in msg_to_topmost:
                     new_name += '_'
                 msg_obj.name = new_name
             
