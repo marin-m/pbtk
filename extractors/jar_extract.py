@@ -768,7 +768,7 @@ def create_enum(jar, enums, fenum, msg_path_to_obj):
         
         enum = EnumDescriptorProto()
         enum.name = fenum.split('.')[-1]
-        for fname, fnumber in findall('(?:[\w.$]+|<init>)\("(.+?)", \d+, (\d+)\);', enum_code):
+        for fname, fnumber in findall('(?:[\w.$]+|<init>)\("(.+?)", \d+, (-?\d+)[LDF]?\);', enum_code):
             value = enum.value.add()
             value.name = fname
             value.number = int(fnumber)
