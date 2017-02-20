@@ -304,6 +304,9 @@ class ProtobufItem(QTreeWidgetItem):
         
         self.value = val
         self.setting_default = False
+        
+        if self.required and not self.parent():
+            self.update(self.value)
     
     def value_changed(self, val):
         if not self.setting_default:
