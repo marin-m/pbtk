@@ -39,7 +39,8 @@ types_dec = {
 }
 
 def proto_url_decode(pburl, pbdesc, sep='!'):
-    consume(pburl.strip(sep).split(sep), pbdesc, sep)
+    if pburl:
+        consume(pburl.strip(sep).split(sep), pbdesc, sep)
 
 def consume(obj, pb, sep):
     while obj:

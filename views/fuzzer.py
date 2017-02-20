@@ -196,7 +196,7 @@ class ProtobufItem(QTreeWidgetItem):
         self.parent_pb = None
         self.app = app
         self.path = path
-        self.is_msg = ds.type == ds.TYPE_MESSAGE
+        self.is_msg = ds.cpp_type == ds.CPPTYPE_MESSAGE
         self.setting_default = False
         
         self.full_name = self.app.ds_full_names.setdefault(id(ds), ds.full_name)

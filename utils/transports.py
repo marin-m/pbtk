@@ -87,7 +87,7 @@ class GMapsAPIPublic():
         return self.rebuild_qs(sample)
     
     def parse_qs(self, sample):
-        pb = match('(?:&?\d[^&=]+)+', sample)
+        pb = match('(?:&?\d[^&=]+)*', sample)
         return OrderedDict([(pb.group(0), ''),
                             *parse_qsl(sample[pb.end() + 1:], True)])
     

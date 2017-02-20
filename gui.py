@@ -375,7 +375,7 @@ class PBTKGUI(QApplication):
     def parse_desc(self, msg, item, path=[]):
         for ds in msg.fields:
             new_item = ProtobufItem(item, ds, self, path)
-            if ds.type == ds.TYPE_MESSAGE and ds.full_name not in path:
+            if ds.cpp_type == ds.CPPTYPE_MESSAGE and ds.full_name not in path:
                 self.parse_desc(ds.message_type, new_item, path + [ds.full_name])
 
     # Then, parse the fields (contents) of the Protobuf message.
@@ -384,7 +384,7 @@ class PBTKGUI(QApplication):
         for ds, val in msg.ListFields():
             if ds.label == ds.LABEL_REPEATED:
                 for val_index, val_value in enumerate(val):
-                    if ds.type == ds.TYPE_MESSAGE:
+                    if ds.cpp_type == ds.CPPTYPE_MESSAGE:
                         self.ds_items[id(ds)][tuple(path)].setExpanded(True)
                         self.ds_items[id(ds)][tuple(path)].setDefault(parent=msg, msg=val, index=val_index)
                         self.parse_fields(val_value, path + [ds.full_name])
@@ -395,7 +395,7 @@ class PBTKGUI(QApplication):
                     self.ds_items[id(ds)][tuple(path)].duplicate(True)
             
             else:
-                if ds.type == ds.TYPE_MESSAGE:
+                if ds.cpp_type == ds.CPPTYPE_MESSAGE:
                     self.ds_items[id(ds)][tuple(path)].setExpanded(True)
                     self.ds_items[id(ds)][tuple(path)].setDefault(parent=msg, msg=val)
                     self.parse_fields(val, path + [ds.full_name])
