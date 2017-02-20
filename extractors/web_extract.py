@@ -55,7 +55,7 @@ def pburl_extract(url):
     awaiting_srcs = []
     endpoints = []
     sid_to_vars = {}
-    proto_to_urls = {}
+    proto_to_urls = OrderedDict()
     
     port = randint(1024, 32767)
     temp_profile = True

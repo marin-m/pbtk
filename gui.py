@@ -279,7 +279,7 @@ class PBTKGUI(QApplication):
                 
                 pb_msg_to_endpoints = defaultdict(list)
                 with open(str(BASE_PATH / 'endpoints' / name)) as fd:
-                    for endpoint in load(fd):
+                    for endpoint in load(fd, object_pairs_hook=OrderedDict):
                         pb_msg_to_endpoints[endpoint['request']['proto_msg'].split('.')[-1]].append(endpoint)
                 
                 for pb_msg, endpoints in pb_msg_to_endpoints.items():
@@ -421,7 +421,7 @@ class PBTKGUI(QApplication):
             path = str(BASE_PATH / 'endpoints' / (urlparse(self.base_url).netloc + '.json'))
             
             with open(path) as fd:
-                json = load(fd)
+                json = load(fd, object_pairs_hook=OrderedDict)
             json.remove(self.endpoint)
             
             with open(path, 'w') as fd:

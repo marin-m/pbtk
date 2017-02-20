@@ -23,7 +23,7 @@ class JarWrapper(TemporaryDirectory):
         self.classes = []
         self.decompiled = {}
         
-        self.bonus_protos = {}
+        self.bonus_protos = OrderedDict()
         
         self.handle_file(fname)
 

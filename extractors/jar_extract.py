@@ -49,12 +49,12 @@ def handle_jar(path):
     with JarWrapper(path) as jar:
         enums = {}
         
-        pkg_to_codedinputstream = {}
+        pkg_to_codedinputstream = OrderedDict()
         pkg_to_codedoutputstream = {}
         map_entry_cls = []
         out_additional_cls = []
         
-        pkg_to_j2me_protobuftype = {}
+        pkg_to_j2me_protobuftype = OrderedDict()
         
         """
         First iteration on classes: look for library classes signatures.
@@ -223,7 +223,7 @@ def handle_jar(path):
         
         # These variables will be filled in by extract_* functions:
         
-        msg_path_to_obj = {} # For the class name of a message/enum, its DescriptorProto object
+        msg_path_to_obj = OrderedDict() # For the class name of a message/enum, its DescriptorProto object
         msg_to_referrers = defaultdict(list) # For a nested message/enum, all message fields that refer to it
         
         # Call the extraction routine for most implementations
@@ -270,7 +270,7 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
     """
     
     in_switch = False
-    label_to_val = {}
+    label_to_val = None
     fields = {}
     
     for start, (call, end) in code.method_calls.items():
@@ -302,7 +302,7 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
                         if lazy_obj and lazy_obj.group(1) in gen_classes:
                             fenumormsg = lazy_obj.group(1)
                         
-                        ftype = {3: 'group', 2: 'bytes'}[lazy_tag & 7]
+                        ftype = {0: 'int32', 1: 'fixed64', 2: 'bytes', 3: 'group', 5: 'fixed32'}[lazy_tag & 7]
                         fields[lazy_tag >> 3] = (ftype, fenumormsg)
                 
                 if not label_to_val: # We have seen every case...
@@ -374,7 +374,7 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
                             fenumormsg = call2_obj
                             break                
                 else:
-                    raise ValueError
+                    return
                 
                 if not fenumormsg and ftype in ('group', 'bytes'):
                     msg_obj = search('([\w$.]+) [\w$]+ = new ', case)
@@ -397,7 +397,7 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
                     fields[fnumber] = create_map(cls, jar, enums, code.pkg, var, fnumber, ftype1, fmsg1, ftype2, fmsg2, \
                                                  msg_to_referrers, msg_path_to_obj)
 
-        
+    
     if not in_switch and 'tableswitch 0 0' not in code.raw:
         return
     
@@ -410,7 +410,7 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
             if lazy_obj and lazy_obj.group(1) in gen_classes:
                 fenumormsg = lazy_obj.group(1)
             
-            ftype = {3: 'group', 2: 'bytes'}[lazy_tag & 7]
+            ftype = {0: 'int32', 1: 'fixed64', 2: 'bytes', 3: 'group', 5: 'fixed32'}[lazy_tag & 7]
             fields[lazy_tag >> 3] = (ftype, fenumormsg)
     
     """
@@ -420,7 +420,7 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
     """
     
     seen_conds = set()
-    cond_lines = {}
+    cond_lines = OrderedDict()
     prev_cond_end = 0
     take_packed = False
     
@@ -591,8 +591,7 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
                 
                 fdefault = findall('\s+(?:super\.)?%s(?:\[\])* = (.+?);' % escape(var), code.raw, flags=MULTILINE)
                 if not fdefault:
-                    print('Error: no first definition for variable:', var, '/', regex, '/', cls, '/', cond)
-                    raise IndexError
+                    fdefault = ['null']
                 fdefault = next((i for i in fdefault if i not in ('0', 'null', 'false')), fdefault[0])
                 
                 # Check its type for an embedded message or group, too

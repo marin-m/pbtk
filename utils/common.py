@@ -80,7 +80,7 @@ def insert_endpoint(base_path, obj):
     json = []
     if exists(str(path)):
         with open(str(path)) as fd:
-            json = load(fd)
+            json = load(fd, object_pairs_hook=OrderedDict)
     
     # Try to merge objects
     inserted = False

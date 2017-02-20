@@ -19,28 +19,39 @@ from utils.descpb_to_proto import descpb_to_proto
 """
 
 def nest_and_print_to_files(msg_path_to_obj, msg_to_referrers):
-    msg_to_topmost = {}
+    msg_to_topmost = OrderedDict()
     msg_to_newloc = {}
     newloc_to_msg = {}
     msg_to_imports = defaultdict(list)
-    for msg, referrers in msg_to_referrers.items():
-        for _, referrer, _ in referrers:
-            msg_to_imports[referrer].append(msg)
-    
+
     # Iterate over referred to messages/groups/enums.
+    
+    for msg, referrers in dict(msg_to_referrers).items():
+        # Suppress references to unknown messages caused by
+        # decompilation failures.
+        if msg not in msg_path_to_obj:
+            del msg_to_referrers[msg]
+            for field, referrer, _ in referrers:
+                field = next((i for i in msg_path_to_obj[referrer].field if i.name == field), None)
+                
+                field.ClearField('type_name')
+                field.type = field.TYPE_BYTES
+        else:
+            for _, referrer, _ in referrers:
+                msg_to_imports[referrer].append(msg)
     
     # Merge groups first:
     msg_to_referrers = OrderedDict(sorted(msg_to_referrers.items(), key=lambda x: -x[1][0][2]))
     
-    mergeable = {}
+    mergeable = OrderedDict()
     enumfield_to_enums = defaultdict(set)
     enum_to_dupfields = defaultdict(set)
     
-    for msg, referrers in dict(msg_to_referrers).items():
+    for msg, referrers in msg_to_referrers.items():
         msg_pkg = get_pkg(msg)
         msg_obj = msg_path_to_obj[msg]
 
-        # Check for duplicate enum fields in the same package:
+        # Check for duplicate enum fields in the same package.
         if not isinstance(msg_obj, DescriptorProto):
             for enum_field in msg_obj.value:
                 name = msg_pkg + '.' + enum_field.name
@@ -54,7 +65,7 @@ def nest_and_print_to_files(msg_path_to_obj, msg_to_referrers):
         field, referrer, is_group = first_field
 
         # Check whether message/enum has exactly one reference in this
-        # package:
+        # package.
         if not is_group:
             in_pkg = [(field, referrer) for field, referrer, _ in referrers \
                       if (get_pkg(referrer) == msg_pkg or not msg_pkg) \

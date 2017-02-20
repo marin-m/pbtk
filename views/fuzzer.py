@@ -7,6 +7,7 @@ from PyQt5.QtGui import QRegExpValidator
 
 from google.protobuf.descriptor_pb2 import FileDescriptorSet
 from xml.dom.minidom import parseString
+from collections import defaultdict
 from subprocess import run, PIPE
 from functools import partial
 from json import loads, dumps
@@ -178,7 +179,7 @@ class QwordSpinBox(QAbstractSpinBox):
 """
 
 # This variable is used to bookkeep position of repeated fields, for when one of their siblings is removed.
-item_indices = {}
+item_indices = defaultdict(list)
 
 class ProtobufItem(QTreeWidgetItem):
     def __init__(self, item, ds, app, path):
@@ -279,7 +280,6 @@ class ProtobufItem(QTreeWidgetItem):
             self.self_pb = msg
             self.index = index
             if index is not None:
-                item_indices.setdefault(id(self.self_pb), [])
                 assert index == len(item_indices[id(self.self_pb)])
                 item_indices[id(self.self_pb)].append(self)
         
@@ -325,7 +325,6 @@ class ProtobufItem(QTreeWidgetItem):
             if self.repeated:
                 self.index = len(self.self_pb)
                 
-                item_indices.setdefault(id(self.self_pb), [])
                 item_indices[id(self.self_pb)].append(self)
                 
                 if self.is_msg:
