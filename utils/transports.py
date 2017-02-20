@@ -98,8 +98,10 @@ class GMapsAPIPublic():
     
     def load_sample(self, sample, pb_msg):
         sample = self.parse_qs(sample)
-        pb_data = '&'.join(k for k in sample.keys() if k[0].isdigit())
-        get_data = OrderedDict((k, v) for k, v in sample.items() if not k[0].isdigit())
+        pb_data = '&'.join(k for k in sample.keys()
+                             if not k or k[0].isdigit())
+        get_data = OrderedDict((k, v) for k, v in sample.items()
+                                      if k and not k[0].isdigit())
         if 'callback' in get_data:
             get_data['callback'] = '_xdc_._'
         proto_url_decode(pb_data, pb_msg, '&')
