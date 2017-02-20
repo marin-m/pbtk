@@ -3,11 +3,11 @@
 from google.protobuf.descriptor_pb2 import FileDescriptorSet
 from collections import OrderedDict, defaultdict
 from google.protobuf.message import Message
+from importlib import import_module, reload
 from tempfile import TemporaryDirectory
 from inspect import getmembers, isclass
 from os import environ, name, makedirs
 from importlib.util import find_spec
-from importlib import import_module
 from argparse import ArgumentParser
 from urllib.parse import urlparse
 from subprocess import run, PIPE
@@ -172,6 +172,7 @@ def load_proto_msgs(proto_path, ret_source_info=False):
 
         PATH.append(arg_python_out)
         module = import_module(module_name)
+        reload(module)
         PATH.remove(arg_python_out)
     
     # Recursively iterate over class members to list Protobuf messages

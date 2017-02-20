@@ -105,7 +105,7 @@ def produce(obj, pb, sep):
     for ds, val in pb.ListFields():
         for val in (val if ds.label == ds.LABEL_REPEATED else [val]):
             
-            if ds.type == ds.TYPE_MESSAGE:
+            if ds.cpp_type == ds.CPPTYPE_MESSAGE:
                 origlen = len(obj)
                 produce(obj, val, sep)
                 obj.insert(origlen, '%dm%d' % (ds.number, len(obj) - origlen))

@@ -5,7 +5,6 @@ from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QByteArray, QRegExp
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtGui import QRegExpValidator
 
-from google.protobuf.descriptor_pb2 import FileDescriptorSet
 from xml.dom.minidom import parseString
 from collections import defaultdict
 from subprocess import run, PIPE
@@ -17,9 +16,16 @@ from struct import unpack
 from io import BytesIO
 from re import match
 
-# Monkey-patch enum value checking, and then do Protobuf imports
+# Monkey-patch enum value checking,
 from google.protobuf.internal import type_checkers
 type_checkers.SupportsOpenEnums = lambda x: True
+
+# Monkey-patch map object creation (suppressing the map_entry option
+# from generated classes),
+from google.protobuf import descriptor
+descriptor._ParseOptions = lambda msg, data: msg.FromString(data.replace(b'8\001', b''))
+
+# And then do Protobuf imports
 from google.protobuf.internal.type_checkers import _VALUE_CHECKERS
 
 from utils.common import load_proto_msgs
@@ -321,7 +327,7 @@ class ProtobufItem(QTreeWidgetItem):
     def get_self_pb(self):
         if self.self_pb is None:
             self.self_pb = getattr(self.get_parent_pb(), self.ds.name)
-                
+
             if self.repeated:
                 self.index = len(self.self_pb)
                 
@@ -364,7 +370,7 @@ class ProtobufItem(QTreeWidgetItem):
                 setattr(self.parent_pb, self.ds.name, val)
             
             else:
-                self.parent_pb._fields.pop(self.ds, None)
+                self.parent_pb.ClearField(self.ds.name)
                 self.self_pb = None
                 self.void = True
         
