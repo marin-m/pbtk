@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 #-*- encoding: Utf-8 -*-
-from google.protobuf.descriptor_pb2 import FileDescriptorSet
 from collections import OrderedDict, defaultdict
 from google.protobuf.message import Message
 from importlib import import_module, reload
@@ -24,6 +23,8 @@ else:
     BASE_PATH = Path(environ['APPDATA']) / 'pbtk'
 makedirs(str(BASE_PATH / 'protos'), exist_ok=True)
 makedirs(str(BASE_PATH / 'endpoints'), exist_ok=True)
+
+environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
 
 extractors = OrderedDict()
 """
@@ -159,6 +160,8 @@ def load_proto_msgs(proto_path, ret_source_info=False):
             raise ValueError(cmd.stderr.decode('utf8'))
         
         if ret_source_info:
+            from google.protobuf.descriptor_pb2 import FileDescriptorSet
+
             with open(str(Path(arg_python_out) / 'desc_info'), 'rb') as fd:
                 yield FileDescriptorSet.FromString(fd.read()), arg_proto_path
                 return
