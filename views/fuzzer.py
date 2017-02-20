@@ -261,6 +261,10 @@ class ProtobufItem(QTreeWidgetItem):
             self.app.fuzzer.pbTree.setItemWidget(self, 2, self.widget)
         
         self.setDefault(ds.default_value or default, unvoid=False)
+        
+        if self.required and not self.parent() and \
+           not self.app.pb_request.HasField(self.ds.name):
+            self.update(self.value)
     
     """
         The following code that handles the interaction and different
@@ -289,7 +293,7 @@ class ProtobufItem(QTreeWidgetItem):
                 assert index == len(item_indices[id(self.self_pb)])
                 item_indices[id(self.self_pb)].append(self)
         
-        if val:
+        if val or (unvoid and val is not None):
             if type(val) == bool:
                 self.widget.setChecked(val)
             elif type(val) == str:
@@ -304,9 +308,6 @@ class ProtobufItem(QTreeWidgetItem):
         
         self.value = val
         self.setting_default = False
-        
-        if self.required and not self.parent():
-            self.update(self.value)
     
     def value_changed(self, val):
         if not self.setting_default:
