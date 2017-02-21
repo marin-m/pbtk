@@ -121,8 +121,7 @@ def nest_and_print_to_files(msg_path_to_obj, msg_to_referrers):
                 msg_pkg += '.'
             
             if new_name != msg_obj.name:
-                while newloc_to_msg.get(msg_pkg + new_name, msg_pkg + new_name) in msg_path_to_obj and \
-                      newloc_to_msg.get(msg_pkg + new_name, msg_pkg + new_name) not in msg_to_topmost:
+                while newloc_to_msg.get(msg_pkg + new_name, msg_pkg + new_name) in msg_path_to_obj:
                     new_name += '_'
                 msg_obj.name = new_name
             
@@ -223,11 +222,12 @@ def fix_naming(nested, new_path, prev_path, top_path,
     # it's the one we'll use when processing further references from
     # msg_to_referrers and other objects.
     orig_path = newloc_to_msg.get(prev_path, prev_path)
+    print('A', orig_path, '/', prev_path, '/', new_path)
     newloc_to_msg[new_path] = orig_path
 
     if orig_path != top_path:
         msg_to_topmost[orig_path] = top_path
-    msg_to_newloc[orig_path] = new_path
+    msg_to_newloc[orig_path] = new_path # en fait il dit que tu t'es appelé ça-tel alors que tu t'es jamais appelé ça-tel
     msg_path_to_obj[orig_path] = nested
     
     # Fix references.

@@ -48,7 +48,6 @@ def walk_binary(binr):
         
         if start > 0 and binr[start - 1] == 0x0a == (cursor - start - 1):
             start -= 1
-        
         if start == -1 or (cursor - start - 2) != binr[start + 1]:
             continue
         
