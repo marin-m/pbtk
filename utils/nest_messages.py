@@ -226,7 +226,7 @@ def fix_naming(nested, new_path, prev_path, top_path,
 
     if orig_path != top_path:
         msg_to_topmost[orig_path] = top_path
-    msg_to_newloc[orig_path] = new_path # en fait il dit que tu t'es appelé ça-tel alors que tu t'es jamais appelé ça-tel
+    msg_to_newloc[orig_path] = new_path
     msg_path_to_obj[orig_path] = nested
     
     # Fix references.
