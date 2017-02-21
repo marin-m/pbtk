@@ -37,7 +37,7 @@ $ cd pbtk
 $ ./gui.py
 ```
 
-Windows is mostly supported with the required modules. Once you run the GUI, it should warn you on what you are missing depending on what you try to do.
+Windows is also supported (with the same modules required). Once you run the GUI, it should warn you on what you are missing depending on what you try to do.
 
 ## Command line usage
 
