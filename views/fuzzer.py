@@ -28,7 +28,7 @@ descriptor._ParseOptions = lambda msg, data: msg.FromString(data.replace(b'8\001
 # And then do Protobuf imports
 from google.protobuf.internal.type_checkers import _VALUE_CHECKERS
 
-from utils.common import load_proto_msgs
+from utils.common import load_proto_msgs, protoc
 
 """
     We extend QWebEngineView with a method that parses responses and
@@ -124,7 +124,7 @@ class MyFrame(QWebEngineView):
                 return str(pbresp.FromString(data)).encode('utf8')
             except Exception:
                 pass
-        return run(['protoc', '--decode_raw'], input=data, stdout=PIPE, stderr=PIPE).stdout
+        return run([protoc, '--decode_raw'], input=data, stdout=PIPE, stderr=PIPE).stdout
 
 """
     We subclass QAbstractSpinBox as QSpinBox does not provide int64

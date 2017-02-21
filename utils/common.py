@@ -1,30 +1,48 @@
 #!/usr/bin/python3
 #-*- encoding: Utf-8 -*-
 from collections import OrderedDict, defaultdict
+from os.path import exists, dirname, realpath
 from google.protobuf.message import Message
 from importlib import import_module, reload
 from tempfile import TemporaryDirectory
 from inspect import getmembers, isclass
-from os import environ, name, makedirs
+from sys import platform, path as PATH
+from os import environ, makedirs, sep
 from importlib.util import find_spec
 from argparse import ArgumentParser
 from urllib.parse import urlparse
+from platform import architecture
 from subprocess import run, PIPE
-from sys import path as PATH
 from json import dump, load
 from re import findall, sub
-from os.path import exists
 from pathlib import Path
 from shutil import which
 
-if name != 'nt':
+# Constructing paths - local data
+
+if platform != 'win32':
     BASE_PATH = Path(environ['HOME']) / '.pbtk'
 else:
     BASE_PATH = Path(environ['APPDATA']) / 'pbtk'
 makedirs(str(BASE_PATH / 'protos'), exist_ok=True)
 makedirs(str(BASE_PATH / 'endpoints'), exist_ok=True)
 
+# Constructing paths - executables
+
+external = Path(dirname(realpath(__file__))) / 'external'
+arch = '64' * (architecture()[0] == '64bit')
+
+protoc = str(external / 'protoc' / ('protoc' + {'win32': '.exe', 'darwin': '_osx'}.get(platform, arch)))
+dex2jar = str(external / 'dex2jar' / ('d2j-dex2jar.' + {'win32': 'bat'}.get(platform, 'sh')))
+jad = str(external / 'jad' / ('jad' + {'win32': '.exe', 'darwin': '_osx'}.get(platform, '')))
+
+# Disable the C++ extension for Python-Protobuf (for consistent behaviors) [1]
+# [1] https://github.com/google/protobuf/blob/cf1418/python/google/protobuf/internal/api_implementation.py#L72
+
 environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
+
+# Decorators for registering pluggable modules, documented at [2]
+# [2] https://github.com/marin-m/pbtk#source-code-structure
 
 extractors = OrderedDict()
 """
@@ -52,6 +70,8 @@ def register_transport(**kwargs):
         transports[kwargs['name']] = {'func': func, **kwargs}
         return func
     return register_transport_decorate
+
+# General utility functions
 
 def assert_installed(win=None, modules=[], binaries=[]):
     missing = defaultdict(list)
@@ -151,7 +171,7 @@ def load_proto_msgs(proto_path, ret_source_info=False):
     # Execute protoc and import the actual module from a tmp
     
     with TemporaryDirectory() as arg_python_out:
-        args = ['protoc', '--proto_path=%s' % arg_proto_path, '--python_out=' + arg_python_out, *arg_proto_files]
+        args = [protoc, '--proto_path=%s' % arg_proto_path, '--python_out=' + arg_python_out, *arg_proto_files]
         if ret_source_info:
             args += ['-o%s' % (Path(arg_python_out) / 'desc_info'), '--include_source_info', '--include_imports']
         
@@ -168,7 +188,7 @@ def load_proto_msgs(proto_path, ret_source_info=False):
         
         # Do actual import
         
-        module_name = str(proto_dir).replace(str(arg_proto_path), '').strip('/\\').replace('/', '.')
+        module_name = str(proto_dir).replace(str(arg_proto_path), '').strip('/\\').replace(sep, '.')
         if module_name:
             module_name += '.'
         module_name += Path(proto_path).stem.replace('-', '_') + '_pb2'

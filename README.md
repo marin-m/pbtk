@@ -28,7 +28,7 @@ On most other distributions, you'll want to run it directly:
 
 ```tcl
 # For Ubuntu/Debian testing derivates:
-$ sudo apt install python3-pip protobuf-compiler git openjdk-9-jre
+$ sudo apt install python3-pip git openjdk-9-jre
 
 $ sudo pip3 install protobuf pyqt5 requests
 
@@ -37,7 +37,7 @@ $ cd pbtk
 $ ./gui.py
 ```
 
-Windows support is untested yet. Once you run the GUI, it should warn you on what you are missing depending on what you try to do.
+Windows is mostly supported with the required modules. Once you run the GUI, it should warn you on what you are missing depending on what you try to do.
 
 ## Command line usage
 
@@ -90,7 +90,7 @@ Happy reversing! 👌 🎉
 
 ## Local data storage
 
-PBTK stores extracted .proto information into `~/.pbtk/protos/` (or possibly AppData on Windows, this is an untested platform).
+PBTK stores extracted .proto information into `~/.pbtk/protos/` (or `%APPDATA%\pbtk\protos` on Windows).
 
 You can move in, move out, rename, edit or erase data from this directory directly through your regular file browser and text editor, it's the expected way to do it and won't interfere with PBTK.
 

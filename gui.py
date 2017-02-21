@@ -167,41 +167,40 @@ class PBTKGUI(QApplication):
         if not self.proto_fs.isDir(path):
             path = self.proto_fs.filePath(path)
             
-            if assert_installed(self.choose_proto, binaries=['protoc']):
+            if not getattr(self, 'only_resp_combo', False):
+                self.create_endpoint.pbRequestCombo.clear()
+            self.create_endpoint.pbRespCombo.clear()
+            
+            has_msgs = False
+            for name, cls in load_proto_msgs(path):
+                has_msgs = True
                 if not getattr(self, 'only_resp_combo', False):
-                    self.create_endpoint.pbRequestCombo.clear()
-                self.create_endpoint.pbRespCombo.clear()
-                
-                has_msgs = False
-                for name, cls in load_proto_msgs(path):
-                    has_msgs = True
-                    if not getattr(self, 'only_resp_combo', False):
-                        self.create_endpoint.pbRequestCombo.addItem(name, (path, name))
-                    self.create_endpoint.pbRespCombo.addItem(name, (path, name))
-                if not has_msgs:
-                    QMessageBox.warning(self.view, ' ', 'There is no message defined in this .proto.')
-                    return
-                
-                self.create_endpoint.reqDataSubform.hide()
+                    self.create_endpoint.pbRequestCombo.addItem(name, (path, name))
+                self.create_endpoint.pbRespCombo.addItem(name, (path, name))
+            if not has_msgs:
+                QMessageBox.warning(self.view, ' ', 'There is no message defined in this .proto.')
+                return
+            
+            self.create_endpoint.reqDataSubform.hide()
 
-                if not getattr(self, 'only_resp_combo', False):
-                    self.create_endpoint.endpointUrl.clear()
-                    self.create_endpoint.transports.clear()
-                    self.create_endpoint.sampleData.clear()
-                    self.create_endpoint.pbParamKey.clear()
-                    self.create_endpoint.parsePbCheckbox.setChecked(False)
-                    
-                    for name, meta in transports.items():
-                        item = QListWidgetItem(meta['desc'], self.create_endpoint.transports)
-                        item.setData(Qt.UserRole, (name, meta.get('ui_data_form')))
+            if not getattr(self, 'only_resp_combo', False):
+                self.create_endpoint.endpointUrl.clear()
+                self.create_endpoint.transports.clear()
+                self.create_endpoint.sampleData.clear()
+                self.create_endpoint.pbParamKey.clear()
+                self.create_endpoint.parsePbCheckbox.setChecked(False)
                 
-                elif getattr(self, 'saved_transport_choice'):
-                    self.create_endpoint.transports.setCurrentItem(self.saved_transport_choice)
-                    self.pick_transport(self.saved_transport_choice)
-                    self.saved_transport_choice = None
-                
-                self.only_resp_combo = False
-                self.set_view(self.create_endpoint)
+                for name, meta in transports.items():
+                    item = QListWidgetItem(meta['desc'], self.create_endpoint.transports)
+                    item.setData(Qt.UserRole, (name, meta.get('ui_data_form')))
+            
+            elif getattr(self, 'saved_transport_choice'):
+                self.create_endpoint.transports.setCurrentItem(self.saved_transport_choice)
+                self.pick_transport(self.saved_transport_choice)
+                self.saved_transport_choice = None
+            
+            self.only_resp_combo = False
+            self.set_view(self.create_endpoint)
     
     def pick_transport(self, item):
         name, desc = item.data(Qt.UserRole)
@@ -302,7 +301,7 @@ class PBTKGUI(QApplication):
         else:
             data, sample_id = item.data(Qt.UserRole), 0
         
-        if data and assert_installed(self.view, binaries=['protoc']):
+        if data:
             self.current_req_proto = BASE_PATH / 'protos' / data['request']['proto_path']
             
             self.pb_request = load_proto_msgs(self.current_req_proto)

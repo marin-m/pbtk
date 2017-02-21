@@ -8,7 +8,6 @@ from logging import getLogger, DEBUG
 from collections import OrderedDict
 from re import search, sub, findall
 from urllib.request import urlopen
-from os import killpg, getpgid
 from json import loads, dumps
 from random import randint
 from shutil import which
@@ -39,7 +38,8 @@ from utils.common import register_extractor, extractor_main
     [2] https://chromedevtools.github.io/debugger-protocol-viewer/tot/
 """
 
-browser = which('chromium-snapshot-bin') or which('chromium') or which('google-chrome') or which('chrome') or 'chrome'
+browser = which('C:/Program Files (x86)/Google/Chrome/Application/chrome.exe') or \
+          which('chromium-browser') or which('chromium') or which('chrome') or 'google-chrome'
 
 @register_extractor(name = 'pburl_extract',
                     desc = 'Extract and capture Protobuf-URL endpoints from a Chrome instance (http://*)',
@@ -73,7 +73,7 @@ def pburl_extract(url):
         try:
             while True:
                 try:
-                    tabs = urlopen('http://localhost:%d/json' % port).read()
+                    tabs = urlopen('http://localhost:%d/json' % port).read().decode('utf8')
                     tab = next(tab for tab in loads(tabs) if tab['type'] == 'page')
                     break
                 except OSError:
@@ -88,7 +88,7 @@ def pburl_extract(url):
         finally:
             try:
                 # Make sure that Chromium is killed when quitting by error
-                killpg(getpgid(chrome.pid), SIGINT)
+                chrome.terminate()
             except:
                 pass
             
