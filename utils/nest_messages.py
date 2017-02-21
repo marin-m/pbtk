@@ -222,7 +222,6 @@ def fix_naming(nested, new_path, prev_path, top_path,
     # it's the one we'll use when processing further references from
     # msg_to_referrers and other objects.
     orig_path = newloc_to_msg.get(prev_path, prev_path)
-    print('A', orig_path, '/', prev_path, '/', new_path)
     newloc_to_msg[new_path] = orig_path
 
     if orig_path != top_path:
