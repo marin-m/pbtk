@@ -207,12 +207,7 @@ class ProtobufItem(QTreeWidgetItem):
         
         self.full_name = self.app.ds_full_names.setdefault(id(ds), ds.full_name)
         
-        if not self.full_name in path:
-            super().__init__(item, [self.full_name.split('.')[-1] + '+' * self.repeated + '  ', type_txt + '  '])
-        else:
-            super().__init__(item, ['...' + '  ', ''])
-            self.update_check = self.create_collapsed
-            return
+        super().__init__(item, [self.full_name.split('.')[-1] + '+' * self.repeated + '  ', type_txt + '  '])
         
         if not self.required:
             self.setCheckState(0, Qt.Unchecked)
@@ -221,6 +216,8 @@ class ProtobufItem(QTreeWidgetItem):
         self.app.ds_items[id(ds)][tuple(path)] = self # Hierarchy array
         
         if self.is_msg:
+            self.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
+            self.expanded = self.lazy_initialize
             return
         
         elif ds.type == ds.TYPE_BOOL:
@@ -266,6 +263,14 @@ class ProtobufItem(QTreeWidgetItem):
            not self.app.pb_request.HasField(self.ds.name):
             self.update(self.value)
     
+    # Create children items only when expanded, to avoid problems with
+    # huge multi-referencing protos.
+    
+    def lazy_initialize(self):
+        for ds in self.ds.message_type.fields:
+            ProtobufItem(self, ds, self.app, self.path + [ds.full_name])
+        del self.expanded
+    
     """
         The following code that handles the interaction and different
         states of a tree item may be a bit entangled, sorry for this.
@@ -299,7 +304,7 @@ class ProtobufItem(QTreeWidgetItem):
             elif type(val) == str:
                 self.widget.setText(val)
             elif type(val) == bytes:
-                self.widget.setText(val.decode('utf8'))
+                self.widget.setText(val.decode('latin1').encode('unicode_escape').decode('latin1'))
             else:
                 self.widget.setValue(val)
         
@@ -312,7 +317,10 @@ class ProtobufItem(QTreeWidgetItem):
     def value_changed(self, val):
         if not self.setting_default:
             if self.ds.type == self.ds.TYPE_BYTES:
-                val = val.encode('utf8')
+                try:
+                    val = val.encode('latin1').decode('unicode_escape').encode('latin1')
+                except Exception:
+                    return
             elif self.ds.type == self.ds.TYPE_BOOL:
                 val = bool(val)
             
@@ -396,28 +404,14 @@ class ProtobufItem(QTreeWidgetItem):
                 self.self_pb = None # So that if we're repeated we're recreated further
                 self.void = True
     
-    def create_collapsed(self, recursive=False, col=None):
-        if not recursive:
-            self.path = []
-            
-            new = self.duplicate(True, True)
-            new.setExpanded(True)
-            
-            if self.parent():
-                index = self.parent().indexOfChild(self)
-                self.parent().takeChild(index)
-            else:
-                index = self.treeWidget().indexOfTopLevelItem(self)
-                self.treeWidget().takeTopLevelItem(index)
-    
-    def duplicate(self, setting_default=False, force=False):
+    def duplicate(self, setting_default=False):
         if not self.dupped:
             self.dupped = True
             
             if self.parent() and not setting_default:
                 self.parent().duplicate()
             
-            if self.repeated or force:
+            if self.repeated:
                 new_obj = ProtobufItem(None, self.ds, self.app, self.path)
                 
                 if self.parent():
@@ -430,9 +424,6 @@ class ProtobufItem(QTreeWidgetItem):
                 
                 if hasattr(new_obj, 'widget'):
                     self.app.fuzzer.pbTree.setItemWidget(new_obj, 2, new_obj.widget)
-                
-                if self.is_msg:
-                    self.app.parse_desc(self.ds.message_type, new_obj, self.path + [self.full_name])
                 
                 self.dupe_obj = new_obj
                 new_obj.orig_obj = self

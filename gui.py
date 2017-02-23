@@ -77,6 +77,7 @@ class PBTKGUI(QApplication):
         for tree in (self.fuzzer.pbTree, self.fuzzer.getTree):
             tree.itemEntered.connect(lambda item, _: item.edit() if hasattr(item, 'edit') else None)
             tree.itemClicked.connect(lambda item, col: item.update_check(col=col))
+            tree.itemExpanded.connect(lambda item: item.expanded() if hasattr(item, 'expanded') else None)
             tree.header().setSectionResizeMode(QHeaderView.ResizeToContents)
         
         self.welcome.mydirLabel.setText(self.welcome.mydirLabel.text() % BASE_PATH)
@@ -330,7 +331,8 @@ class PBTKGUI(QApplication):
             self.ds_items = defaultdict(dict)
             self.ds_full_names = {}
             
-            self.parse_desc(self.pb_request.DESCRIPTOR, self.fuzzer.pbTree)
+            for ds in self.pb_request.DESCRIPTOR.fields:
+                ProtobufItem(self.fuzzer.pbTree, ds, self, [ds.full_name])
             self.parse_fields(self.pb_request)
             
             # Do the same for transport-specific data
@@ -370,24 +372,16 @@ class PBTKGUI(QApplication):
         entry for the corresponding descriptor.
     """
     
-    # First, parse the descriptor (structure) of the Protobuf message.
-    
-    def parse_desc(self, msg, item, path=[]):
-        for ds in msg.fields:
-            new_item = ProtobufItem(item, ds, self, path)
-            if ds.cpp_type == ds.CPPTYPE_MESSAGE and ds.full_name not in path:
-                self.parse_desc(ds.message_type, new_item, path + [ds.full_name])
-
-    # Then, parse the fields (contents) of the Protobuf message.
-    
-    def parse_fields(self, msg, path=[]):
+    def parse_fields(self, msg, base_path=[]):
         for ds, val in msg.ListFields():
+            path = base_path + [ds.full_name]
+            
             if ds.label == ds.LABEL_REPEATED:
                 for val_index, val_value in enumerate(val):
                     if ds.cpp_type == ds.CPPTYPE_MESSAGE:
                         self.ds_items[id(ds)][tuple(path)].setExpanded(True)
                         self.ds_items[id(ds)][tuple(path)].setDefault(parent=msg, msg=val, index=val_index)
-                        self.parse_fields(val_value, path + [ds.full_name])
+                        self.parse_fields(val_value, path)
                     
                     else:
                         self.ds_items[id(ds)][tuple(path)].setDefault(val_value, parent=msg, msg=val, index=val_index)
@@ -398,7 +392,7 @@ class PBTKGUI(QApplication):
                 if ds.cpp_type == ds.CPPTYPE_MESSAGE:
                     self.ds_items[id(ds)][tuple(path)].setExpanded(True)
                     self.ds_items[id(ds)][tuple(path)].setDefault(parent=msg, msg=val)
-                    self.parse_fields(val, path + [ds.full_name])
+                    self.parse_fields(val, path)
                 
                 else:
                     self.ds_items[id(ds)][tuple(path)].setDefault(val, parent=msg, msg=val)
