@@ -47,7 +47,7 @@ class MyFrame(QWebEngineView):
         elif 'html' in mime:
             if '/embed' in url:
                 text = text.replace('<head>', '<head><script>opener=1</script>')
-            out_mime = mime
+            out_mime = 'text/html; charset=utf-8'
             data = text
         
         elif 'json' in mime:
