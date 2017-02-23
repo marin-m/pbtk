@@ -49,6 +49,37 @@ def nest_and_print_to_files(msg_path_to_obj, msg_to_referrers):
     
     for msg, referrers in msg_to_referrers.items():
         msg_pkg = get_pkg(msg)
+
+        first_field = referrers[0]
+        field, referrer, is_group = first_field
+
+        # Check whether message/enum has exactly one referrer, and
+        # whether it's in the same package.
+        if not is_group:
+            in_pkg = [(field, referrer) for field, referrer, _ in referrers \
+                      if (get_pkg(referrer) == msg_pkg or not msg_pkg) \
+                      and msg_to_topmost.get(referrer, referrer) != msg \
+                      and not msg_path_to_obj[referrer].options.map_entry \
+                      # If it's a subclass, parent must be the same
+                      and ('$' not in msg or msg.split('.')[-1].split('$')[0] == \
+                                        referrer.split('.')[-1].split('$')[0])]
+            
+            if len({i[1] for i in referrers}) != 1 or not in_pkg:
+                # It doesn't. Keep for the next step
+                if in_pkg:
+                    mergeable[msg] = in_pkg
+                continue
+            
+            field, referrer = in_pkg[0]
+        
+        else:
+            assert len(referrers) == 1
+        
+        merge_and_rename(msg, referrer, msg_pkg, is_group,
+            msg_to_referrers, msg_to_topmost, msg_to_newloc, msg_to_imports, msg_path_to_obj, newloc_to_msg)
+
+    for msg, referrers in msg_to_referrers.items():
+        msg_pkg = get_pkg(msg_to_newloc.get(msg, msg))
         msg_obj = msg_path_to_obj[msg]
 
         # Check for duplicate enum fields in the same package.
@@ -61,54 +92,35 @@ def nest_and_print_to_files(msg_path_to_obj, msg_to_referrers):
                     for other_enum in enumfield_to_enums[name]:
                         enum_to_dupfields[other_enum].add(name)
 
-        first_field = referrers[0]
-        field, referrer, is_group = first_field
-
-        # Check whether message/enum has exactly one reference in this
-        # package.
-        if not is_group:
-            in_pkg = [(field, referrer) for field, referrer, _ in referrers \
-                      if (get_pkg(referrer) == msg_pkg or not msg_pkg) \
-                      and msg_to_topmost.get(referrer, referrer) != msg \
-                      and not msg_path_to_obj[referrer].options.map_entry \
-                      and ('$' not in msg or msg.split('.')[-1].split('$')[0] == \
-                                        referrer.split('.')[-1].split('$')[0])]
-            
-            if len({i for _, i in in_pkg}) != 1:
-                # It doesn't. Keep for the next step
-                if in_pkg:
-                    mergeable[msg] = in_pkg
-                continue
-            else:
-                field, referrer = in_pkg[0]
-        
-        else:
-            assert len(referrers) == 1
-        
-        merge_and_rename(msg, referrer, msg_pkg, is_group,
-            msg_to_referrers, msg_to_topmost, msg_to_newloc, msg_to_imports, msg_path_to_obj, newloc_to_msg)
-
     # Try to fix recursive (mutual) imports, and conflicting enum field names.
-    for msg, in_pkg in mergeable.items():
-        duplicate_enumfields = enum_to_dupfields.get(msg, set())
-
-        for field, referrer in sorted(in_pkg, key=lambda x: msg_to_newloc.get(x[1], x[1]).count('.')):
-            top_referrer = msg_to_topmost.get(referrer, referrer)
-            
-            if (msg in msg_to_imports[top_referrer] and \
-                top_referrer in msg_to_imports[msg] and \
-                msg_to_topmost.get(referrer, referrer) != msg) or \
-                duplicate_enumfields:
-                
-                merge_and_rename(msg, referrer, get_pkg(msg), False,
-                    msg_to_referrers, msg_to_topmost, msg_to_newloc, msg_to_imports, msg_path_to_obj, newloc_to_msg)
-                break
+    still_to_merge = bool(mergeable)
+    
+    while still_to_merge:
+        still_to_merge = False
         
-        for dupfield in duplicate_enumfields:
-            siblings = enumfield_to_enums[dupfield]
-            siblings.remove(msg)
-            if len(siblings) == 1:
-                enum_to_dupfields[siblings.pop()].remove(dupfield)
+        for msg, in_pkg in OrderedDict(mergeable).items():
+            duplicate_enumfields = enum_to_dupfields.get(msg, set())
+
+            for field, referrer in sorted(in_pkg, key=lambda x: msg_to_newloc.get(x[1], x[1]).count('.')):
+                top_referrer = msg_to_topmost.get(referrer, referrer)
+                
+                if (msg in msg_to_imports[top_referrer] and \
+                    top_referrer in msg_to_imports[msg] and \
+                    msg_to_topmost.get(referrer, referrer) != msg) or \
+                    duplicate_enumfields:
+                    
+                    merge_and_rename(msg, referrer, get_pkg(msg), False,
+                        msg_to_referrers, msg_to_topmost, msg_to_newloc, msg_to_imports, msg_path_to_obj, newloc_to_msg)
+                    
+                    still_to_merge = True
+                    del mergeable[msg]
+                    break
+            
+            for dupfield in duplicate_enumfields:
+                siblings = enumfield_to_enums[dupfield]
+                siblings.remove(msg)
+                if len(siblings) == 1:
+                    enum_to_dupfields[siblings.pop()].remove(dupfield)
     
     for msg, msg_obj in msg_path_to_obj.items():
         # If we're a top-level message, enforce name transforms anyway

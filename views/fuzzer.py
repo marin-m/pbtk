@@ -601,7 +601,7 @@ class ProtocolDataItem(QTreeWidgetItem):
         
         self.app.update_fuzzer()
     
-    def update_check(self):
+    def update_check(self, col):
         if not self.required and self.last_check_state != self.checkState(0):
             self.last_check_state = self.checkState(0)
             if self.last_check_state != Qt.Checked:

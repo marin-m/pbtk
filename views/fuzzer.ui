@@ -149,7 +149,7 @@
        <property name="bottomMargin">
         <number>0</number>
        </property>
-       <item row="0" column="0">
+       <item row="0" column="0" colspan="2">
         <widget class="QTreeWidget" name="getTree">
          <property name="mouseTracking">
           <bool>true</bool>
@@ -168,6 +168,29 @@
           </property>
          </column>
         </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QPushButton" name="getAdd">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="text">
+          <string>Add</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <spacer name="spacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>

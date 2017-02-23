@@ -14,6 +14,7 @@ USER_AGENT = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 
 @register_transport(
     name = 'raw_post',
     desc = 'Protobuf as raw POST data',
+    ui_tab = 'Headers',
     ui_data_form = 'hex strings'
 )
 class RawPOST():
@@ -26,9 +27,11 @@ class RawPOST():
     
     def load_sample(self, sample, pb_msg):
         pb_msg.ParseFromString(bytes.fromhex(sample))
+        self.headers = OrderedDict(USER_AGENT)
+        return self.headers
     
     def perform_request(self, pb_data, tab_data):
-        return post(self.url, pb_data.SerializeToString(), headers=USER_AGENT)
+        return post(self.url, pb_data.SerializeToString(), headers=self.headers)
 
 my_quote = lambda x: quote_plus(str(x), safe='~()*!.')
 

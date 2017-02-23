@@ -70,6 +70,7 @@ class PBTKGUI(QApplication):
         self.fuzzer.fuzzFields.clicked.connect(self.fuzz_endpoint)
         self.fuzzer.deleteThis.clicked.connect(self.delete_endpoint)
         self.fuzzer.comboBox.activated.connect(self.launch_fuzzer)
+        self.fuzzer.getAdd.clicked.connect(self.add_tab_data)
 
         self.fuzzer.urlField.setWordWrapMode(QTextOption.WrapAnywhere)
         
@@ -429,6 +430,11 @@ class PBTKGUI(QApplication):
                 remove(path)
             
             self.load_endpoints()
+    
+    def add_tab_data(self):
+        text, good = QInputDialog.getText(self.view, ' ', 'Field name:')
+        if text:
+            ProtocolDataItem(self.fuzzer.getTree, text, '', self).edit()
     
     """
         Utility methods follow
