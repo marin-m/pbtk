@@ -292,12 +292,12 @@ console.log(JSON.stringify(['__HOOK', [parseMsg(b, '', 'Top'), c.join('')[0] ===
             targets = ['0);return c.join("")}', 'return c.join("&").replace(']
             for target in targets:
                 if target in src:
-                    needle = search('\.label=b;this\.(\w+)=c;this\.(\w+)=d', src)
+                    needle = search('\.label=b;this\.([\w$]+)=c;this\.([\w$]+)=d', src)
                     if needle:
                         defaultVar, msgChildrenVar = needle.groups()
                     else:
-                        defaultVar, msgChildrenVar = 'none', search('"m"==b\.type&&\(c\+=\w+\(a,b.(\w+)', src).group(1)
-                    childrenVar, indexOffsetVar = search('\w=\w\.(\w+)\[\w\],\w=a\[\w\+\(?b\.(\w+)', src).groups()
+                        defaultVar, msgChildrenVar = 'none', search('"m"==b\.type&&\(c\+=\w+\(a,b\.([\w$]+)', src).group(1)
+                    childrenVar, indexOffsetVar = search('\w=\w\.([\w$]+)\[\w\],\w=a\[\w\+\(?b\.([\w$]+)', src).groups()
                     before = src.split(target)[0]
                     sid_to_vars[sid] = defaultVar, msgChildrenVar, childrenVar, indexOffsetVar
                     

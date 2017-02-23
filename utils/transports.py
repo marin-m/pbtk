@@ -66,7 +66,7 @@ class GMapsAPIPrivate():
     def perform_request(self, pb_data, tab_data):
         params = OrderedDict({self.pb_param: proto_url_encode(pb_data)})
         params.update(tab_data)
-        url = sub('\{(\w+)\}', lambda i: my_quote(params.pop(i.group(1))), self.url)
+        url = sub('\{(\w+)\}', lambda i: my_quote(params.pop(i.group(1), '')), self.url)
         if params:
             url += '?' + urlencode(params, safe='~()*!.') # Do not escape '!' for readibility.
         return get(url, headers=USER_AGENT)
