@@ -123,7 +123,6 @@ class PBTKGUI(QApplication):
             self.worker = Worker(inputs, extractor)
             self.worker.progress.connect(self.extraction_progress)
             self.worker.finished.connect(self.extraction_done)
-            self.worker.signal_proxy.connect(self.signal_proxy)
             self.worker.start()
     
     def extraction_progress(self, info, progress):
@@ -440,15 +439,6 @@ class PBTKGUI(QApplication):
         resolution = QDesktopWidget().screenGeometry()
         view.move((resolution.width() / 2) - (view.frameSize().width() / 2),
                   (resolution.height() / 2) - (view.frameSize().height() / 2))
-    
-    """
-        signal() can't be called from inside a thread, and some
-        extractors need it in order not to have their GUI child process
-        interrupt signal catched by our main thread, so here is an ugly
-        way to reach signal() through a slot.
-    """
-    def signal_proxy(self, *args):
-        signal(*args)
 
 """
     Simple wrapper for running extractors in background.
@@ -457,7 +447,6 @@ class PBTKGUI(QApplication):
 class Worker(QThread):
     finished = pyqtSignal(object)
     progress = pyqtSignal(object, object)
-    signal_proxy = pyqtSignal(object, object)
 
     def __init__(self, inputs, extractor):
         super().__init__()
@@ -471,8 +460,6 @@ class Worker(QThread):
             for name, contents in self.extractor['func'](input_):
                 if name == '_progress':
                     self.progress.emit(*contents)
-                elif name == '_signal':
-                    self.signal_proxy.emit(*contents)
                 else:
                     output[folder].append((name, contents))
         

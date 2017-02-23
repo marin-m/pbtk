@@ -38,14 +38,17 @@ from utils.common import load_proto_msgs, protoc
 class MyFrame(QWebEngineView):
     def update_frame(self, data, text, url, mime, pbresp=None):
         self.setEnabled(False) # prevent from taking focus
+        
+        out_mime = 'text/plain; charset=utf-8'
 
         if 'image' in mime:
-            self.setContent(QByteArray(data), mime, QUrl(url))
+            out_mime = mime
         
         elif 'html' in mime:
             if '/embed' in url:
                 text = text.replace('<head>', '<head><script>opener=1</script>')
-            self.setHtml(text, QUrl(url))
+            out_mime = mime
+            data = text
         
         elif 'json' in mime:
             if text.startswith(")]}'\n"):
@@ -56,22 +59,19 @@ class MyFrame(QWebEngineView):
             text = text.replace('[,','[null,').replace(',]',',null]').replace(',,',',null,').replace(',,',',null,')
             
             try:
-                text = dumps(loads(text), indent=4).encode('utf8')
+                data = dumps(loads(text), indent=4)
             except Exception:
-                text = text.encode('utf8')
-            
-            self.setContent(QByteArray(text), 'text/plain', QUrl(url))
+                data = text
         
         elif 'protobuf' in mime:
             data = self.parse_protobuf(data, pbresp)
-            self.setContent(QByteArray(data), 'text/plain', QUrl(url))
         
         elif 'kmz' in mime:
             with ZipFile(BytesIO(data)) as fd:
                 if fd.namelist() == ['doc.kml']:
-                    self.setContent(QByteArray(parseString(fd.read('doc.kml')).toprettyxml(indent='    ').encode('utf8')), 'text/plain', QUrl(url))
+                    data = parseString(fd.read('doc.kml')).toprettyxml(indent='    ')
                 else:
-                    self.setContent(QByteArray('\n'.join(fd.namelist()).encode('utf8')), 'text/plain', QUrl(url))
+                    data = '\n'.join(fd.namelist())
         
         elif data.startswith(b'XHR1'):
             data = BytesIO(data[4:])
@@ -90,10 +90,10 @@ class MyFrame(QWebEngineView):
                 out += b'%d %s\n' % (index, b'-' * 15)
                 out += self.parse_protobuf(dec, pbresp)
             
-            self.setContent(QByteArray(out), 'text/plain', QUrl(url))
+            data = out
         
         elif 'text/' in mime:
-            self.setContent(QByteArray(data), 'text/plain', QUrl(url))
+            pass
         
         else:
             for key in (0x9b, 0x5f):
@@ -114,7 +114,11 @@ class MyFrame(QWebEngineView):
             if not dec:
                 dec = run(['hexdump', '-C'], input=data, stdout=PIPE).stdout
             
-            self.setContent(QByteArray(dec[:500000]), 'text/plain', QUrl(url))
+            data = dec[:500000]
+        
+        if type(data) == str:
+            data = data.encode('utf8')
+        self.setContent(QByteArray(data), out_mime, QUrl(url))
         
         self.setEnabled(True)
     

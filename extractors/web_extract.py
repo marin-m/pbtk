@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 #-*- encoding: Utf-8 -*-
 from urllib.parse import quote, quote_plus, unquote_plus, parse_qsl, urlencode
-from signal import SIGINT, SIG_IGN, SIG_DFL
 from tempfile import TemporaryDirectory
 from subprocess import Popen, DEVNULL
 from logging import getLogger, DEBUG
@@ -67,7 +66,6 @@ def pburl_extract(url):
         if temp_profile == True:
             cmd += ['--user-data-dir=' + profile, '--no-first-run', '--start-maximized', '--no-default-browser-check']
         
-        yield '_signal', (SIGINT, SIG_IGN)
         chrome = Popen(cmd, stdout=DEVNULL, stderr=DEVNULL)
 
         try:
@@ -85,14 +83,12 @@ def pburl_extract(url):
             ws = WebSocketApp(tab['webSocketDebuggerUrl'],
                               on_message=on_message,
                               on_open=on_open).run_forever()
+        
         finally:
-            try:
-                # Make sure that Chromium is killed when quitting by error
-                chrome.terminate()
-            except:
-                pass
+            # Make sure that Chromium is killed when quitting by error
+            chrome.terminate()
             
-            yield '_signal', (SIGINT, SIG_DFL)
+            # Avoid race condition with it writing to profile directory
             sleep(0.2)
     
     for proto in list(proto_to_urls):
