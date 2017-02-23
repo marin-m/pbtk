@@ -270,6 +270,10 @@ class PBTKGUI(QApplication):
             QMessageBox.information(self.view, ' ', 'Endpoint created successfully.')
             self.set_view(self.welcome)
     
+    """
+        Step 3: Fuzz and test endpoints live
+    """
+    
     def load_endpoints(self):
         self.choose_endpoint.endpoints.clear()
         
@@ -288,14 +292,11 @@ class PBTKGUI(QApplication):
                     item.setFlags(item.flags() & ~Qt.ItemIsEnabled)
                     
                     for endpoint in endpoints:
-                        item = QListWidgetItem(' ' * 8 + (urlparse(endpoint['request']['url']).path or '/'), self.choose_endpoint.endpoints)
+                        path_and_qs = '/' + endpoint['request']['url'].split('/', 3).pop()
+                        item = QListWidgetItem(' ' * 8 + path_and_qs, self.choose_endpoint.endpoints)
                         item.setData(Qt.UserRole, endpoint)
         
         self.set_view(self.choose_endpoint)
-    
-    """
-        Step 3: Fuzz and test endpoints live
-    """
     
     def launch_fuzzer(self, item):
         if type(item) == int:
@@ -337,14 +338,10 @@ class PBTKGUI(QApplication):
             
             # Do the same for transport-specific data
             self.fuzzer.getTree.clear()
-            if self.transport_meta.get('ui_tab'):
-                self.fuzzer.tabs.setTabText(1, self.transport_meta['ui_tab'])
-                if self.get_params:
-                    for key, val in self.get_params.items():
-                        ProtocolDataItem(self.fuzzer.getTree, key, val, self)
-            else:
-                self.fuzzer.tabs.setTabText(1, '(disabled)')
-                # how to hide it ?
+            self.fuzzer.tabs.setTabText(1, self.transport_meta.get('ui_tab', ''))
+            if self.get_params:
+                for key, val in self.get_params.items():
+                    ProtocolDataItem(self.fuzzer.getTree, key, val, self)
             
             # Fill the request samples combo box if we're loading a new
             # endpoint.
