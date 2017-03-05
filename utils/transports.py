@@ -28,6 +28,7 @@ class RawPOST():
     def load_sample(self, sample, pb_msg):
         pb_msg.ParseFromString(bytes.fromhex(sample))
         self.headers = OrderedDict(USER_AGENT)
+        self.headers['Content-Type'] = 'application/x-protobuf'
         return self.headers
     
     def perform_request(self, pb_data, tab_data):

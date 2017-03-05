@@ -224,7 +224,7 @@ def fmt_ranges(name, ranges):
     text = []
     for range_ in ranges:
         if type(range_) != str and range_.end - 1 > range_.start:
-            if range_.end != 0x20000000:
+            if range_.end < 0x20000000:
                 text.append('%d to %d' % (range_.start, range_.end - 1))
             else:
                 text.append('%d to max' % range_.start)

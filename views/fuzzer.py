@@ -61,7 +61,7 @@ class MyFrame(QWebEngineView):
             try:
                 data = dumps(loads(text), indent=4)
             except Exception:
-                data = text
+                pass
         
         elif 'protobuf' in mime:
             data = self.parse_protobuf(data, pbresp)

@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 #-*- encoding: Utf-8 -*-
 from google.protobuf.descriptor_pb2 import DescriptorProto, EnumDescriptorProto, FieldDescriptorProto
-from re import findall, MULTILINE, search, split, sub, escape
+from re import findall, MULTILINE, search, split, sub, escape, finditer
 from collections import OrderedDict, defaultdict
 from itertools import count, product
 from string import ascii_lowercase
@@ -555,7 +555,7 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
                          ['([a-zA-Z_][\w$]*)\(\)\.(?:getMap|entrySet|iterator)\(', 'return ([a-zA-Z_][\w$]*);'],
                           ' = \(java\.lang\.String\)([a-zA-Z_][\w$]*)',
                           ', \(java.+?\)([a-zA-Z_][\w$]*)[).]',
-                         ['\(\d+, ([a-zA-Z_][\w$]*)\(\)+\)', ' = \(.+?\)([a-zA-Z_][\w$]*);', 'return ([a-zA-Z_][\w$]*);'],
+                         ['\(\d+, ([a-zA-Z_][\w$]*)\(\)+\)', ' = \(.+?\)([a-zA-Z_][\w$]*);', 'return ([a-zA-Z_][\w$]*);', ' = ([a-zA-Z_][\w$]*);'],
                           '\s+([a-zA-Z_][\w$]*)\.[\w$]+\(\);',
                           '\d+, [\w$]+\.\w+\(([a-zA-Z_][\w$]*)\)',
                           ', ([a-zA-Z_][\w$]*)[).]',
@@ -836,28 +836,59 @@ def extract_j2me(jar, cls, enums, gen_classes_j2me, protobuftype_cls, consts,
         return
 
     """
-    Unique step: look for calls to ProtoBufType.addElement(int, int, Object)
+    First step: look for calls to ProtoBufType.addElement(int, int, Object)
     """
     
-    code = sub('(?:java\.lang\.Long.valueOf|new Long)\((.+?)L?\)', r'\1', code.raw)
+    code = sub('(?:new )?[\w$.]+\((-?\d+)[LDF]?\)', r'\1', code.raw)
+    fields_for_msg = defaultdict(str)
     
     for var in findall('(\w+) = new ', code):
-        print('\nIn %s.%s:' % (cls, var))
+        fields_for_msg[var]
+    
+    while True:
+        # Case 1: handle embedded groups
+        decl = list(finditer('(\(new \w+\(("\w+")\)\)(?=((?:\.\w+\(\d+, \d+, .+?\))+)\)))', code))[::-1]
+        if not decl:
+            # Case 2: general case, handle messages
+            decl = list(finditer('( (\w+)(?=((?:\.\w+\(\d+, \d+, .+?\))+);))', code))
+        if not decl:
+            break
+        prefix, var, fields = decl[0].groups()
         
+        if var[0] == '"':
+            var = var.strip('"')
+            # If group, avoid name conflicts
+            while var in fields_for_msg:
+                var += '_'
+        else:
+            # If message, handle object variable reassignements
+            public_var = findall(' %s = (\w+);' % var, code[:decl[0].start()])
+            if public_var and public_var[-1] != 'null':
+                var = public_var[-1]
+
+        code = code.replace(prefix + fields, var, 1)
+        
+        # Store var, fields
+        fields_for_msg[var] += fields
+    
+    # TODO: handle empty
+    # TODO: apply reversed
+
+    """
+    Final step: Build the DescriptorProto object
+    """
+    
+    for var, fields in fields_for_msg.items():
         message = DescriptorProto()
 
         my_namer = namer()
         summary = {}
         
-        fields = search('%s((?:\.\w+\(\d+, \d+, .+?\))+)' % var, code)
-
-        public_var = search(' (\w+) = %s;' % var, code)
-        if public_var:
-            var = public_var.group(1)
+        print('\nIn %s.%s:' % (cls, var))
         message.name = var
 
         if fields:
-            for ftypeandlabel, fnumber, fdefaultormsg in findall('\.\w+\((\d+), (\d+), (.+?)\)', fields.group(1)):
+            for ftypeandlabel, fnumber, fdefaultormsg in findall('\.\w+\((\d+), (\d+), (.+?)\)', fields):
                 field = message.field.add()
                 
                 # Use int32 instead of enum (we don't have enum contents),

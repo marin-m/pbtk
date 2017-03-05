@@ -44,11 +44,16 @@ def walk_binary(binr):
         cursor += (binr[cursor:cursor + 5] == b'devel') * 5
         
         # Search back for the (1, length-delimited) marker
-        start = binr.rfind(b'\x0a', max(cursor - 128, 0), cursor)
+        start = binr.rfind(b'\x0a', max(cursor - 1024, 0), cursor)
         
         if start > 0 and binr[start - 1] == 0x0a == (cursor - start - 1):
             start -= 1
-        if start == -1 or (cursor - start - 2) != binr[start + 1]:
+        
+        # Check whether length byte is coherent
+        if start == -1:
+            continue
+        varint, end = _DecodeVarint(binr, start + 1)
+        if cursor - end != varint:
             continue
         
         # Look just after for subsequent markers
