@@ -92,7 +92,7 @@ class ClassWrapper:
         inpath = jar.name + '/' + cls.replace('.', '/') + '.class'
         outpath = jar.name + '/' + cls.replace('.', '/') + '.java'
         
-        jad_args = [jad, '-af', '-b', '-d', jar.name, '-dead', '-f', '-i', '-ff', '-noinner', '-o', '-r', '-radix10', '-s', '.java', inpath]
+        jad_args = [jad, '-af', '-b', '-d', jar.name, '-dead', '-f', '-i', '-ff', '-noinner', '-o', '-r', '-radix10', '-lradix10', '-s', '.java', inpath]
         if no_parse:
             jad_args.remove('-af')
             jad_args.insert(1, '-nofd')

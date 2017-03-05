@@ -6,6 +6,7 @@ from collections import OrderedDict, defaultdict
 from itertools import count, product
 from string import ascii_lowercase
 from ctypes import c_int, c_long
+from struct import pack, unpack
 from ast import literal_eval
 
 from os.path import dirname, realpath
@@ -754,6 +755,11 @@ def parse_default(field, ftype, fdefault):
                 fdefault = c_int(fdefault).value
         else:
             fdefault &= (1 << int(ftype[-2:])) - 1
+        
+        if ftype == 'float' and fdefault >> 23:
+            fdefault = unpack('f', pack('i', fdefault))[0]
+        elif ftype == 'double' and fdefault >> 52:
+            fdefault = unpack('d', pack('l', fdefault))[0]
     
     if fdefault:
         field.default_value = str(fdefault)
