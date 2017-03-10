@@ -30,7 +30,7 @@ On most other distributions, you'll want to run it directly:
 # For Ubuntu/Debian testing derivates:
 $ sudo apt install python3-pip git openjdk-9-jre
 
-$ sudo pip3 install protobuf pyqt5 requests
+$ sudo pip3 install protobuf pyqt5 requests websocket-client
 
 $ git clone https://github.com/marin-m/pbtk
 $ cd pbtk
