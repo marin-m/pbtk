@@ -36,7 +36,7 @@ protoc = str(external / 'protoc' / ('protoc' + {'win32': '.exe', 'darwin': '_osx
 dex2jar = str(external / 'dex2jar' / ('d2j-dex2jar.' + {'win32': 'bat'}.get(platform, 'sh')))
 jad = str(external / 'jad' / ('jad' + {'win32': '.exe', 'darwin': '_osx'}.get(platform, '')))
 
-# Disable the C++ extension for Python-Protobuf (for consistent behaviors) [1]
+# Disable the C++ extension for Python-Protobuf (for consistent behaviour) [1]
 # [1] https://github.com/google/protobuf/blob/cf1418/python/google/protobuf/internal/api_implementation.py#L72
 
 environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
@@ -157,8 +157,7 @@ def load_proto_msgs(proto_path, ret_source_info=False):
     
     while to_import:
         next_import = to_import.pop()
-        while not exists(str(arg_proto_path / next_import)) and \
-              str(arg_proto_path.parent).startswith(str(BASE_PATH)):
+        while not exists(str(arg_proto_path / next_import)) and arg_proto_path.name:
             arg_proto_path = arg_proto_path.parent
         next_import = str(arg_proto_path / next_import)
         

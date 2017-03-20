@@ -128,4 +128,25 @@ def produce(obj, pb, sep):
     return obj
 
 if __name__ == '__main__':
-    pass
+    from argparse import ArgumentParser
+    from common import load_proto_msgs
+
+    parser = ArgumentParser(description='Decode a JsProtoUrl text message, providing a .proto.')
+    parser.add_argument('pburl_data')
+    parser.add_argument('proto_file')
+    parser.add_argument('proto_msg_name', nargs='?')
+    args = parser.parse_args()
+    
+    sep = '!' if args.pburl_data[0] == '!' else '&'
+    
+    msg = None
+    for name, cls in load_proto_msgs(args.proto_file):
+        if not args.proto_msg_name or args.proto_msg_name == name:
+            msg = cls()
+            break
+    if not msg:
+        raise ValueError('Provided message name was not found in .proto.')
+    
+    proto_url_decode(args.pburl_data, msg, sep)
+    
+    print(msg)
