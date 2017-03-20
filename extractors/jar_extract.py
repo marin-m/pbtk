@@ -445,11 +445,7 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
             # If it doesn't (it is a required field in Nano implementation),
             # what are the nearest blocks we can relate to?
             if not from_condition:
-                cur_func = next((i for i in code.method_bounds.values() if i[0] < start < i[1]), None)
-                if cur_func is None:
-                    print('Note: redefined method ignored (likely from a nested class):', cls, '/', call)
-                    continue
-                func_start, func_end = cur_func
+                func_start, func_end = next((i for i in code.method_bounds.values() if i[0] < start < i[1]), None)
                 
                 after_line = code.raw.index('\n', start)
                 cond_start, cond_end = max(func_start, prev_cond_end), after_line
@@ -877,9 +873,6 @@ def extract_j2me(jar, cls, enums, gen_classes_j2me, protobuftype_cls, consts,
         # Store var, fields
         fields_for_msg[var] += fields
     
-    # TODO: handle empty
-    # TODO: apply reversed
-
     """
     Final step: Build the DescriptorProto object
     """
