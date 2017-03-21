@@ -864,7 +864,7 @@ def extract_j2me(jar, cls, enums, gen_classes_j2me, protobuftype_cls, consts,
                 var += '_'
         else:
             # If message, handle object variable reassignements
-            public_var = findall(' %s = (\w+);' % var, code[:decl[0].start()])
+            public_var = findall(' %s = ([a-zA-Z_][\w$]*);' % var, code[:decl[0].start()])
             if public_var and public_var[-1] != 'null':
                 var = public_var[-1]
 
