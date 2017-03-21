@@ -753,9 +753,9 @@ def parse_default(field, ftype, fdefault):
             fdefault &= (1 << int(ftype[-2:])) - 1
         
         if ftype == 'float' and fdefault >> 23:
-            fdefault = unpack('f', pack('i', fdefault))[0]
+            fdefault = unpack('=f', pack('=i', fdefault))[0]
         elif ftype == 'double' and fdefault >> 52:
-            fdefault = unpack('d', pack('q', fdefault))[0]
+            fdefault = unpack('=d', pack('=q', fdefault))[0]
     
     if fdefault:
         field.default_value = str(fdefault)
