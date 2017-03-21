@@ -752,9 +752,9 @@ def parse_default(field, ftype, fdefault):
         else:
             fdefault &= (1 << int(ftype[-2:])) - 1
         
-        if ftype == 'float' and fdefault >> 23:
+        if ftype == 'float' and abs(fdefault) >> 23:
             fdefault = unpack('=f', pack('=i', fdefault))[0]
-        elif ftype == 'double' and fdefault >> 52:
+        elif ftype == 'double' and abs(fdefault) >> 52:
             fdefault = unpack('=d', pack('=q', fdefault))[0]
     
     if fdefault:
