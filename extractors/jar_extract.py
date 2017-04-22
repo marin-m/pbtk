@@ -571,7 +571,8 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
                     elif type(regex) == list: # Search inside a method
                         func = search(regex[0], cond)
                         if func:
-                            func = code.get_method_unfold((None, func.group(1), ''), unfold=False)
+                            call_sig, _ = code.method_loc_calls[cond_start + func.start(1)]
+                            func = code.get_method_unfold(call_sig, unfold=False)
                             for regex2 in regex[1:]:
                                 if not var:
                                     var = search(regex2, func)

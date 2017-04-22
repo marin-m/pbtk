@@ -158,6 +158,7 @@ class ClassWrapper:
         self.method_cache = OrderedDict()
 
         self.method_calls = OrderedDict()
+        self.method_loc_calls = OrderedDict()
 
         self.method_bounds = OrderedDict() # Blocks with 1st level indent
         self.cond_bounds = [] # Blocks with 2nd level indent
@@ -213,11 +214,13 @@ class ClassWrapper:
                     # Store calls to local methods
                     for match in finditer('(?<!new )(?<![\w.$])(\w+)\((?=([^;]+))', nostrings_line):
                         if match.group(1) not in ('if', 'for', 'while', 'switch', 'catch', 'super', 'this', 'synchronized', 'getClass'):
-                            call_sig, args = match.groups()
+                            (name, args), (call_start, call_end) = match.groups(), match.span()
                             
-                            ret, obj, name, args = self.prototype_from_annote(call_sig, args)
+                            ret, obj, name, args = self.prototype_from_annote(name, args)
+                            call_sig = ret, name, args
                             
-                            method_loc_calls.append((ret, name, args))
+                            self.method_loc_calls[call_start + pos] = (call_sig, call_end + pos)
+                            method_loc_calls.append(call_sig)
                     
                     # Store calls to external methods
                     for match in reversed(list(finditer('\.(\w+)\((?=([^;]+))', nostrings_line))):
@@ -226,7 +229,6 @@ class ClassWrapper:
                         call_sig = self.prototype_from_annote(name, args)
                         
                         self.method_calls[call_start + pos] = (call_sig, call_end + pos)
-                        
                         method_glob_calls.append(call_sig)
                     
                     method_code += line
@@ -280,9 +282,6 @@ class ClassWrapper:
     def get_method_unfold(self, ret_method, merged=None, unfold=True):
         ret_code = ''
         ret, name, args = ret_method
-        if ret is None:
-            ret = next((i[0] for i in self.method_cache if (i[1], i[2]) == (name, args)), None)
-        ret_method = ret, name, args
         
         if merged is None:
             merged = set()
