@@ -114,7 +114,7 @@ class MyFrame(QWebEngineView):
             if not dec:
                 dec = run(['hexdump', '-C'], input=data, stdout=PIPE).stdout
             
-            data = dec[:500000]
+            data = dec[:100000]
         
         if type(data) == str:
             data = data.encode('utf8')
