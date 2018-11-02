@@ -29,8 +29,11 @@ from utils.descpb_to_proto import descpb_to_proto
                     desc = 'Extract Protobuf metadata from binary file (*.dll, *.so...)')
 def walk_binary(binr):
     if type(binr) == str:
-        with open(binr, 'rb') as fd:
-            binr = fd.read()
+        try:
+            with open(binr, 'rb') as fd:
+                binr = fd.read()
+        except Exception:
+            return
     
     # Search for:
     # ".proto" or ".protodevel", as part of the "name" (1) field
