@@ -701,7 +701,7 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
                 disp_var = sub('[A-Z]', lambda x: '_' + x.group(0).lower(), disp_var)
         
         if all_vars.count(var) > 1:
-            assert flabel == 'optional'
+            #assert flabel == 'optional'
             if var not in oneofs:
                 oneofs[var] = (len(message.oneof_decl), message.oneof_decl.add())
                 oneofs[var][1].name = disp_var

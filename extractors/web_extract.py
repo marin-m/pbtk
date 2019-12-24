@@ -179,7 +179,7 @@ history.replaceState = wrap(history.replaceState);'''})
             
             if msg['hitBreakpoints'] and msg['reason'] == 'other' and msg['callFrames']:
                 send(ws, 'Debugger.pause')
-                defaultVar, msgChildrenVar, childrenVar, indexOffsetVar = sid_to_vars[loc['scriptId']]
+                messageSpecStringVar, nestedMessagesSpecArrayVar = sid_to_vars[loc['scriptId']]
                 
                 # Converting the Protobuf structure object into JSON
                 # isn't possible since it has circular references, and
@@ -191,8 +191,9 @@ history.replaceState = wrap(history.replaceState);'''})
                     'callFrameId': msg['callFrames'][0]['callFrameId'],
                     'expression': '''
 var objToName = new WeakMap();
+var specStringToName = {};
+
 var typeArray = {'d': 'double', 'f': 'float', 'i': 'int32', 'j': 'int64', 'u': 'uint32', 'v': 'uint64', 'x': 'fixed32', 'y': 'fixed64', 'g': 'sfixed32', 'h': 'sfixed64', 'n': 'sint32', 'o': 'sint64', 'e': 'enum', 's': 'string', 'z': 'string (base64)', 'B': 'bytes', 'b': 'bool', 'm': 'message'};
-var labelArray = {1: 'optional', 2: 'required', 3: 'repeated'};
 var namerGen = function* () {
     for(var len = 0; ; len++)
         yield* (function* namer2(len) {
@@ -207,42 +208,105 @@ var parseMsg = function(msg, tab, name) {
     
     var text = `${tab}message ${name.split('.').pop()} {\\n`;
     tab += '    ';
-    objToName.set(msg, name);
-    msg = msg.%s;
     
-    for(var i in msg) {
-        var label = labelArray[msg[i].label];
-        var type = typeArray[msg[i].type];
-        var cmt = '';
+    // console.log(JSON.stringify(['__INFO', typeof msg]));
+    
+    if(typeof msg == 'string') {
+        specStringToName[msg] = name;
+    
+        var message_spec_str = msg;
+        var nested_messages_spec_array = null;
+    }
+    else {
+        objToName.set(msg, name);
+        
+        var message_spec_str = msg.%s;
+        var nested_messages_spec_array = msg.%s;
+    }
+    
+    var new_types_alias = {
+        a: "B",
+        k: "j",
+        p: "o",
+        w: "v",
+        q: "y",
+        r: "h"
+    };
+    
+    var field_number = 0;
+    
+    var nested_message_index = 0;
+    
+    while(message_spec_str.length) { // Parse a string such as: "MMmemmswm11mmibbb18mbmkmImi"
+        
+        var field_number_regex = message_spec_str.match(/^(\d+)(.+)/);
+        
+        // Consume the number indicating the next field number, if present
+        
+        if(field_number_regex) {
+        
+            var [_, field_number, message_spec_str] = field_number_regex;
+            
+            field_number = parseInt(field_number, 10);
+        }
+        else {
+            field_number++;
+        }
+        
+        // Consume the next letter
+        
+        var field_letter = message_spec_str[0];
+        message_spec_str = message_spec_str.substr(1);
+    
+        var label = field_letter.toUpperCase() == field_letter ? 'repeated ': '';
+        
+        field_letter = field_letter.toLowerCase();
+        
+        if(new_types_alias[field_letter]) {
+        
+            field_letter = new_types_alias[field_letter];
+        }
+        var type = typeArray[field_letter];
+        
+        var comment = '';
         if(type == 'enum') {
-            cmt = ' // enum';
+            comment = ' // enum';
             type = 'int32';
         }
+        
         if(type == 'message') {
-            type = objToName.get(msg[i].%s);
+            
+            if(typeof nested_messages_spec_array[nested_message_index] == 'string') {
+            
+                type = specStringToName[nested_messages_spec_array[nested_message_index]];
+            }
+            else {
+            
+                type = objToName.get(nested_messages_spec_array[nested_message_index]);
+            }
             if(!type) {
                 type = namer_msg.next().value;
                 type = `${name}.${type[0].toUpperCase()}${type.slice(1)}`;
-                text += parseMsg(msg[i].%s, tab, type);
+                text += parseMsg(nested_messages_spec_array[nested_message_index], tab, type);
             }
             if(type.split('.').slice(0, -1).join('.') == name) {
                 type = type.split('.').pop();
             }
-            var def = '';
+            
+            nested_message_index++;
         }
-        else {
-            var def = msg[i].%s;
-            if(def && (type == 'string' || type == 'string (base64)' || type == 'bytes')) {
-                def = `"${def}"`;
-            }
-            def = def ? ` [default = ${def}]` : '';
-        }
-        text += `${tab}${label} ${type} ${namer.next().value} = ${i}${def};${cmt}\\n`;
+        
+        text += `${tab}${label}${type} ${namer.next().value} = ${field_number};${comment}\\n`;
     }
     
     return `${text}${tab.slice(0, -4)}}\n`;
 };
-console.log(JSON.stringify(['__HOOK', [parseMsg(b, '', 'Top'), c.join('')[0] === '!' ? c.join('') : c.join('&').replace(/'/g, '%%27')]]));''' % (childrenVar, msgChildrenVar, msgChildrenVar, defaultVar)
+try {
+    console.log(JSON.stringify(['__HOOK', [parseMsg(b, '', 'Top'), c.join('')[0] === '!' ? c.join('') : c.join('&').replace(/'/g, '%%27')]]));
+}
+catch(e) {
+    console.log(JSON.stringify(['__ERR', e.stack]));
+}''' % (messageSpecStringVar, nestedMessagesSpecArrayVar)
                 })
             
             if not awaiting_srcs:
@@ -255,7 +319,7 @@ console.log(JSON.stringify(['__HOOK', [parseMsg(b, '', 'Top'), c.join('')[0] ===
             elif '__HOOK' in msg:
                 proto, protoMsg = loads(msg)[1]
                 
-                proto = 'syntax = "proto2";\n\n' + proto
+                proto = 'syntax = "proto3";\n\n' + proto
                 
                 if protoMsg:
                     sent_msgs[protoMsg] = proto
@@ -289,17 +353,12 @@ console.log(JSON.stringify(['__HOOK', [parseMsg(b, '', 'Top'), c.join('')[0] ===
             sid, padding = data
             src = padding + msg['scriptSource']
             
-            targets = ['0);return c.join("")}', 'return c.join("&").replace(']
+            targets = ['0);c.length=a;return c.join("")}', 'return c.join("&").replace(']
             for target in targets:
                 if target in src:
-                    needle = search('\.label=b;this\.([\w$]+)=c;this\.([\w$]+)=d', src)
-                    if needle:
-                        defaultVar, msgChildrenVar = needle.groups()
-                    else:
-                        defaultVar, msgChildrenVar = 'none', search('"m"==b\.type&&\(c\+=\w+\(a,b\.([\w$]+)', src).group(1)
-                    childrenVar, indexOffsetVar = search('\w=\w\.([\w$]+)\[\w\],\w=a\[\w\+\(?b\.([\w$]+)', src).groups()
+                    messageSpecStringVar, nestedMessagesSpecArrayVar = search('a:\(this\.[\w$]+=a\.([\w$]+),this\.[\w$]+=a\.([\w$]+)\);this\.', src).groups()
                     before = src.split(target)[0]
-                    sid_to_vars[sid] = defaultVar, msgChildrenVar, childrenVar, indexOffsetVar
+                    sid_to_vars[sid] = messageSpecStringVar, nestedMessagesSpecArrayVar
                     
                     send(ws, 'Debugger.setBreakpoint', {
                         'location': {

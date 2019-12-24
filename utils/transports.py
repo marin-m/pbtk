@@ -2,6 +2,7 @@
 #-*- encoding: Utf-8 -*-
 from urllib.parse import quote_plus, urlencode, parse_qsl, urlparse, unquote
 from utils.pburl_decoder import proto_url_encode, proto_url_decode
+from base64 import urlsafe_b64decode, urlsafe_b64encode
 from utils.common import register_transport
 from collections import OrderedDict
 from requests import get, post
@@ -33,6 +34,41 @@ class RawPOST():
     
     def perform_request(self, pb_data, tab_data):
         return post(self.url, pb_data.SerializeToString(), headers=self.headers)
+
+my_quote = lambda x: quote_plus(str(x), safe='~()*!.')
+
+@register_transport(
+    name = 'base64_get',
+    desc = 'Protobuf as Base64url GET component (use "{param_name}" for templating)',
+    ui_tab = 'GET',
+    ui_data_form = 'regular GET query strings'
+)
+class Base64GET():
+    def __init__(self, pb_param, url):
+        self.pb_param = pb_param
+        self.url = url.split('?')[0]
+    
+    def serialize_sample(self, sample):
+        sample = OrderedDict(parse_qsl(sample))
+        if self.pb_param not in sample:
+            return False
+        return sample
+    
+    def load_sample(self, sample, pb_msg):
+        sample = OrderedDict(sample or {self.pb_param: ''})
+        base64 = sample.pop(self.pb_param)
+        base64 = urlsafe_b64decode(base64 + '=' * (4 - len(base64) % 4))
+        pb_msg.ParseFromString(base64)
+        return sample
+    
+    def perform_request(self, pb_data, tab_data):
+        base64 = urlsafe_b64encode(pb_data.SerializeToString()).decode('utf8')
+        params = OrderedDict({self.pb_param: base64.strip('=')})
+        params.update(tab_data)
+        url = sub('\{(\w+)\}', lambda i: my_quote(params.pop(i.group(1), '')), self.url)
+        if params:
+            url += '?' + urlencode(params, safe='~()*!.') # Do not escape '!' for readibility.
+        return get(url, headers=USER_AGENT)
 
 my_quote = lambda x: quote_plus(str(x), safe='~()*!.')
 

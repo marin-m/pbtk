@@ -96,7 +96,7 @@ def assert_installed(win=None, modules=[], binaries=[]):
 
 def insert_endpoint(base_path, obj):
     url = obj['request']['url']
-    path = base_path / (urlparse(url).netloc + '.json')
+    path = base_path / (urlparse(url).hostname + '.json')
     
     json = []
     if exists(str(path)):

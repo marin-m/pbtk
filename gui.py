@@ -309,6 +309,8 @@ class PBTKGUI(QApplication):
             self.pb_request = load_proto_msgs(self.current_req_proto)
             self.pb_request = dict(self.pb_request)[data['request']['proto_msg']]()
             
+            self.pb_resp = None
+            
             if data.get('response') and data['response']['format'] == 'raw_pb':
                 self.pb_resp = load_proto_msgs(BASE_PATH / 'protos' / data['response']['proto_path'])
                 self.pb_resp = dict(self.pb_resp)[data['response']['proto_msg']]
