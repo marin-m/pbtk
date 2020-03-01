@@ -2,6 +2,7 @@
 #-*- encoding: Utf-8 -*-
 from google.protobuf.descriptor_pb2 import DescriptorProto, EnumDescriptorProto, FieldDescriptorProto
 from re import findall, MULTILINE, search, split, sub, escape, finditer
+from typing import Dict, List, Set, Sequence, Optional
 from collections import OrderedDict, defaultdict
 from itertools import count, product
 from string import ascii_lowercase
@@ -272,7 +273,26 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
     
     in_switch = False
     label_to_val = None
-    fields = {}
+    fields : Dict[int, Tuple[str, str, str, str, str]] = {}
+    
+    """
+        The "fields" dictionary declared below is a structure
+        whose for a given Protobuf message field, the key is
+        the field's number, and the key is a tuple containing
+        five items, most of which (except the type) can be None:
+        
+        * flabel (str): "optional", "required" or "repeate" (or None)
+        * ftype (str): "bytes", "string", "int32", etc.
+        * fenumormsg (str): The enum or message type, if relevant (or None)
+        * fdefault (str): The default value from the code, if any (or None)
+        * var (str): The name of the field, possibly Proguarded, as referenced
+          in the code (or None)
+        
+        As such, it follows the following structure:
+        
+        {fnumber: (flabel, ftype, fenumormsg, fdefault, var)}
+    """
+    
     
     for start, (call, end) in code.method_calls.items():
         call_ret, call_obj, call_name, call_args = call
@@ -304,7 +324,7 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
                             fenumormsg = lazy_obj.group(1)
                         
                         ftype = {0: 'int32', 1: 'fixed64', 2: 'bytes', 3: 'group', 5: 'fixed32'}[lazy_tag & 7]
-                        fields[lazy_tag >> 3] = (ftype, fenumormsg)
+                        fields[lazy_tag >> 3] = (None, ftype, fenumormsg, None, None)
                 
                 if not label_to_val: # We have seen every case...
                     break
@@ -387,7 +407,7 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
                 
                 # General case: store information for step 2
                 if call_obj not in map_entry_cls or len(call_args.split(', ')) != 8:
-                    fields[fnumber] = (ftype, fenumormsg)
+                    fields[fnumber] = (None, ftype, fenumormsg, None, None)
 
                 else: # Look for InternalNano.mergeMapEntry()
                     args = code.raw[start:].split('(')[1].split(')')[0].split(', ')
@@ -412,7 +432,7 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
                 fenumormsg = lazy_obj.group(1)
             
             ftype = {0: 'int32', 1: 'fixed64', 2: 'bytes', 3: 'group', 5: 'fixed32'}[lazy_tag & 7]
-            fields[lazy_tag >> 3] = (ftype, fenumormsg)
+            fields[lazy_tag >> 3] = (None, ftype, fenumormsg, None, None)
     
     """
     Step 2: Look for calls to CodedOutputStream (or CodedOutputByteBufferNano, or GeneratedMessage) methods
@@ -485,11 +505,7 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
                 continue
             field = fields[fnumber]
             
-            if len(field) == 2:
-                ftype, fenumormsg = field
-                var = None
-            else:
-                flabel, ftype, fenumormsg, fdefault, var = field
+            flabel, ftype, fenumormsg, fdefault, var = field
             
             # Store condition line (if any) for optional processing of step 3
             if from_condition:
@@ -617,7 +633,7 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
                 if call_obj.startswith(map_cls):
                     map_cls = search(' = ([\w$.]+)\.\w+;', cond) # Handle inlined call
                     if not map_cls:
-                        fields[fnumber] = (flabel, ftype, fenumormsg, fdefault, )
+                        fields[fnumber] = (flabel, ftype, fenumormsg, fdefault, None)
                         continue
                     map_cls = map_cls.group(1)
                 map_code = jar.decomp(map_cls, True).raw
@@ -675,12 +691,14 @@ def extract_lite(jar, cls, enums, gen_classes, codedinputstream, codedoutputstre
     oneofs = {}
         
     # Are these variables proguarded and should we rename these?
-    use_namer = all(len(i[4]) < 3 or i[4].endswith('_fld') for i in fields.values())
+    use_namer = all(not i[4] or len(i[4]) < 3 or i[4].endswith('_fld') for i in fields.values())
     
-    all_vars = [field[4] for field in fields.values()]
+    all_vars = [field[4] or 'unk' for field in fields.values()]
     
     for number, (flabel, ftype, fenumormsg, fdefault, var) in sorted(fields.items()):
         field = message.field.add()
+        var = var or 'unk'
+        flabel = flabel or 'optional'
         
         if ftype == 'group' and not fenumormsg:
             ftype = 'bytes'
