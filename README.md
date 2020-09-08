@@ -28,7 +28,7 @@ On most other distributions, you'll want to run it directly:
 
 ```tcl
 # For Ubuntu/Debian testing derivates:
-$ sudo apt install python3-pip git openjdk-9-jre libqt5x11extras5
+$ sudo apt install python3-pip git openjdk-9-jre libqt5x11extras5 python3-pyqt5.qtwebengine python3-pyqt5
 
 $ sudo pip3 install protobuf pyqt5 pyqtwebengine requests websocket-client
 
