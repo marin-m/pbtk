@@ -130,7 +130,7 @@ class PBTKGUI(QApplication):
         
         if progress is not None:
             self.view.setRange(0, 100)
-            self.view.setValue(progress * 100)
+            self.view.setValue(int(progress * 100))
         else:
             self.view.setRange(0, 0)
     
@@ -439,8 +439,8 @@ class PBTKGUI(QApplication):
         self.view = view
         
         resolution = QDesktopWidget().screenGeometry()
-        view.move((resolution.width() / 2) - (view.frameSize().width() / 2),
-                  (resolution.height() / 2) - (view.frameSize().height() / 2))
+        view.move(int((resolution.width() / 2) - (view.frameSize().width() / 2)),
+                  int((resolution.height() / 2) - (view.frameSize().height() / 2)))
 
 """
     Simple wrapper for running extractors in background.
