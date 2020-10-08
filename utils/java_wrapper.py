@@ -216,11 +216,13 @@ class ClassWrapper:
                         if match.group(1) not in ('if', 'for', 'while', 'switch', 'catch', 'super', 'this', 'synchronized', 'getClass'):
                             (name, args), (call_start, call_end) = match.groups(), match.span()
                             
-                            ret, obj, name, args = self.prototype_from_annote(name, args)
-                            call_sig = ret, name, args
+                            call_info = self.prototype_from_annote(name, args)
+                            if call_info:
+                                ret, obj, name, args = call_info
+                                call_sig = ret, name, args
                             
-                            self.method_loc_calls[call_start + pos] = (call_sig, call_end + pos)
-                            method_loc_calls.append(call_sig)
+                                self.method_loc_calls[call_start + pos] = (call_sig, call_end + pos)
+                                method_loc_calls.append(call_sig)
                     
                     # Store calls to external methods
                     for match in reversed(list(finditer('\.(\w+)\((?=([^;]+))', nostrings_line))):
@@ -228,8 +230,9 @@ class ClassWrapper:
                         
                         call_sig = self.prototype_from_annote(name, args)
                         
-                        self.method_calls[call_start + pos] = (call_sig, call_end + pos)
-                        method_glob_calls.append(call_sig)
+                        if call_sig:
+                            self.method_calls[call_start + pos] = (call_sig, call_end + pos)
+                            method_glob_calls.append(call_sig)
                     
                     method_code += line
                     
@@ -269,8 +272,8 @@ class ClassWrapper:
                                                                 (has_args == bool(v[3])) and \
                                                                 (v[3].count(',') == num_commas)), None)
         if annote is None:
-            print("Error: Jad annotation couldn't be parsed:", repr(name + '(' + args), '/', self.cls, '/', self.annotes)
-            raise ValueError
+            print("Note: Jad annotation couldn't be parsed:", repr(name + '(' + args), '/', self.cls, '/', self.annotes)
+            return None
         
         return self.annotes.pop(annote)
     
