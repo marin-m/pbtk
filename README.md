@@ -20,7 +20,7 @@ PBTK requires Python ≥ 3.5, PyQt 5, Python-Protobuf 3, and a handful of execut
 Archlinux users can install directly through the [package](https://aur.archlinux.org/packages/pbtk-git/):
 
 ```
-$ yaourt -S pbtk-git
+$ yay -S pbtk-git
 $ pbtk
 ```
 
