@@ -5,7 +5,7 @@ from google.protobuf.message import Message
 from importlib import import_module, reload
 from tempfile import TemporaryDirectory
 from inspect import getmembers, isclass
-from sys import platform, path as PATH
+from sys import platform, path as PATH, stdout
 from os import environ, makedirs, sep
 from importlib.util import find_spec
 from argparse import ArgumentParser
@@ -256,6 +256,19 @@ def extractor_main(extractor):
         parser.add_argument('output_dir', type=Path, default='.', nargs='?')
         args = parser.parse_args()
         
-        nb_written, wrote_endpoints = extractor_save(args.output_dir, '', extractor['func'](args.input_))
+        output = []
+        last_info = None
+        # Extractor is runned here
+        for name, contents in extractor['func'](args.input_):
+            if name == '_progress':
+                info, progress = contents
+                if last_info == info:
+                    stdout.write('\r%s\t%2d%%' % (info, progress*100))
+                else:
+                    stdout.write("\n" + info)
+                last_info = info
+            else:
+                output.append((name, contents))
+        nb_written, wrote_endpoints = extractor_save(args.output_dir, '', output)
         if nb_written:
             print('\n[+] Wrote %s .proto files to "%s".\n' % (nb_written, args.output_dir))
