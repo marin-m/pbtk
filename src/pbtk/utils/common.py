@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 from collections import OrderedDict, defaultdict
 from os.path import exists, dirname, realpath
 from google.protobuf.message import Message

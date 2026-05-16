@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 from google.protobuf.descriptor_pb2 import (
     DescriptorProto,
     FieldDescriptorProto,
@@ -295,4 +295,5 @@ def fmt_ranges(name, ranges):
 
 
 # Fulfilling a blatant lack of the Python language.
-list_rfind = lambda x, i: len(x) - 1 - x[::-1].index(i) if i in x else -1
+def list_rfind(x, i):
+    return len(x) - 1 - x[::-1].index(i) if i in x else -1

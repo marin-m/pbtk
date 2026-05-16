@@ -1,26 +1,26 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 from google.protobuf.descriptor_pb2 import (
     DescriptorProto,
     EnumDescriptorProto,
     FieldDescriptorProto,
 )
 from re import findall, MULTILINE, search, split, sub, escape, finditer
-from typing import Dict, List, Set, Sequence, Optional
 from collections import OrderedDict, defaultdict
 from logging import getLogger, DEBUG
 from itertools import count, product
 from string import ascii_lowercase
 from ctypes import c_int, c_long
 from struct import pack, unpack
+from typing import Dict, Tuple
 from ast import literal_eval
 
 from os.path import dirname, realpath
 
-__import__('sys').path.append(dirname(realpath(__file__)) + '/..')
-from utils.common import register_extractor, extractor_main
-from utils.nest_messages import nest_and_print_to_files
-from extractors.from_binary import walk_binary
-from utils.java_wrapper import JarWrapper
+__import__('sys').path.append(dirname(realpath(__file__)) + '/../..')
+from pbtk.utils.common import register_extractor, extractor_main
+from pbtk.utils.nest_messages import nest_and_print_to_files
+from pbtk.extractors.from_binary import walk_binary
+from pbtk.utils.java_wrapper import JarWrapper
 
 """
     This script aims to provide a complete Protobuf structure extraction
@@ -503,7 +503,7 @@ def extract_lite(
                     # We can't know signedness for (u)int64, (s)fixed32 or (s)fixed64, so pick the most common case.
 
                     if (
-                        '!= 0' in case and not '.arraycopy' in case
+                        '!= 0' in case and '.arraycopy' not in case
                     ) or 'oolean' in case:
                         ftype = 'bool'
                     elif 'Long' in ftype and ftype == 'uint32':
@@ -638,7 +638,6 @@ def extract_lite(
     They should be located mostly in conditions of .writeTo(CodedOutputStream)
     """
 
-    seen_conds = set()
     cond_lines = OrderedDict()
     prev_cond_end = 0
     take_packed = False

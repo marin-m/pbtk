@@ -37,7 +37,7 @@ Issues = "https://github.com/marin-m/pbtk/issues"
 Changelog = "https://github.com/marin-m/pbtk/releases"
 
 [project.gui-scripts]
-pbtk = "pbtk.gui:main"
+pbtk = "pbtk.ui.gui:main"
 
 [project.scripts]
 pbtk-jar-extract = "pbtk.extractors.jar_extract:main"
@@ -46,7 +46,7 @@ pbtk-web-extract = "pbtk.extractors.web_extract:main"
 
 [tool.setuptools]
 include-package-data = true
-package-dir = { pbtk = "src" }
+package-dir = { "" = "src" }
 packages = [
     "pbtk",
     "pbtk.extractors",
@@ -56,7 +56,7 @@ packages = [
     "pbtk.utils.external.dex2jar.lib",
     "pbtk.utils.external.jad",
     "pbtk.utils.external.protoc",
-    "pbtk.views"
+    "pbtk.ui"
 ]
 
 [tool.setuptools.package-data]
@@ -64,7 +64,7 @@ packages = [
 "pbtk.utils.external.dex2jar.lib" = ["*"]
 "pbtk.utils.external.jad" = ["*"]
 "pbtk.utils.external.protoc" = ["*"]
-"pbtk.views" = ["*"]
+"pbtk.ui" = ["*"]
 
 [tool.ruff]
 line-length = 79

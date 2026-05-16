@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 from PySide6.QtWidgets import (
     QTreeWidgetItem,
     QLineEdit,
@@ -38,7 +38,7 @@ descriptor._ParseOptions = lambda msg, data: msg.FromString(
 # And then do Protobuf imports
 from google.protobuf.internal.type_checkers import _VALUE_CHECKERS
 
-from utils.common import load_proto_msgs, protoc
+from pbtk.utils.common import load_proto_msgs, protoc
 
 """
     We extend QWebEngineView with a method that parses responses and

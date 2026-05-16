@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 from google.protobuf.descriptor import FieldDescriptor as fd
 from base64 import urlsafe_b64decode, urlsafe_b64encode
 from urllib.parse import quote, unquote

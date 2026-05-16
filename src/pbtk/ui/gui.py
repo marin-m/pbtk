@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 from PySide6.QtWidgets import (
     QApplication,
     QListWidgetItem,
@@ -14,9 +14,9 @@ from PySide6.QtCore import Qt, QUrl, Signal, QThread
 from PySide6.QtUiTools import QUiLoader
 
 from logging import getLogger, debug, info, DEBUG
+from collections import OrderedDict, defaultdict
 from signal import signal, SIGINT, SIG_DFL
 from os.path import dirname, realpath
-from collections import defaultdict
 from urllib.parse import urlparse
 from os import listdir, remove
 from functools import partial
@@ -25,9 +25,7 @@ from binascii import crc32
 from pathlib import Path
 from sys import argv
 
-__import__('sys').path.append(dirname(realpath(__file__)))
-
-from utils.common import (
+from pbtk.utils.common import (
     extractors,
     transports,
     BASE_PATH,
@@ -36,9 +34,9 @@ from utils.common import (
     insert_endpoint,
     load_proto_msgs,
 )
-from views.fuzzer import ProtobufItem, ProtocolDataItem, MyFrame
-from utils.transports import *
-from extractors import *
+from pbtk.ui.fuzzer import ProtobufItem, ProtocolDataItem, MyFrame
+from pbtk.utils.transports import *
+from pbtk.extractors import *
 
 """
     This script runs the main code for the PBTK GUI, and essentially
@@ -55,7 +53,7 @@ class PBTKGUI(QApplication):
 
         getLogger().setLevel(DEBUG)
 
-        views = dirname(realpath(__file__)) + '/views/'
+        views = dirname(realpath(__file__)) + '/'
 
         loader = QUiLoader()
         loader.registerCustomWidget(MyFrame)
