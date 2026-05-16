@@ -154,7 +154,7 @@ PBTK uses two kinds of pluggable modules internally: extractors, and transports.
 
 * An **extractor** supports extracting .proto structures from a target Protobuf implementation or platform.
 
-Extractors are defined in `src/extractors/*.py`. They are defined as a method preceded by a decorator, like this:
+Extractors are defined in `src/pbtk/extractors/*.py`. They are defined as a method preceded by a decorator, like this:
 
 ```python
 @register_extractor(name = 'my_extractor',
@@ -172,7 +172,7 @@ def my_extractor(path):
 
 * A **transport** supports a way of deserializing, reserializing and sending Protobuf data over the network. For example, the most commonly used transport is raw POST data over HTTP.
 
-Transports are defined in `src/utils/transports.py`. They are defined as a class preceded by a decorator, like this:
+Transports are defined in `src/pbtk/utils/transports.py`. They are defined as a class preceded by a decorator, like this:
 
 ```python
 @register_transport(
