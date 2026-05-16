@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 from google.protobuf.descriptor_pb2 import FileDescriptorProto, DescriptorProto
 from collections import defaultdict, OrderedDict
-from re import sub
 
-from utils.descpb_to_proto import descpb_to_proto
+from pbtk.utils.descpb_to_proto import descpb_to_proto
 
 """
     When parsing output from e.g. the Java extractor, messages aren't
@@ -373,4 +372,5 @@ def fix_naming(
             )
 
 
-get_pkg = lambda x: ('.' + x).rsplit('.', 1)[0][1:]
+def get_pkg(x):
+    return ('.' + x).rsplit('.', 1)[0][1:]

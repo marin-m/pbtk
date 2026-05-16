@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 from re import findall, MULTILINE, search, finditer, split, sub
-from subprocess import run, DEVNULL, PIPE, TimeoutExpired
+from subprocess import run, DEVNULL, TimeoutExpired
 from tempfile import TemporaryDirectory
 from collections import OrderedDict
 from zipfile import ZipFile
 from os.path import exists
 
-from extractors.from_binary import walk_binary
-from utils.common import dex2jar, jad
+from pbtk.extractors.from_binary import walk_binary
+from pbtk.utils.common import dex2jar, jad
 
 """
     This is a catch-all class that will handle either a JAR, DEX or APK file.
@@ -462,7 +462,6 @@ class ClassWrapper:
         if (
             'INSTR lookupswitch' in next_lines
         ):  # Handling first switch construct
-            in_switch = True
             vals = []
             for line in (
                 self.raw[start:]
@@ -493,7 +492,6 @@ class ClassWrapper:
                 label_to_val[i] = label_start, (tag, next_label_start)
 
         elif ' switch(' in next_lines:  # Handling second switch construct
-            in_switch = True
             switch_indent = next_lines.split('switch(')[0].split('\n')[-1]
             switch_code = (
                 self.raw[:start]

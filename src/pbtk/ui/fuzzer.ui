@@ -260,7 +260,7 @@
   <customwidget>
    <class>MyFrame</class>
    <extends>QWidget</extends>
-   <header>views/fuzzer</header>
+   <header>ui/fuzzer</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -5,9 +5,9 @@ from google.protobuf.internal.decoder import _DecodeVarint
 from os.path import dirname, realpath
 from logging import getLogger, DEBUG
 
-__import__('sys').path.append(dirname(realpath(__file__)) + '/..')
-from utils.common import register_extractor, extractor_main
-from utils.descpb_to_proto import descpb_to_proto
+__import__('sys').path.append(dirname(realpath(__file__)) + '/../..')
+from pbtk.utils.common import register_extractor, extractor_main
+from pbtk.utils.descpb_to_proto import descpb_to_proto
 
 """
     This script extracts Protobufs metadata embedded into an executable

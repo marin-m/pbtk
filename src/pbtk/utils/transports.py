@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-from urllib.parse import quote_plus, urlencode, parse_qsl, urlparse, unquote
-from utils.pburl_decoder import proto_url_encode, proto_url_decode
+from urllib.parse import quote_plus, urlencode, parse_qsl, urlparse
 from base64 import urlsafe_b64decode, urlsafe_b64encode
-from utils.common import register_transport
 from collections import OrderedDict
 from requests import get, post
 from functools import reduce
 from re import sub, match
 from json import loads
+
+from pbtk.utils.pburl_decoder import proto_url_encode, proto_url_decode
+from pbtk.utils.common import register_transport
 
 USER_AGENT = {
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36'
@@ -40,7 +41,8 @@ class RawPOST:
         )
 
 
-my_quote = lambda x: quote_plus(str(x), safe='~()*!.')
+def my_quote(x):
+    return quote_plus(str(x), safe='~()*!.')
 
 
 @register_transport(
@@ -81,9 +83,6 @@ class Base64GET:
                 params, safe='~()*!.'
             )  # Do not escape '!' for readibility.
         return get(url, headers=USER_AGENT)
-
-
-my_quote = lambda x: quote_plus(str(x), safe='~()*!.')
 
 
 @register_transport(
