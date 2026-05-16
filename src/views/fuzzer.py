@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 from PySide6.QtWidgets import (
     QTreeWidgetItem,
     QLineEdit,

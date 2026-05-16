@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 from urllib.parse import quote, quote_plus, unquote_plus, parse_qsl, urlencode
 from logging import getLogger, DEBUG, debug, info, error
 from tempfile import TemporaryDirectory

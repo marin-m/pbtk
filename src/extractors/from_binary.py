@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 from google.protobuf.descriptor_pb2 import FileDescriptorProto
 from google.protobuf.internal.decoder import _DecodeVarint
 

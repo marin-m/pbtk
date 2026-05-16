@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 from re import findall, MULTILINE, search, finditer, split, sub
 from subprocess import run, DEVNULL, PIPE, TimeoutExpired
 from tempfile import TemporaryDirectory
