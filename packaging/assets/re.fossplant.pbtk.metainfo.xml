@@ -57,6 +57,13 @@ https://hughsie.github.io/oars/index.html
 -->
   <content_rating type="oars-1.1" />
   <releases>
+    <release version="1.1.2" date="2026-04-16">
+      <description>
+        <p>Update dex2jar to version 2.4 thanks to @nref (issue #23)</p>
+        <p>Add support for RepeatedScalarFieldContainer thanks to @Davis-3450 (issue #30)</p>
+        <p>Add troubleshooting documentation thanks to @TimLChan</p>
+      </description>
+    </release>
     <release version="1.1.1" date="2026-03-27">
       <description>
         <p>Support spawning Chrome or Chromium for the "web-extract" feature from within Snap</p>

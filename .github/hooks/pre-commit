@@ -35,7 +35,7 @@ if [ "$?" -ne "0" ]; then
 	run appstreamcli validate "${METAINFO}"
 fi
 
-git diff --cached --quiet "src/" "gui.py"
+git diff --cached --quiet "src/"
 if [ "$?" -ne "0" ]; then
 	run ruff format
 fi
