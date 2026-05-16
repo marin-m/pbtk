@@ -1,4 +1,4 @@
-# troubleshooting
+# Troubleshooting
 
 ## FileNotFoundError - classes-dex2jar.jar
 
@@ -12,7 +12,7 @@ FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmpbha7v_6y/classe
 
 When this error occurs, two things should be checked - whether dex2jar is able to decompile the apk, and whether there is enough java heap space for the decompilation can occur
 
-### check dex2jar version
+### Check dex2jar version
 
 Run dex2jar manually on your apk from this repository to confirm that it is not a dex2jar related issue. 
 
@@ -34,7 +34,7 @@ com.googlecode.d2j.DexException: not support version.
 
 If the version of dex2jar is too old, grab the latest version from [pxb1988/dex2jar](https://github.com/pxb1988/dex2jar) and replace the contents of `src/utils/external/dex2jar` with the new version.
 
-### check java heap space
+### Check Java heap space
 
 If dex2jar fails to run, this could be due to memory issues. By default, dex2jar is configured to use 512M - 2GB of heap space.
 

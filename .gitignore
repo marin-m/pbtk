@@ -3,6 +3,7 @@ __pycache__/
 *.log
 pbtk.egg-info
 build/
+*.kate-swp
 .goutputstream-*
 
 # The following is related to building packages
