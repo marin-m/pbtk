@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 1.0.3 -->
+<gresources>
+  <gresource>
+    <file compressed="true" preprocess="xml-stripblanks" alias="scalable/apps/re.fossplant.pbtk.svg">../../../../packaging/assets/re.fossplant.pbtk.svg</file>
+    <file compressed="true" preprocess="xml-stripblanks" alias="re.fossplant.pbtk.svg">../../../../packaging/assets/re.fossplant.pbtk.svg</file>
+  </gresource>
+</gresources>

@@ -1,0 +1,89 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $MainWindow: Adw.ApplicationWindow {
+  content: Adw.NavigationView {
+    Adw.NavigationPage {
+      title: _("Welcome to PBTK!");
+
+      Adw.ToolbarView {
+        content: Adw.PreferencesPage {
+          description: "This GUI will get you to reverse engineer (and optionally network fuzz) apps using the Protobuf serialization format in minutes.";
+
+          Adw.PreferencesGroup {
+            title: "Follow these three steps in order to get started.";
+
+            Adw.ActionRow {
+              activatable-widget: step1_button;
+              title: " Step 1: Extract .proto structures from apps";
+
+              Button step1_button {
+                label: "Go...";
+              }
+            }
+
+            Adw.ActionRow {
+              activatable-widget: step2_button;
+              title: "Step 2: Link .protos to endpoints";
+
+              Button step2_button {
+                label: "Go...";
+              }
+            }
+
+            Adw.ActionRow {
+              activatable-widget: step3_button;
+              title: "Step 3: Fuzz and test endpoints live";
+
+              Button step3_button {
+                label: "Go...";
+              }
+            }
+          }
+
+          Adw.PreferencesGroup {
+            title: "All your extracted .proto files and JSON endpoint information is stored in the\n%s directory.";
+
+            Adw.ActionRow {
+              activatable-widget: open_dir_button;
+              title: _("Using your regular file browser, you can move files in and out this place.");
+
+              Button open_dir_button {
+                label: _("Open this directory...");
+              }
+            }
+          }
+        };
+
+        [top]
+        Adw.HeaderBar {
+          [end]
+          MenuButton {
+            icon-name: "open-menu-symbolic";
+
+            menu-model: menu {
+              item {
+                action: "win.show-about";
+                label: _("_About...");
+              }
+            };
+          }
+        }
+      }
+    }
+  };
+
+  default-height: 480;
+  default-width: 720;
+}
+
+Adw.AboutDialog about_dialog {
+  application-icon: "re.fossplant.pbtk";
+  application-name: "PBTK";
+  copyright: "© Marin Moulinier";
+  issue-url: "https://github.com/marin-m/pbtk/issues/new/choose";
+  license-type: gpl_3_0;
+  support-url: "https://matrix.to/#/#pbtk:matrix.org";
+  version: "0.x";
+  website: "https://github.com/marin-m/pbtk";
+}
