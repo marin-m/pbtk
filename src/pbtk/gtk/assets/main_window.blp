@@ -77,7 +77,11 @@ template $MainWindow: Adw.ApplicationWindow {
 
     Adw.NavigationPage extract_page {
       child: Adw.ToolbarView {
-        content: Adw.PreferencesPage {};
+        content: Adw.PreferencesPage {
+          Adw.PreferencesGroup extractors_list {
+            title: "Select an extractor";
+          }
+        };
 
         [top]
         Adw.HeaderBar {}
