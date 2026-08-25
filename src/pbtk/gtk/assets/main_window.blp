@@ -3,10 +3,8 @@ using Adw 1;
 
 template $MainWindow: Adw.ApplicationWindow {
   content: Adw.NavigationView {
-    Adw.NavigationPage {
-      title: _("Welcome to PBTK!");
-
-      Adw.ToolbarView {
+    Adw.NavigationPage main_page {
+      child: Adw.ToolbarView {
         content: Adw.PreferencesPage {
           description: "This GUI will get you to reverse engineer (and optionally network fuzz) apps using the Protobuf serialization format in minutes.";
 
@@ -18,6 +16,8 @@ template $MainWindow: Adw.ApplicationWindow {
               title: " Step 1: Extract .proto structures from apps";
 
               Button step1_button {
+                action-name: "navigation.push";
+                action-target: "\"extract_page\"";
                 label: "Go...";
               }
             }
@@ -69,12 +69,28 @@ template $MainWindow: Adw.ApplicationWindow {
             };
           }
         }
-      }
+      };
+
+      tag: "main_page";
+      title: _("Welcome to PBTK!");
+    }
+
+    Adw.NavigationPage extract_page {
+      child: Adw.ToolbarView {
+        content: Adw.PreferencesPage {};
+
+        [top]
+        Adw.HeaderBar {}
+      };
+
+      tag: "extract_page";
+      title: "Extract structures...";
     }
   };
 
   default-height: 480;
   default-width: 720;
+  icon-name: "re.fossplant.pbtk";
 }
 
 Adw.AboutDialog about_dialog {
