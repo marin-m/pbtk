@@ -17,6 +17,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Topic :: Software Development :: Disassemblers",
     "Topic :: Security",
+    "Environment :: X11 Applications :: GTK",
     "Environment :: X11 Applications :: Qt",
     "Environment :: Console"
 ]
@@ -25,6 +26,7 @@ license-files = ["LICENSE"]
 requires-python = ">=3.10"
 dependencies = [
     "protobuf<7.34",
+    "pygobject>=3.56.3",
     "pyside6>=6.10.2",
     "requests",
     "system-pyside6>=0.1.1",
@@ -38,6 +40,7 @@ Changelog = "https://github.com/marin-m/pbtk/releases"
 
 [project.gui-scripts]
 pbtk = "pbtk.ui.gui:main"
+pbtk-gtk = "pbtk.gtk.app:main"
 
 [project.scripts]
 pbtk-jar-extract = "pbtk.extractors.jar_extract:main"
@@ -45,25 +48,17 @@ pbtk-from-binary = "pbtk.extractors.from_binary:main"
 pbtk-web-extract = "pbtk.extractors.web_extract:main"
 
 [tool.setuptools]
-include-package-data = true
-package-dir = { "" = "src" }
-packages = [
-    "pbtk",
-    "pbtk.extractors",
-    "pbtk.utils",
-    "pbtk.utils.external",
-    "pbtk.utils.external.dex2jar",
-    "pbtk.utils.external.dex2jar.lib",
-    "pbtk.utils.external.jad",
-    "pbtk.utils.external.protoc",
-    "pbtk.ui"
-]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.setuptools.package-data]
 "pbtk.utils.external.dex2jar" = ["*"]
 "pbtk.utils.external.dex2jar.lib" = ["*"]
 "pbtk.utils.external.jad" = ["*"]
 "pbtk.utils.external.protoc" = ["*"]
+"pbtk.gtk.assets" = ["*"]
 "pbtk.ui" = ["*"]
 
 [tool.ruff]
