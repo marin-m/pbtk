@@ -29,3 +29,9 @@ class ExtractorRow(Adw.ActionRow):
 
     def on_clicked(self, target: Gtk.Button, *args):
         debug('TODO')
+
+        # => 🪧 TODO: File picker branch
+        #  => Use Gtk.FileDialog
+
+        # => 🪧 TODO: URL prompt branch
+        #  (cf. prompt_extractor @ gui.py § L61)
