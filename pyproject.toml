@@ -39,7 +39,7 @@ Issues = "https://github.com/marin-m/pbtk/issues"
 Changelog = "https://github.com/marin-m/pbtk/releases"
 
 [project.gui-scripts]
-pbtk = "pbtk.ui.gui:main"
+# pbtk = "pbtk.ui.gui:main"
 pbtk-gtk = "pbtk.gtk.app:main"
 
 [project.scripts]
