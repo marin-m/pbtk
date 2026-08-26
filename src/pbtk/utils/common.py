@@ -61,7 +61,8 @@ environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
 extractors = OrderedDict()
 """
 def register_extractor(name = None, # Used to refer to internally
-                       desc = None, # Used to describe extractor in GUI
+                       readable_name = None, # Used to display in the UI
+                       description = None, # Used to describe extractor in UI
                        pick_url = False, # Pick URL rather than file
                        depends = None): # kwargs for assert_installed()
 """
@@ -78,7 +79,7 @@ def register_extractor(**kwargs):
 transports = OrderedDict()
 """
 def register_transport(name, # Used to refer to in JSON data files
-                       desc, # Used to describe protocol in GUI
+                       description, # Used to describe protocol in GUI
                        ui_tab = None, # Used to name the protocol data tab in fuzzer GUI (if any)
                        ui_data_form = None, # Used to describe the nature of protocol data
                        enforce_int_parameter = False): # Whether keys in protocol data are integer
@@ -325,7 +326,7 @@ def extractor_main(extractor):
     extractor = extractors[extractor]
 
     if assert_installed(**extractor.get('depends', {})):
-        parser = ArgumentParser(description=extractor['desc'])
+        parser = ArgumentParser(description=extractor['description'])
         if extractor.get('pick_url'):
             parser.add_argument('input_', metavar='input_url')
         else:

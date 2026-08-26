@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+from pbtk.gtk.view.extractor_row import ExtractorRow
+from pbtk.gtk.datamodel.extractor import Extractor
+from pbtk.utils.common import extractors
+from pbtk.extractors import *
+
 from importlib.metadata import version
 
 import gi
@@ -7,7 +12,7 @@ import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 
-from gi.repository import Gtk, Adw, Gio
+from gi.repository import Gtk, Adw, GObject, Gio
 
 # (⚠️ TODO: Load from BLP file)
 
@@ -19,6 +24,9 @@ class MainWindow(Adw.ApplicationWindow):
     __gtype_name__ = 'MainWindow'
 
     about_dialog: Adw.AboutDialog = Gtk.Template.Child()
+
+    extractor_objs = GObject.Property(type=Gio.ListStore)  # Of Extractor
+    extractors_list: Adw.PreferencesGroup = Gtk.Template.Child()
 
     def __init__(self, app):
         super().__init__()
@@ -42,7 +50,21 @@ class MainWindow(Adw.ApplicationWindow):
         self.reset_state()
 
     def bind_data(self):
-        pass  # TODO
+        self.extractor_objs = Gio.ListStore.new(Extractor)
+
+        print(extractors)
+        for name, meta in extractors.items():
+            extractor_obj = Extractor()
+            extractor_obj.name = meta['readable_name']
+            extractor_obj.description = meta['description']
+            extractor_obj.py_func = meta['func']
+
+            self.extractor_objs.append(extractor_obj)
+
+        self.extractors_list.bind_model(self.extractor_objs, ExtractorRow)
+
+        # 🪧➡️ WIP ⚠️: BIND EXTRACTORS LIST TO UI PANEL #1
+        # Cf. https://lazka.github.io/pgi-docs/Adw-1/classes/PreferencesGroup.html#Adw.PreferencesGroup.bind_model
 
     def connect_actions(self):
 

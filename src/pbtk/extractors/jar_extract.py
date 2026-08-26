@@ -45,7 +45,8 @@ from pbtk.utils.java_wrapper import JarWrapper
 
 @register_extractor(
     name='jar_extract',
-    desc=(
+    readable_name='JAR extractor',
+    description=(
         'Extract Protobuf structures from any Java code (*.jar, *.dex, *.apk)'
         + ' - currently works better with older APKs, needs update'
     ),

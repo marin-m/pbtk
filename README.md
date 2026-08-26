@@ -158,7 +158,8 @@ Extractors are defined in `src/pbtk/extractors/*.py`. They are defined as a meth
 
 ```python
 @register_extractor(name = 'my_extractor',
-                    desc = 'Extract Protobuf structures from Foobar code (*.foo, *.bar)',
+                    readable_name = 'My Extractor',
+                    description = 'Extract Protobuf structures from Foobar code (*.foo, *.bar)',
                     depends={'binaries': ['foobar-decompiler']})
 def my_extractor(path):
     # Load contents of the `path` input file and do your stuff...
@@ -177,7 +178,7 @@ Transports are defined in `src/pbtk/utils/transports.py`. They are defined as a 
 ```python
 @register_transport(
     name = 'my_transport',
-    desc = 'Protobuf as raw POST data',
+    description = 'Protobuf as raw POST data',
     ui_data_form = 'hex strings'
 )
 class MyTransport():

@@ -17,7 +17,7 @@ USER_AGENT = {
 
 @register_transport(
     name='raw_post',
-    desc='Protobuf as raw POST data',
+    description='Protobuf as raw POST data',
     ui_tab='Headers',
     ui_data_form='hex strings',
 )
@@ -47,7 +47,7 @@ def my_quote(x):
 
 @register_transport(
     name='base64_get',
-    desc='Protobuf as Base64url GET component (use "{param_name}" for templating)',
+    description='Protobuf as Base64url GET component (use "{param_name}" for templating)',
     ui_tab='GET',
     ui_data_form='regular GET query strings',
 )
@@ -87,7 +87,7 @@ class Base64GET:
 
 @register_transport(
     name='pburl_private',
-    desc='Protobuf-URL, Google Maps private API style ("!"-separated)',
+    description='Protobuf-URL, Google Maps private API style ("!"-separated)',
     ui_tab='GET',
     ui_data_form='regular GET query strings',
 )
@@ -130,7 +130,7 @@ class GMapsAPIPrivate:
 
 @register_transport(
     name='pburl_public',
-    desc='Protobuf-URL, Google Maps public API style ("&"-separated)',
+    description='Protobuf-URL, Google Maps public API style ("&"-separated)',
     ui_tab='GET',
     ui_data_form='GET query strings copied as-is',
 )

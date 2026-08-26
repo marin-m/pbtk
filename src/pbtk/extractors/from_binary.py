@@ -29,7 +29,8 @@ from pbtk.utils.descpb_to_proto import descpb_to_proto
 
 @register_extractor(
     name='from_binary',
-    desc='Extract Protobuf metadata from binary file (*.dll, *.so...)',
+    readable_name='Binary extractor',
+    description='Extract Protobuf metadata from binary file (*.dll, *.so...)',
 )
 def walk_binary(binr):
     if isinstance(binr, str):
