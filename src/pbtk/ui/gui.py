@@ -16,7 +16,9 @@ from PySide6.QtUiTools import QUiLoader
 from logging import getLogger, debug, info, DEBUG
 from collections import OrderedDict, defaultdict
 from signal import signal, SIGINT, SIG_DFL
+from importlib.metadata import version
 from os.path import dirname, realpath
+from argparse import ArgumentParser
 from urllib.parse import urlparse
 from os import listdir, remove
 from functools import partial
@@ -64,6 +66,8 @@ class PBTKGUI(QApplication):
         self.create_endpoint = loader.load(views + 'create_endpoint.ui')
         self.choose_endpoint = loader.load(views + 'choose_endpoint.ui')
         self.fuzzer = loader.load(views + 'fuzzer.ui')
+
+        self.welcome.setWindowTitle('PBTK ' + version('pbtk'))
 
         self.welcome.step1.clicked.connect(self.load_extractors)
         self.choose_extractor.rejected.connect(
@@ -667,6 +671,15 @@ class Worker(QThread):
 
 
 def main():
+    args = ArgumentParser()
+    args.add_argument('-V', '--version', action='store_true')
+
+    args = args.parse_args()
+
+    if args.version:
+        print('PBTK version ' + version('pbtk'))
+        exit(0)
+
     PBTKGUI()
 
 

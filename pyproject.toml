@@ -48,6 +48,7 @@ pbtk-from-binary = "pbtk.extractors.from_binary:main"
 pbtk-web-extract = "pbtk.extractors.web_extract:main"
 
 [tool.setuptools]
+include-package-data = true
 package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
