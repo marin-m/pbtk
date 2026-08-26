@@ -52,7 +52,6 @@ class MainWindow(Adw.ApplicationWindow):
     def bind_data(self):
         self.extractor_objs = Gio.ListStore.new(Extractor)
 
-        print(extractors)
         for name, meta in extractors.items():
             extractor_obj = Extractor()
             extractor_obj.name = meta['readable_name']

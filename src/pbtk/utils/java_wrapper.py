@@ -3,6 +3,7 @@ from re import findall, MULTILINE, search, finditer, split, sub
 from subprocess import run, DEVNULL, TimeoutExpired
 from tempfile import TemporaryDirectory
 from collections import OrderedDict
+from logging import warning, error
 from zipfile import ZipFile
 from os.path import exists
 
@@ -140,7 +141,7 @@ class ClassWrapper:
                 stderr=DEVNULL,
             )
         except TimeoutExpired:
-            print('(Jad timed out)')
+            error('(Jad timed out)')
 
         if not exists(outpath):
             self.raw = ''
@@ -396,7 +397,7 @@ class ClassWrapper:
             None,
         )
         if annote is None:
-            print(
+            warning(
                 "Note: Jad annotation couldn't be parsed:",
                 repr(name + '(' + args),
                 '/',
