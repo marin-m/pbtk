@@ -32,14 +32,14 @@ def main():
 
 
 class MainApplication(Adw.Application):
-    window: MainWindow
+    window: MainWindow = None
 
     def __init__(self, **kwargs):
         LoggingCentral(debug_mode=True)
 
         self.setup_error_handling()
 
-        debug('Initializing app...')
+        # debug('Initializing app...')
 
         icon_theme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default())
         icon_theme.add_resource_path('/re/fossplant/pbtk/')

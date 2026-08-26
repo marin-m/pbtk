@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
+from importlib.metadata import version
+
 import gi
 
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 
-from gi.repository import Gtk, Adw
+from gi.repository import Gtk, Adw, Gio
 
 # (⚠️ TODO: Load from BLP file)
 
@@ -16,12 +18,11 @@ from gi.repository import Gtk, Adw
 class MainWindow(Adw.ApplicationWindow):
     __gtype_name__ = 'MainWindow'
 
-    app: 'MainApplication'
+    about_dialog: Adw.AboutDialog = Gtk.Template.Child()
 
     def __init__(self, app):
         super().__init__()
 
-        self.app = app
         self.set_application(app)
 
         # Perform data bindings
@@ -44,7 +45,18 @@ class MainWindow(Adw.ApplicationWindow):
         pass  # TODO
 
     def connect_actions(self):
-        pass  # TODO
+
+        def show_about(*args):
+            self.about_dialog.set_version(version('pbtk'))
+            self.about_dialog.present(self)
+
+        self.add_simple_action('show-about', show_about)
+
+    def add_simple_action(self, name, callback, param_type=None):
+
+        action = Gio.SimpleAction.new(name, param_type)
+        action.connect('activate', callback)
+        self.add_action(action)
 
     def connect_signals(self):
         pass  # TODO
