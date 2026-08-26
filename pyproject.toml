@@ -46,18 +46,10 @@ pbtk-web-extract = "pbtk.extractors.web_extract:main"
 
 [tool.setuptools]
 include-package-data = true
-package-dir = { "" = "src" }
-packages = [
-    "pbtk",
-    "pbtk.extractors",
-    "pbtk.utils",
-    "pbtk.utils.external",
-    "pbtk.utils.external.dex2jar",
-    "pbtk.utils.external.dex2jar.lib",
-    "pbtk.utils.external.jad",
-    "pbtk.utils.external.protoc",
-    "pbtk.ui"
-]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.setuptools.package-data]
 "pbtk.utils.external.dex2jar" = ["*"]
