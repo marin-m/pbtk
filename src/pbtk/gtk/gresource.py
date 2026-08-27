@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from os.path import dirname, realpath, exists, splitext, join
 from os import stat, walk, scandir, access, W_OK
+from itertools import chain
 from subprocess import run
 from shutil import which
 from os import makedirs
@@ -30,7 +31,10 @@ if not exists(RESOURCES_PATH) or (
     )
     > stat(RESOURCES_PATH).st_mtime
 ):
-    for blueprint_name in iglob('**.blp', recursive=True, root_dir=ASSETS_DIR):
+    for blueprint_name in chain(
+        iglob('*.blp', recursive=True, root_dir=ASSETS_DIR),
+        iglob('**/*.blp', recursive=True, root_dir=ASSETS_DIR),
+    ):
         base_name, _ = splitext(blueprint_name)
 
         run(

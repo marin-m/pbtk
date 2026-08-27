@@ -41,14 +41,15 @@ template $MainWindow: Adw.ApplicationWindow {
             }
           }
 
-          Adw.PreferencesGroup {
-            title: "All your extracted .proto files and JSON endpoint information is stored in the\n%s directory.";
+          Adw.PreferencesGroup open_dir_section {
+            title: "All your extracted .proto files and JSON endpoint information is stored on disk.";
 
             Adw.ActionRow {
               activatable-widget: open_dir_button;
               title: _("Using your regular file browser, you can move files in and out this place.");
 
               Button open_dir_button {
+                action-name: "win.open-proto-dir";
                 label: _("Open this directory...");
               }
             }
@@ -92,7 +93,7 @@ template $MainWindow: Adw.ApplicationWindow {
     }
   };
 
-  default-height: 480;
+  default-height: 520;
   default-width: 720;
   icon-name: "re.fossplant.pbtk";
 }

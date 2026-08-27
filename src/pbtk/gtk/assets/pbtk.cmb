@@ -3,5 +3,5 @@
 <!-- Created with Cambalache 1.0.3 -->
 <cambalache-project version="1.0.0" target_tk="gtk-4.0" depends="libadwaita-1,webkitgtk-6.0">
   <gresources filename="pbtk.gresource.xml" sha256="b8ef065f2d47e1c64aedbe4859d7d0d250dab9d683a2f46dae2ed2aae59c084b"/>
-  <ui template-class="MainWindow" filename="main_window.blp" sha256="805a2563ff64d4ad54f54bec7a707fb0cddf858d9ad66ec81ec97b4a61c13cc4"/>
+  <ui template-class="MainWindow" filename="main_window.blp" sha256="4094da134ded5f2bab1efe5d73f500d3856a69d13ada4c7b20a50494d2d16973"/>
 </cambalache-project>

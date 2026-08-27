@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 from pbtk.gtk.view.extractor_row import ExtractorRow
+from pbtk.utils.common import extractors, BASE_PATH
 from pbtk.gtk.datamodel.extractor import Extractor
-from pbtk.utils.common import extractors
 from pbtk.extractors import *
 
 from importlib.metadata import version
@@ -24,6 +24,8 @@ class MainWindow(Adw.ApplicationWindow):
     __gtype_name__ = 'MainWindow'
 
     about_dialog: Adw.AboutDialog = Gtk.Template.Child()
+
+    open_dir_section: Adw.PreferencesGroup = Gtk.Template.Child()
 
     extractor_objs = GObject.Property(type=Gio.ListStore)  # Of Extractor
     extractors_list: Adw.PreferencesGroup = Gtk.Template.Child()
@@ -50,6 +52,10 @@ class MainWindow(Adw.ApplicationWindow):
         self.reset_state()
 
     def bind_data(self):
+        self.open_dir_section.set_description(
+            ('Location: %s') % str(BASE_PATH / 'protos')
+        )
+
         self.extractor_objs = Gio.ListStore.new(Extractor)
 
         for name, meta in extractors.items():
@@ -72,6 +78,12 @@ class MainWindow(Adw.ApplicationWindow):
             self.about_dialog.present(self)
 
         self.add_simple_action('show-about', show_about)
+
+        def open_proto_dir(*args):
+            proto_dir = Gio.File.new_for_path(str(BASE_PATH / 'protos'))
+            Gtk.FileLauncher.new(proto_dir).launch(self, None, None)
+
+        self.add_simple_action('open-proto-dir', open_proto_dir)
 
     def add_simple_action(self, name, callback, param_type=None):
 

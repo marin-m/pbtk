@@ -31,7 +31,7 @@ class ExtractorRow(Adw.ActionRow):
         debug('TODO')
 
         # => 🪧 TODO: File picker branch
-        #  => Use Gtk.FileDialog
+        #  => Use Gtk.FileDialog
 
-        # => 🪧 TODO: URL prompt branch
+        # => 🪧 TODO: URL prompt branch
         #  (cf. prompt_extractor @ gui.py § L61)
