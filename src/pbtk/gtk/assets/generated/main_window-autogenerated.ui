@@ -21,35 +21,36 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                         <property name="title">Follow these three steps in order to get started.</property>
                         <child>
                           <object class="AdwActionRow">
-                            <property name="activatable-widget">step1_button</property>
+                            <property name="action-name">navigation.push</property>
+                            <property name="action-target">"extract_page"</property>
+                            <property name="activatable">true</property>
                             <property name="title"> Step 1: Extract .proto structures from apps</property>
-                            <child>
-                              <object class="GtkButton" id="step1_button">
-                                <property name="action-name">navigation.push</property>
-                                <property name="action-target">"extract_page"</property>
-                                <property name="label">Go...</property>
+                            <child type="suffix">
+                              <object class="GtkImage">
+                                <property name="css-classes">dim-label</property>
+                                <property name="icon-name">go-next-symbolic</property>
                               </object>
                             </child>
                           </object>
                         </child>
                         <child>
                           <object class="AdwActionRow">
-                            <property name="activatable-widget">step2_button</property>
                             <property name="title">Step 2: Link .protos to endpoints</property>
-                            <child>
-                              <object class="GtkButton" id="step2_button">
-                                <property name="label">Go...</property>
+                            <child type="suffix">
+                              <object class="GtkImage">
+                                <property name="css-classes">dim-label</property>
+                                <property name="icon-name">go-next-symbolic</property>
                               </object>
                             </child>
                           </object>
                         </child>
                         <child>
                           <object class="AdwActionRow">
-                            <property name="activatable-widget">step3_button</property>
                             <property name="title">Step 3: Fuzz and test endpoints live</property>
-                            <child>
-                              <object class="GtkButton" id="step3_button">
-                                <property name="label">Go...</property>
+                            <child type="suffix">
+                              <object class="GtkImage">
+                                <property name="css-classes">dim-label</property>
+                                <property name="icon-name">go-next-symbolic</property>
                               </object>
                             </child>
                           </object>

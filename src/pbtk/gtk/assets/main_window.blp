@@ -12,31 +12,44 @@ template $MainWindow: Adw.ApplicationWindow {
             title: "Follow these three steps in order to get started.";
 
             Adw.ActionRow {
-              activatable-widget: step1_button;
+              action-name: "navigation.push";
+              action-target: "\"extract_page\"";
+              activatable: true;
               title: " Step 1: Extract .proto structures from apps";
 
-              Button step1_button {
-                action-name: "navigation.push";
-                action-target: "\"extract_page\"";
-                label: "Go...";
+              [suffix]
+              Image {
+                css-classes: [
+                  "dim-label",
+                ];
+
+                icon-name: "go-next-symbolic";
               }
             }
 
             Adw.ActionRow {
-              activatable-widget: step2_button;
               title: "Step 2: Link .protos to endpoints";
 
-              Button step2_button {
-                label: "Go...";
+              [suffix]
+              Image {
+                css-classes: [
+                  "dim-label",
+                ];
+
+                icon-name: "go-next-symbolic";
               }
             }
 
             Adw.ActionRow {
-              activatable-widget: step3_button;
               title: "Step 3: Fuzz and test endpoints live";
 
-              Button step3_button {
-                label: "Go...";
+              [suffix]
+              Image {
+                css-classes: [
+                  "dim-label",
+                ];
+
+                icon-name: "go-next-symbolic";
               }
             }
           }

@@ -63,10 +63,14 @@ class MainWindow(Adw.ApplicationWindow):
             extractor_obj.name = meta['readable_name']
             extractor_obj.description = meta['description']
             extractor_obj.py_func = meta['func']
+            extractor_obj.pick_url = meta.get('pick_url', False)
+            extractor_obj.depends = meta.get('depends')
 
             self.extractor_objs.append(extractor_obj)
 
-        self.extractors_list.bind_model(self.extractor_objs, ExtractorRow)
+        self.extractors_list.bind_model(
+            self.extractor_objs, ExtractorRow, self
+        )
 
         # 🪧➡️ WIP ⚠️: BIND EXTRACTORS LIST TO UI PANEL #1
         # Cf. https://lazka.github.io/pgi-docs/Adw-1/classes/PreferencesGroup.html#Adw.PreferencesGroup.bind_model

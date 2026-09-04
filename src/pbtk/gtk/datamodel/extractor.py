@@ -7,3 +7,5 @@ class Extractor(GObject.Object):
     name = GObject.Property(type=str)
     description = GObject.Property(type=str)
     py_func: callable
+    pick_url = GObject.Property(type=bool, default=False)
+    depends: dict = None

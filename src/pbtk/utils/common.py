@@ -59,6 +59,7 @@ environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
 # [2] https://github.com/marin-m/pbtk#source-code-structure
 
 extractors = OrderedDict()
+
 """
 def register_extractor(name = None, # Used to refer to internally
                        readable_name = None, # Used to display in the UI
@@ -77,6 +78,7 @@ def register_extractor(**kwargs):
 
 
 transports = OrderedDict()
+
 """
 def register_transport(name, # Used to refer to in JSON data files
                        description, # Used to describe protocol in GUI
@@ -97,7 +99,7 @@ def register_transport(**kwargs):
 # General utility functions
 
 
-def assert_installed(win=None, modules=[], binaries=[]):
+def assert_installed(modules=[], binaries=[]):
     missing = defaultdict(list)
     for items, what, func in (
         (modules, 'modules', find_spec),
@@ -113,13 +115,7 @@ def assert_installed(win=None, modules=[], binaries=[]):
                 subject = {'modules': 'module', 'binaries': 'binary'}[subject]
             msg.append('%s "%s"' % (subject, '", "'.join(names)))
         msg = 'You are missing the %s for this.' % ' and '.join(msg)
-        if win:
-            from PySide6.QtWidgets import QMessageBox
-
-            QMessageBox.warning(win, ' ', msg)
-        else:
-            raise ImportError(msg)
-    return not missing
+        raise ImportError(msg)
 
 
 def insert_endpoint(base_path, obj):
@@ -325,20 +321,21 @@ def extractor_save(base_path, folder, outputs):
 def extractor_main(extractor):
     extractor = extractors[extractor]
 
-    if assert_installed(**extractor.get('depends', {})):
-        parser = ArgumentParser(description=extractor['description'])
-        if extractor.get('pick_url'):
-            parser.add_argument('input_', metavar='input_url')
-        else:
-            parser.add_argument('input_', metavar='input_file')
-        parser.add_argument('output_dir', type=Path, default='.', nargs='?')
-        args = parser.parse_args()
+    assert_installed(**extractor.get('depends', {}))
 
-        nb_written, wrote_endpoints = extractor_save(
-            args.output_dir, '', extractor['func'](args.input_)
+    parser = ArgumentParser(description=extractor['description'])
+    if extractor.get('pick_url'):
+        parser.add_argument('input_', metavar='input_url')
+    else:
+        parser.add_argument('input_', metavar='input_file')
+    parser.add_argument('output_dir', type=Path, default='.', nargs='?')
+    args = parser.parse_args()
+
+    nb_written, wrote_endpoints = extractor_save(
+        args.output_dir, '', extractor['func'](args.input_)
+    )
+    if nb_written:
+        print(
+            '\n[+] Wrote %s .proto files to "%s".\n'
+            % (nb_written, args.output_dir)
         )
-        if nb_written:
-            print(
-                '\n[+] Wrote %s .proto files to "%s".\n'
-                % (nb_written, args.output_dir)
-            )
