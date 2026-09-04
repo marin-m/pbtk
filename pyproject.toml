@@ -17,6 +17,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Topic :: Software Development :: Disassemblers",
     "Topic :: Security",
+    "Environment :: X11 Applications :: GTK",
     "Environment :: X11 Applications :: Qt",
     "Environment :: Console"
 ]
@@ -25,6 +26,7 @@ license-files = ["LICENSE"]
 requires-python = ">=3.10"
 dependencies = [
     "protobuf<7.34",
+    "pygobject>=3.56.3",
     "pyside6>=6.10.2",
     "requests",
     "system-pyside6>=0.1.1",
@@ -37,7 +39,8 @@ Issues = "https://github.com/marin-m/pbtk/issues"
 Changelog = "https://github.com/marin-m/pbtk/releases"
 
 [project.gui-scripts]
-pbtk = "pbtk.ui.gui:main"
+# pbtk = "pbtk.ui.gui:main"
+pbtk-gtk = "pbtk.gtk.app:main"
 
 [project.scripts]
 pbtk-jar-extract = "pbtk.extractors.jar_extract:main"
@@ -56,6 +59,7 @@ where = ["src"]
 "pbtk.utils.external.dex2jar.lib" = ["*"]
 "pbtk.utils.external.jad" = ["*"]
 "pbtk.utils.external.protoc" = ["*"]
+"pbtk.gtk.assets" = ["*"]
 "pbtk.ui" = ["*"]
 
 [tool.ruff]

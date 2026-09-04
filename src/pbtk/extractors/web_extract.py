@@ -56,7 +56,8 @@ browser = (
 
 @register_extractor(
     name='pburl_extract',
-    desc=(
+    readable_name='PBURL extractor',
+    description=(
         'Extract and capture Protobuf-URL endpoints from a Chrome instance (http://*)'
         + ' - needs update to work as of 2026'
     ),

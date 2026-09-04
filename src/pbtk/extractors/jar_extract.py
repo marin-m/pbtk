@@ -5,8 +5,8 @@ from google.protobuf.descriptor_pb2 import (
     FieldDescriptorProto,
 )
 from re import findall, MULTILINE, search, split, sub, escape, finditer
+from logging import debug, warning, error, getLogger, DEBUG
 from collections import OrderedDict, defaultdict
-from logging import getLogger, DEBUG
 from itertools import count, product
 from string import ascii_lowercase
 from ctypes import c_int, c_long
@@ -45,7 +45,8 @@ from pbtk.utils.java_wrapper import JarWrapper
 
 @register_extractor(
     name='jar_extract',
-    desc=(
+    readable_name='JAR extractor',
+    description=(
         'Extract Protobuf structures from any Java code (*.jar, *.dex, *.apk)'
         + ' - currently works better with older APKs, needs update'
     ),
@@ -386,9 +387,9 @@ def extract_lite(
 ):
     code = jar.decomp(cls)
 
-    print('\nIn %s:' % cls)
+    error('\nIn %s:' % cls)
     if not code.raw:
-        print('(Jad failed)')
+        error('(Jad failed)')
         return
 
     """
@@ -716,7 +717,7 @@ def extract_lite(
             # Based on field number, load back information from step 1
 
             if fnumber not in fields:
-                print(
+                warning(
                     'Note: extension data ignored, extensions are not supported yet'
                 )
                 continue
@@ -981,7 +982,7 @@ def extract_lite(
 
                 fields[fnumber] = (flabel, ftype, fenumormsg, fdefault, var)
 
-    print(fields)
+    debug(fields)
 
     """
     Final step: Build the DescriptorProto object
@@ -1223,7 +1224,7 @@ def extract_j2me(
     cls = cls.replace('$', '.')
 
     if not code.raw:
-        print('(Jad failed)')
+        error('(Jad failed)')
         return
 
     """
@@ -1281,7 +1282,7 @@ def extract_j2me(
         my_namer = namer()
         summary = {}
 
-        print('\nIn %s.%s:' % (cls, var))
+        debug('\nIn %s.%s:' % (cls, var))
         message.name = var
 
         if fields:
@@ -1365,7 +1366,7 @@ def extract_j2me(
                 summary[int(fnumber)] = (flabel, ftype, fdefaultormsg)
 
         msg_path_to_obj[cls + '.' + var] = message
-        print(summary)
+        debug(summary)
 
 
 type_consts = {

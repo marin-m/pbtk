@@ -1,0 +1,123 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $MainWindow: Adw.ApplicationWindow {
+  content: Adw.NavigationView {
+    Adw.NavigationPage main_page {
+      child: Adw.ToolbarView {
+        content: Adw.PreferencesPage {
+          description: "This GUI will get you to reverse engineer (and optionally network fuzz) apps using the Protobuf serialization format in minutes.";
+
+          Adw.PreferencesGroup {
+            title: "Follow these three steps in order to get started.";
+
+            Adw.ActionRow {
+              action-name: "navigation.push";
+              action-target: "\"extract_page\"";
+              activatable: true;
+              title: " Step 1: Extract .proto structures from apps";
+
+              [suffix]
+              Image {
+                css-classes: [
+                  "dim-label",
+                ];
+
+                icon-name: "go-next-symbolic";
+              }
+            }
+
+            Adw.ActionRow {
+              title: "Step 2: Link .protos to endpoints";
+
+              [suffix]
+              Image {
+                css-classes: [
+                  "dim-label",
+                ];
+
+                icon-name: "go-next-symbolic";
+              }
+            }
+
+            Adw.ActionRow {
+              title: "Step 3: Fuzz and test endpoints live";
+
+              [suffix]
+              Image {
+                css-classes: [
+                  "dim-label",
+                ];
+
+                icon-name: "go-next-symbolic";
+              }
+            }
+          }
+
+          Adw.PreferencesGroup open_dir_section {
+            title: "All your extracted .proto files and JSON endpoint information is stored on disk.";
+
+            Adw.ActionRow {
+              activatable-widget: open_dir_button;
+              title: _("Using your regular file browser, you can move files in and out this place.");
+
+              Button open_dir_button {
+                action-name: "win.open-proto-dir";
+                label: _("Open this directory...");
+              }
+            }
+          }
+        };
+
+        [top]
+        Adw.HeaderBar {
+          [end]
+          MenuButton {
+            icon-name: "open-menu-symbolic";
+
+            menu-model: menu {
+              item {
+                action: "win.show-about";
+                label: _("_About...");
+              }
+            };
+          }
+        }
+      };
+
+      tag: "main_page";
+      title: _("Welcome to PBTK!");
+    }
+
+    Adw.NavigationPage extract_page {
+      child: Adw.ToolbarView {
+        content: Adw.PreferencesPage {
+          Adw.PreferencesGroup extractors_list {
+            title: "Select an extractor";
+          }
+        };
+
+        [top]
+        Adw.HeaderBar {}
+      };
+
+      tag: "extract_page";
+      title: "Extract structures...";
+    }
+  };
+
+  default-height: 520;
+  default-width: 720;
+  icon-name: "re.fossplant.pbtk";
+}
+
+Adw.AboutDialog about_dialog {
+  application-icon: "re.fossplant.pbtk";
+  application-name: "PBTK";
+  copyright: "© Marin Moulinier";
+  issue-url: "https://github.com/marin-m/pbtk/issues/new/choose";
+  license-type: gpl_3_0;
+  support-url: "https://matrix.to/#/#pbtk:matrix.org";
+  version: "0.x";
+  website: "https://github.com/marin-m/pbtk";
+}
