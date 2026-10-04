@@ -73,6 +73,8 @@ class ExtractorRow(Adw.ActionRow):
                     # PAGE OR A POPUP?, prepare info dialog,
                     # RESULT SUBVIEW PAGE?)
 
+                    # __progress subview show__ WIP
+
                     worker = ExtractorWorker(self.extractor, inputs)
                     worker.progress.connect(XX)
                     worker.information.connect(XX)

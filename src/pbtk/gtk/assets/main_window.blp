@@ -2,7 +2,7 @@ using Gtk 4.0;
 using Adw 1;
 
 template $MainWindow: Adw.ApplicationWindow {
-  content: Adw.NavigationView {
+  content: Adw.NavigationView main_nav_view {
     Adw.NavigationPage main_page {
       child: Adw.ToolbarView {
         content: Adw.PreferencesPage {
@@ -107,9 +107,9 @@ template $MainWindow: Adw.ApplicationWindow {
 
     Adw.NavigationPage extracting_page {
       child: Adw.StatusPage extracting_status_page {
-        child: ProgressBar extracting_progress_bar {
-          show-text: true;
-        };
+        child: ProgressBar extracting_progress_bar {};
+
+        description: "Current progress...";
 
         paintable: Adw.SpinnerPaintable {
           widget: extracting_status_page;

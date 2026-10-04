@@ -25,10 +25,15 @@ class MainWindow(Adw.ApplicationWindow):
 
     about_dialog: Adw.AboutDialog = Gtk.Template.Child()
 
+    main_nav_view: Adw.NavigationView = Gtk.Template.Child()
+
     open_dir_section: Adw.PreferencesGroup = Gtk.Template.Child()
 
     extractor_objs = GObject.Property(type=Gio.ListStore)  # Of Extractor
     extractors_list: Adw.PreferencesGroup = Gtk.Template.Child()
+
+    extracting_status_page: Adw.StatusPage = Gtk.Template.Child()
+    extracting_progress_bar: Gtk.ProgressBar = Gtk.Template.Child()
 
     def __init__(self, app):
         super().__init__()

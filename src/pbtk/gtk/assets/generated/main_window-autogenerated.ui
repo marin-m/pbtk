@@ -8,7 +8,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
   <requires lib="gtk" version="4.0"/>
   <template class="MainWindow" parent="AdwApplicationWindow">
     <property name="content">
-      <object class="AdwNavigationView">
+      <object class="AdwNavigationView" id="main_nav_view">
         <child>
           <object class="AdwNavigationPage" id="main_page">
             <property name="child">
@@ -126,10 +126,9 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
             <property name="child">
               <object class="AdwStatusPage" id="extracting_status_page">
                 <property name="child">
-                  <object class="GtkProgressBar" id="extracting_progress_bar">
-                    <property name="show-text">true</property>
-                  </object>
+                  <object class="GtkProgressBar" id="extracting_progress_bar"></object>
                 </property>
+                <property name="description">Current progress...</property>
                 <property name="paintable">
                   <object class="AdwSpinnerPaintable">
                     <property name="widget">extracting_status_page</property>
