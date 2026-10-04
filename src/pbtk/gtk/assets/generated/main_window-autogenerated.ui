@@ -150,7 +150,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                     </property>
                     <property name="description">Current progress...</property>
                     <property name="paintable">
-                      <object class="AdwSpinnerPaintable">
+                      <object class="AdwSpinnerPaintable" id="extraction_spinner">
                         <property name="widget">extracting_status_page</property>
                       </object>
                     </property>

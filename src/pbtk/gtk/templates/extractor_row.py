@@ -80,6 +80,9 @@ class ExtractorRow(Adw.ActionRow):
                     # __progress subview show__ WIP
                     self.window.main_nav_view.push_by_tag('extracting_page')
 
+                    self.window.extracting_status_page.set_paintable(
+                        self.window.extraction_spinner
+                    )
                     self.window.extracting_status_page.set_title(
                         'Extracting...'
                     )
@@ -87,12 +90,18 @@ class ExtractorRow(Adw.ActionRow):
 
                     self.window.extracting_progress_bar.set_fraction(0.0)
 
+                    self.window.extraction_text_view.set_visible(False)
+                    self.window.extraction_text_buffer.set_text('')
+
                     worker = ExtractorWorker(self.extractor, inputs)
                     worker.progress.connect(self.on_progress)
                     worker.information.connect(self.on_information)
                     worker.error.connect(self.on_error)
                     worker.finished.connect(self.on_finished)
                     worker.start()
+
+                    # ⚠️ ⚠️ TODO: 🪧 Cancel the extraction process when QUITTING THE VIEW
+                    #  OR THE WINDOW?
 
                 file_picker = Gtk.FileDialog()
                 file_picker.open_multiple(self.window, callback=file_picked)
@@ -127,6 +136,12 @@ class ExtractorRow(Adw.ActionRow):
         dialog.add_response('ok', 'Ok')
         dialog.choose(self.window, None, None)
 
+        self.window.extraction_text_view.set_visible(True)
+        self.window.extraction_text_buffer.insert(
+            self.window.extraction_text_buffer.get_end_iter(),
+            information.info + '\n\n' + '=' * 24 + '\n\n',
+        )
+
     def on_error(
         self, worker: ExtractorWorker, information: ExtractorErrorMessage
     ):
@@ -136,7 +151,8 @@ class ExtractorRow(Adw.ActionRow):
 
         self.window.extraction_text_view.set_visible(True)
         self.window.extraction_text_buffer.insert(
-            self.window.extraction_text_buffer.get_end_iter(), information.info
+            self.window.extraction_text_buffer.get_end_iter(),
+            information.info + '\n\n' + '=' * 24 + '\n\n',
         )
 
     def on_finished(self, worker: ExtractorWorker, outputs: ExtractorOutputs):
@@ -144,6 +160,21 @@ class ExtractorRow(Adw.ActionRow):
 
         # ⚠️ TODO either switch view or display a pop-up?
 
-        dialog = Adw.AlertDialog.new('Information', 'Task done, XX were saved')
+        num_files_out = 0
+        for num_folder in range(outputs.folders.get_n_items()):
+            folder_item = outputs.folders.get_item(num_folder)
+
+            num_files_out += folder_item.files.get_n_items()
+
+        dialog = Adw.AlertDialog.new(
+            'Information', 'Task done, %d files were saved' % num_files_out
+        )
         dialog.add_response('ok', 'Ok')
         dialog.choose(self.window, None, None)
+
+        self.window.extracting_status_page.set_paintable(None)
+        self.window.extracting_status_page.set_title('Extraction done')
+        self.window.extracting_status_page.set_description(
+            '%d files were saved (XX in which folder?)' % num_files_out
+        )
+        self.window.extracting_progress_bar.set_fraction(1.0)
