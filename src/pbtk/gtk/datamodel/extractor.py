@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from collections.abc import Callable, Generator
 from gi.repository import GObject, Gio
 from typing import Optional
 
@@ -59,9 +60,20 @@ class ExtractorOutputFolder(GObject.Object):
     name: str
     files = GObject.Property(type=Gio.ListStore)  # of ExtractorOutputFile
 
+    def __init__(self, name: str):
+        super().__init__()
+
+        self.name = name
+        self.files = Gio.ListStore.new(ExtractorOutputFile)
+
 
 class ExtractorOutputs(GObject.Object):
     folders = GObject.Property(type=Gio.ListStore)  # of ExtractorOutputFolder
+
+    def __init__(self):
+        super().__init__()
+
+        self.folders = Gio.ListStore.new(ExtractorOutputFolder)
 
 
 # Info contained in decorators when creating an extractor:
@@ -70,6 +82,6 @@ class ExtractorOutputs(GObject.Object):
 class Extractor(GObject.Object):
     name = GObject.Property(type=str)
     description = GObject.Property(type=str)
-    py_func: callable
+    py_func: Callable[[str], Generator[ExtractorThreadMessage]]
     pick_url = GObject.Property(type=bool, default=False)
     depends: dict = None

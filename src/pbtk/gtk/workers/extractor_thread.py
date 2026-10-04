@@ -1,43 +1,27 @@
 #!/usr/bin/env python3
 
-from gi.repository import GObject
+from gi.repository import GObject, GLib
 from threading import Thread
 
 from pbtk.gtk.datamodel.extractor import (
     Extractor,
     ExtractorInputs,
     ExtractorOutputs,
+    ExtractorOutputFolder,
+    ExtractorOutputFile,
     ExtractorInfoMessage,
     ExtractorProgress,
 )
 
 
-class ExtractorThread(Thread):
-    extractor: Extractor
-    inputs: ExtractorInputs
+class ExtractorWorker(GObject.Object):
+    # Cf. https://pygobject.gnome.org/guide/api/signals.html#gi.repository.GObject.Signal
 
     def __init__(self, extractor: Extractor, inputs: ExtractorInputs):
         super().__init__()
 
-        self.extractor = extractor
-        self.inputs = inputs
-
-    def run():
-        pass  # ⚠️ TODO - see "class Worker(QThread)" in gui.py and
-        # "ExtractorThreadMessage" in our new data model
-
-
-class ExtractorWorker(GObject.Object):
-    # ⚠️ 🚧 TODO REDEFINE SIGNALS HERE
-    # Cf. https://pygobject.gnome.org/guide/api/signals.html#gi.repository.GObject.Signal
-
-    thread: ExtractorThread
-
-    def __init__(self, extractor: Extractor):
-        super().__init__()
-
-        self.thread = ExtractorThread(extractor)
-        self.thread.start()
+        thread = ExtractorThread(self, extractor, inputs)
+        thread.start()
 
     @GObject.Signal(arg_types=(object,))
     def finished(self, output: ExtractorOutputs):
@@ -52,33 +36,49 @@ class ExtractorWorker(GObject.Object):
         pass
 
 
-"""
+class ExtractorThread(Thread):
+    worker: ExtractorWorker
+    extractor: Extractor
+    inputs: ExtractorInputs
 
-# 🚧 ⚠️ 🪧 ORIGINAL CODE:
-
-
-class Worker(QThread):
-    finished = Signal(object)
-    information = Signal(object)
-    progress = Signal(object, object)
-
-    def __init__(self, inputs, extractor):
+    def __init__(
+        self,
+        worker: ExtractorWorker,
+        extractor: Extractor,
+        inputs: ExtractorInputs,
+    ):
         super().__init__()
-        self.inputs = inputs
+
+        self.worker = worker
         self.extractor = extractor
+        self.inputs = inputs
 
     def run(self):
-        output = defaultdict(list)
-        for input_, folder in self.inputs:
-            # Extractor is runned here
-            for name, contents in self.extractor['func'](input_):
-                if name == '_progress':
-                    self.progress.emit(*contents)
-                elif name == '_info':
-                    self.information.emit(contents)
+        pass  # ⚠️ TODO - see "class Worker(QThread)" in gui.py and
+        # "ExtractorThreadMessage" in our new data model
+
+        outputs = ExtractorOutputs()
+        for input_item in self.inputs:
+            output_folder = ExtractorOutputFolder(
+                input_item.output_folder_name
+            )
+
+            # Extractor is ran here
+            for thread_msg in self.extractor.py_func(
+                input_item.file_path_or_url
+            ):
+                if isinstance(thread_msg, ExtractorOutputFile):
+                    output_folder.files.append(thread_msg)
+
+                elif isinstance(thread_msg, ExtractorInfoMessage):
+                    GLib.idle_add(self.worker.information.emit, thread_msg)
+
+                elif isinstance(thread_msg, ExtractorProgress):
+                    GLib.idle_add(self.worker.progress.emit, thread_msg)
+
                 else:
-                    output[folder].append((name, contents))
+                    raise ValueError
 
-        self.finished.emit(output)
+            outputs.folders.append(output_folder)
 
-"""
+        GLib.idle_add(self.worker.progress.finished, outputs)

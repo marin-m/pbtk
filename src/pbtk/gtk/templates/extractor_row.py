@@ -48,7 +48,7 @@ class ExtractorRow(Adw.ActionRow):
                 # https://lazka.github.io/pgi-docs/Gtk-4.0/classes/FileDialog.html#Gtk.FileDialog.open_multiple
 
                 def file_picked(XX, XY):
-                    XZ
+                    XZ  # ⚠️ TODO call ExtractorWorker
 
                 file_picker = Gtk.FileDialog()
                 file_picker.open_multiple(self.window, callback=file_picked)
