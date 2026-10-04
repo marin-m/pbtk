@@ -13,6 +13,8 @@ class ExtractorInputArgument(GObject.Object):
     output_folder_name: str
 
     def __init__(self, file_path_or_url: str, output_folder_name: str):
+        super().__init__()
+
         self.file_path_or_url = file_path_or_url
         self.output_folder_name = output_folder_name
 
@@ -21,6 +23,8 @@ class ExtractorInputs(GObject.Object):
     inputs = GObject.Property(type=Gio.ListStore)  # of ExtractorInputArgument
 
     def __init__(self):
+        super().__init__()
+
         self.inputs = Gio.ListStore.new(ExtractorInputArgument)
 
 

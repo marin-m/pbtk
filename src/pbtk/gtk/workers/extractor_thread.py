@@ -61,7 +61,9 @@ class ExtractorThread(Thread):
 
     def run(self):
         outputs = ExtractorOutputs()
-        for input_item in self.inputs:
+        for input_pos in range(self.inputs.inputs.get_n_items()):
+            input_item = self.inputs.inputs.get_item(input_pos)
+
             output_folder = ExtractorOutputFolder(
                 input_item.output_folder_name
             )
@@ -84,4 +86,4 @@ class ExtractorThread(Thread):
 
             outputs.folders.append(output_folder)
 
-        GLib.idle_add(self.worker.progress.finished, outputs)
+        GLib.idle_add(self.worker.finished.emit, outputs)

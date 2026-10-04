@@ -106,16 +106,21 @@ template $MainWindow: Adw.ApplicationWindow {
     }
 
     Adw.NavigationPage extracting_page {
-      child: Adw.StatusPage extracting_status_page {
-        child: ProgressBar extracting_progress_bar {};
+      child: Adw.ToolbarView {
+        content: Adw.StatusPage extracting_status_page {
+          child: ProgressBar extracting_progress_bar {};
 
-        description: "Current progress...";
+          description: "Current progress...";
 
-        paintable: Adw.SpinnerPaintable {
-          widget: extracting_status_page;
+          paintable: Adw.SpinnerPaintable {
+            widget: extracting_status_page;
+          };
+
+          title: "Extracting...";
         };
 
-        title: "Extracting \"%s\"...";
+        [top]
+        Adw.HeaderBar {}
       };
 
       tag: "extracting_page";

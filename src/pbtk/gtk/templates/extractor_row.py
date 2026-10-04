@@ -1,6 +1,9 @@
 #!/usr/bin/env
 from pbtk.gtk.datamodel.extractor import (
     Extractor,
+    ExtractorProgress,
+    ExtractorInfoMessage,
+    ExtractorOutputs,
     ExtractorInputs,
     ExtractorInputArgument,
 )
@@ -65,7 +68,7 @@ class ExtractorRow(Adw.ActionRow):
                         file_path: str = file_item.get_path()
                         out_folder_name: str = Path(file_path).stem
 
-                        inputs.append(
+                        inputs.inputs.append(
                             ExtractorInputArgument(file_path, out_folder_name)
                         )
 
@@ -74,11 +77,19 @@ class ExtractorRow(Adw.ActionRow):
                     # RESULT SUBVIEW PAGE?)
 
                     # __progress subview show__ WIP
+                    self.window.main_nav_view.push_by_tag('extracting_page')
+
+                    self.window.extracting_status_page.set_title(
+                        'Extracting...'
+                    )
+                    self.window.extracting_status_page.set_description('')
+
+                    self.window.extracting_progress_bar.set_fraction(0.0)
 
                     worker = ExtractorWorker(self.extractor, inputs)
-                    worker.progress.connect(XX)
-                    worker.information.connect(XX)
-                    worker.finished.connect(XX)
+                    worker.progress.connect(self.on_progress)
+                    worker.information.connect(self.on_information)
+                    worker.finished.connect(self.on_finished)
                     worker.start()
 
                 file_picker = Gtk.FileDialog()
@@ -87,8 +98,21 @@ class ExtractorRow(Adw.ActionRow):
             else:
                 XX
 
-        # => 🪧 TODO: File picker branch
+        # => 🪧 WIP: File picker branch
         #  => Use Gtk.FileDialog
 
         # => 🪧 TODO: URL prompt branch
         #  (cf. prompt_extractor @ gui.py § L61)
+
+    def on_progress(
+        self, worker: ExtractorWorker, progress: ExtractorProgress
+    ):
+        print('==> [ ⚠️ XX WIP 1 ]', progress.info, progress.progress)
+
+    def on_information(
+        self, worker: ExtractorWorker, information: ExtractorInfoMessage
+    ):
+        print('==> [ ⚠️ XX WIP 2 ]', information.info)
+
+    def on_finished(self, worker: ExtractorWorker, outputs: ExtractorOutputs):
+        print('==> [ ⚠️ XX WIP 3 ]', outputs.folders.get_n_items())

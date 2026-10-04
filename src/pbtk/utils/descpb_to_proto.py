@@ -54,10 +54,7 @@ def descpb_to_proto(desc: FileDescriptorProto) -> ExtractorOutputFile:
     out += parse_msg(desc, scopes, desc.syntax).strip('\n')
     name = desc.name.replace('..', '').strip('.\\/')
 
-    proto_file = ExtractorOutputFile()
-    proto_file.name = name
-    proto_file.contents = out + '\n'
-    return proto_file
+    return ExtractorOutputFile(name, out + '\n')
 
 
 def parse_msg(

@@ -124,17 +124,24 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
         <child>
           <object class="AdwNavigationPage" id="extracting_page">
             <property name="child">
-              <object class="AdwStatusPage" id="extracting_status_page">
-                <property name="child">
-                  <object class="GtkProgressBar" id="extracting_progress_bar"></object>
-                </property>
-                <property name="description">Current progress...</property>
-                <property name="paintable">
-                  <object class="AdwSpinnerPaintable">
-                    <property name="widget">extracting_status_page</property>
+              <object class="AdwToolbarView">
+                <property name="content">
+                  <object class="AdwStatusPage" id="extracting_status_page">
+                    <property name="child">
+                      <object class="GtkProgressBar" id="extracting_progress_bar"></object>
+                    </property>
+                    <property name="description">Current progress...</property>
+                    <property name="paintable">
+                      <object class="AdwSpinnerPaintable">
+                        <property name="widget">extracting_status_page</property>
+                      </object>
+                    </property>
+                    <property name="title">Extracting...</property>
                   </object>
                 </property>
-                <property name="title">Extracting "%s"...</property>
+                <child type="top">
+                  <object class="AdwHeaderBar"></object>
+                </child>
               </object>
             </property>
             <property name="tag">extracting_page</property>
