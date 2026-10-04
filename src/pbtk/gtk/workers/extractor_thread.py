@@ -16,11 +16,17 @@ from pbtk.gtk.datamodel.extractor import (
 
 class ExtractorWorker(GObject.Object):
     # Cf. https://pygobject.gnome.org/guide/api/signals.html#gi.repository.GObject.Signal
+    extractor: Extractor
+    inputs: ExtractorInputs
 
     def __init__(self, extractor: Extractor, inputs: ExtractorInputs):
         super().__init__()
 
-        thread = ExtractorThread(self, extractor, inputs)
+        self.extractor = extractor
+        self.inputs = inputs
+
+    def start(self):
+        thread = ExtractorThread(self, self.extractor, self.inputs)
         thread.start()
 
     @GObject.Signal(arg_types=(object,))
@@ -54,9 +60,6 @@ class ExtractorThread(Thread):
         self.inputs = inputs
 
     def run(self):
-        pass  # ⚠️ TODO - see "class Worker(QThread)" in gui.py and
-        # "ExtractorThreadMessage" in our new data model
-
         outputs = ExtractorOutputs()
         for input_item in self.inputs:
             output_folder = ExtractorOutputFolder(

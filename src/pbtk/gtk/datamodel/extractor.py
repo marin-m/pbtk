@@ -12,9 +12,16 @@ class ExtractorInputArgument(GObject.Object):
     file_path_or_url: str
     output_folder_name: str
 
+    def __init__(self, file_path_or_url: str, output_folder_name: str):
+        self.file_path_or_url = file_path_or_url
+        self.output_folder_name = output_folder_name
+
 
 class ExtractorInputs(GObject.Object):
     inputs = GObject.Property(type=Gio.ListStore)  # of ExtractorInputArgument
+
+    def __init__(self):
+        self.inputs = Gio.ListStore.new(ExtractorInputArgument)
 
 
 # Objects returned by extractor routines to GUI/CLI
@@ -30,6 +37,8 @@ class ExtractorOutputFile(ExtractorThreadMessage):
     contents: str
 
     def __init__(self, name: str, contents: str):
+        super().__init__()
+
         self.name = name
         self.contents = contents
 
@@ -38,6 +47,8 @@ class ExtractorInfoMessage(ExtractorThreadMessage):
     info: str
 
     def __init__(self, info: str):
+        super().__init__()
+
         self.info = info
 
 

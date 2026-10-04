@@ -1,5 +1,10 @@
 #!/usr/bin/env
-from pbtk.gtk.datamodel.extractor import Extractor
+from pbtk.gtk.datamodel.extractor import (
+    Extractor,
+    ExtractorInputs,
+    ExtractorInputArgument,
+)
+from pbtk.gtk.workers.extractor_thread import ExtractorWorker
 from pbtk.utils.common import assert_installed
 
 from logging import debug
@@ -9,7 +14,8 @@ import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 
-from gi.repository import Gtk, Adw
+from gi.repository import Gtk, Gio, Adw
+from pathlib import Path
 
 
 class ExtractorRow(Adw.ActionRow):
@@ -44,11 +50,33 @@ class ExtractorRow(Adw.ActionRow):
 
         else:
             if not self.extractor.pick_url:
-                # WIP: see
                 # https://lazka.github.io/pgi-docs/Gtk-4.0/classes/FileDialog.html#Gtk.FileDialog.open_multiple
 
-                def file_picked(XX, XY):
-                    XZ  # ⚠️ TODO call ExtractorWorker
+                def file_picked(
+                    dialog: Gtk.FileDialog, result: Gio.AsyncResult
+                ):
+                    files: Gio.ListModel = dialog.open_multiple_finish(result)
+
+                    inputs = ExtractorInputs()
+
+                    for pos in range(files.get_n_items()):
+                        file_item: Gio.File = files.get_item(pos)
+                        file_path: str = file_item.get_path()
+                        out_folder_name: str = Path(file_path).stem
+
+                        inputs.append(
+                            ExtractorInputArgument(file_path, out_folder_name)
+                        )
+
+                    # (⚠️ TODO show progress dialog - IN A SUBVIEW
+                    # PAGE OR A POPUP?, prepare info dialog,
+                    # RESULT SUBVIEW PAGE?)
+
+                    worker = ExtractorWorker(self.extractor, inputs)
+                    worker.progress.connect(XX)
+                    worker.information.connect(XX)
+                    worker.finished.connect(XX)
+                    worker.start()
 
                 file_picker = Gtk.FileDialog()
                 file_picker.open_multiple(self.window, callback=file_picked)
