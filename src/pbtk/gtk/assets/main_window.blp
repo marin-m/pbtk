@@ -13,7 +13,7 @@ template $MainWindow: Adw.ApplicationWindow {
 
             Adw.ActionRow {
               action-name: "navigation.push";
-              action-target: "\"extract_page\"";
+              action-target: "\"extractors_page\"";
               activatable: true;
               title: " Step 1: Extract .proto structures from apps";
 
@@ -89,7 +89,7 @@ template $MainWindow: Adw.ApplicationWindow {
       title: _("Welcome to PBTK!");
     }
 
-    Adw.NavigationPage extract_page {
+    Adw.NavigationPage extractors_page {
       child: Adw.ToolbarView {
         content: Adw.PreferencesPage {
           Adw.PreferencesGroup extractors_list {
@@ -101,8 +101,25 @@ template $MainWindow: Adw.ApplicationWindow {
         Adw.HeaderBar {}
       };
 
-      tag: "extract_page";
+      tag: "extractors_page";
       title: "Extract structures...";
+    }
+
+    Adw.NavigationPage extracting_page {
+      child: Adw.StatusPage extracting_status_page {
+        child: ProgressBar extracting_progress_bar {
+          show-text: true;
+        };
+
+        paintable: Adw.SpinnerPaintable {
+          widget: extracting_status_page;
+        };
+
+        title: "Extracting \"%s\"...";
+      };
+
+      tag: "extracting_page";
+      title: "Extraction in progress...";
     }
   };
 
@@ -120,4 +137,22 @@ Adw.AboutDialog about_dialog {
   support-url: "https://matrix.to/#/#pbtk:matrix.org";
   version: "0.x";
   website: "https://github.com/marin-m/pbtk";
+}
+
+Adw.Window test_dialog {
+  Adw.StatusPage test_status_page {
+    child: ProgressBar {
+      fraction: 0.6;
+      show-text: true;
+      text: "1/200";
+    };
+
+    description: "abcdef";
+
+    paintable: Adw.SpinnerPaintable {
+      widget: test_status_page;
+    };
+
+    title: "abcdef";
+  }
 }

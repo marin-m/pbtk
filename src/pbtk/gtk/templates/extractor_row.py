@@ -56,6 +56,7 @@ class ExtractorRow(Adw.ActionRow):
                     dialog: Gtk.FileDialog, result: Gio.AsyncResult
                 ):
                     files: Gio.ListModel = dialog.open_multiple_finish(result)
+                    # ⚠️ TODO handle Dialog dismissal
 
                     inputs = ExtractorInputs()
 

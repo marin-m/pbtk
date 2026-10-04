@@ -22,7 +22,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                         <child>
                           <object class="AdwActionRow">
                             <property name="action-name">navigation.push</property>
-                            <property name="action-target">"extract_page"</property>
+                            <property name="action-target">"extractors_page"</property>
                             <property name="activatable">true</property>
                             <property name="title"> Step 1: Extract .proto structures from apps</property>
                             <child type="suffix">
@@ -100,7 +100,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
           </object>
         </child>
         <child>
-          <object class="AdwNavigationPage" id="extract_page">
+          <object class="AdwNavigationPage" id="extractors_page">
             <property name="child">
               <object class="AdwToolbarView">
                 <property name="content">
@@ -117,8 +117,29 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                 </child>
               </object>
             </property>
-            <property name="tag">extract_page</property>
+            <property name="tag">extractors_page</property>
             <property name="title">Extract structures...</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwNavigationPage" id="extracting_page">
+            <property name="child">
+              <object class="AdwStatusPage" id="extracting_status_page">
+                <property name="child">
+                  <object class="GtkProgressBar" id="extracting_progress_bar">
+                    <property name="show-text">true</property>
+                  </object>
+                </property>
+                <property name="paintable">
+                  <object class="AdwSpinnerPaintable">
+                    <property name="widget">extracting_status_page</property>
+                  </object>
+                </property>
+                <property name="title">Extracting "%s"...</property>
+              </object>
+            </property>
+            <property name="tag">extracting_page</property>
+            <property name="title">Extraction in progress...</property>
           </object>
         </child>
       </object>
@@ -136,5 +157,25 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
     <property name="support-url">https://matrix.to/#/#pbtk:matrix.org</property>
     <property name="version">0.x</property>
     <property name="website">https://github.com/marin-m/pbtk</property>
+  </object>
+  <object class="AdwWindow" id="test_dialog">
+    <child>
+      <object class="AdwStatusPage" id="test_status_page">
+        <property name="child">
+          <object class="GtkProgressBar">
+            <property name="fraction">0.6</property>
+            <property name="show-text">true</property>
+            <property name="text">1/200</property>
+          </object>
+        </property>
+        <property name="description">abcdef</property>
+        <property name="paintable">
+          <object class="AdwSpinnerPaintable">
+            <property name="widget">test_status_page</property>
+          </object>
+        </property>
+        <property name="title">abcdef</property>
+      </object>
+    </child>
   </object>
 </interface>
