@@ -27,6 +27,7 @@ class ExtractorWorker(GObject.Object):
 
     def start(self):
         thread = ExtractorThread(self, self.extractor, self.inputs)
+        thread.daemon = True
         thread.start()
 
     @GObject.Signal(arg_types=(object,))
