@@ -34,6 +34,8 @@ class MainWindow(Adw.ApplicationWindow):
 
     extracting_status_page: Adw.StatusPage = Gtk.Template.Child()
     extracting_progress_bar: Gtk.ProgressBar = Gtk.Template.Child()
+    extraction_text_view: Gtk.TextView = Gtk.Template.Child()
+    extraction_text_buffer: Gtk.TextBuffer = Gtk.Template.Child()
 
     def __init__(self, app):
         super().__init__()

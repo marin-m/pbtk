@@ -108,7 +108,22 @@ template $MainWindow: Adw.ApplicationWindow {
     Adw.NavigationPage extracting_page {
       child: Adw.ToolbarView {
         content: Adw.StatusPage extracting_status_page {
-          child: ProgressBar extracting_progress_bar {};
+          child: Box {
+            orientation: vertical;
+            spacing: 20;
+
+            ProgressBar extracting_progress_bar {}
+
+            TextView extraction_text_view {
+              buffer: TextBuffer extraction_text_buffer {};
+
+              editable: false;
+              height-request: 230;
+              monospace: true;
+              visible: false;
+              wrap-mode: word_char;
+            }
+          };
 
           description: "Current progress...";
 
@@ -146,10 +161,24 @@ Adw.AboutDialog about_dialog {
 
 Adw.Window test_dialog {
   Adw.StatusPage test_status_page {
-    child: ProgressBar {
-      fraction: 0.6;
-      show-text: true;
-      text: "1/200";
+    child: Box {
+      orientation: vertical;
+      spacing: 20;
+
+      ProgressBar {
+        fraction: 0.6;
+        show-text: true;
+        text: "1/200";
+      }
+
+      TextView {
+        buffer: TextBuffer {
+          text: "(Test)";
+        };
+
+        height-request: 200;
+        monospace: true;
+      }
     };
 
     description: "abcdef";

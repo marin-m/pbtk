@@ -128,7 +128,25 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                 <property name="content">
                   <object class="AdwStatusPage" id="extracting_status_page">
                     <property name="child">
-                      <object class="GtkProgressBar" id="extracting_progress_bar"></object>
+                      <object class="GtkBox">
+                        <property name="orientation">1</property>
+                        <property name="spacing">20</property>
+                        <child>
+                          <object class="GtkProgressBar" id="extracting_progress_bar"></object>
+                        </child>
+                        <child>
+                          <object class="GtkTextView" id="extraction_text_view">
+                            <property name="buffer">
+                              <object class="GtkTextBuffer" id="extraction_text_buffer"></object>
+                            </property>
+                            <property name="editable">false</property>
+                            <property name="height-request">230</property>
+                            <property name="monospace">true</property>
+                            <property name="visible">false</property>
+                            <property name="wrap-mode">3</property>
+                          </object>
+                        </child>
+                      </object>
                     </property>
                     <property name="description">Current progress...</property>
                     <property name="paintable">
@@ -168,10 +186,27 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
     <child>
       <object class="AdwStatusPage" id="test_status_page">
         <property name="child">
-          <object class="GtkProgressBar">
-            <property name="fraction">0.6</property>
-            <property name="show-text">true</property>
-            <property name="text">1/200</property>
+          <object class="GtkBox">
+            <property name="orientation">1</property>
+            <property name="spacing">20</property>
+            <child>
+              <object class="GtkProgressBar">
+                <property name="fraction">0.6</property>
+                <property name="show-text">true</property>
+                <property name="text">1/200</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkTextView">
+                <property name="buffer">
+                  <object class="GtkTextBuffer">
+                    <property name="text">(Test)</property>
+                  </object>
+                </property>
+                <property name="height-request">200</property>
+                <property name="monospace">true</property>
+              </object>
+            </child>
           </object>
         </property>
         <property name="description">abcdef</property>

@@ -47,6 +47,15 @@ class ExtractorOutputFile(ExtractorThreadMessage):
         self.contents = contents
 
 
+class ExtractorErrorMessage(ExtractorThreadMessage):
+    info: str
+
+    def __init__(self, info: str):
+        super().__init__()
+
+        self.info = info
+
+
 class ExtractorInfoMessage(ExtractorThreadMessage):
     info: str
 

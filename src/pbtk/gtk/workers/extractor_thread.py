@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from gi.repository import GObject, GLib
+from traceback import format_exc
 from threading import Thread
 
 from pbtk.gtk.datamodel.extractor import (
@@ -9,6 +10,7 @@ from pbtk.gtk.datamodel.extractor import (
     ExtractorOutputs,
     ExtractorOutputFolder,
     ExtractorOutputFile,
+    ExtractorErrorMessage,
     ExtractorInfoMessage,
     ExtractorProgress,
 )
@@ -32,6 +34,10 @@ class ExtractorWorker(GObject.Object):
 
     @GObject.Signal(arg_types=(object,))
     def finished(self, output: ExtractorOutputs):
+        pass
+
+    @GObject.Signal(arg_types=(object,))
+    def error(self, message: ExtractorErrorMessage):
         pass
 
     @GObject.Signal(arg_types=(object,))
@@ -70,20 +76,27 @@ class ExtractorThread(Thread):
             )
 
             # Extractor is ran here
-            for thread_msg in self.extractor.py_func(
-                input_item.file_path_or_url
-            ):
-                if isinstance(thread_msg, ExtractorOutputFile):
-                    output_folder.files.append(thread_msg)
+            try:
+                for thread_msg in self.extractor.py_func(
+                    input_item.file_path_or_url
+                ):
+                    if isinstance(thread_msg, ExtractorOutputFile):
+                        output_folder.files.append(thread_msg)
 
-                elif isinstance(thread_msg, ExtractorInfoMessage):
-                    GLib.idle_add(self.worker.information.emit, thread_msg)
+                    elif isinstance(thread_msg, ExtractorInfoMessage):
+                        GLib.idle_add(self.worker.information.emit, thread_msg)
 
-                elif isinstance(thread_msg, ExtractorProgress):
-                    GLib.idle_add(self.worker.progress.emit, thread_msg)
+                    elif isinstance(thread_msg, ExtractorProgress):
+                        GLib.idle_add(self.worker.progress.emit, thread_msg)
 
-                else:
-                    raise ValueError
+                    else:
+                        raise ValueError
+            except Exception as err:
+                thread_msg = ExtractorErrorMessage(
+                    'Error while extracting "%s": %s'
+                    % (input_item.file_path_or_url, format_exc(err))
+                )
+                GLib.idle_add(self.worker.progress.emit, thread_msg)
 
             outputs.folders.append(output_folder)
 

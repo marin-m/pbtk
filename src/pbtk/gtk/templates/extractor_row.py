@@ -2,6 +2,7 @@
 from pbtk.gtk.datamodel.extractor import (
     Extractor,
     ExtractorProgress,
+    ExtractorErrorMessage,
     ExtractorInfoMessage,
     ExtractorOutputs,
     ExtractorInputs,
@@ -89,6 +90,7 @@ class ExtractorRow(Adw.ActionRow):
                     worker = ExtractorWorker(self.extractor, inputs)
                     worker.progress.connect(self.on_progress)
                     worker.information.connect(self.on_information)
+                    worker.error.connect(self.on_error)
                     worker.finished.connect(self.on_finished)
                     worker.start()
 
@@ -109,10 +111,39 @@ class ExtractorRow(Adw.ActionRow):
     ):
         print('==> [ ⚠️ XX WIP 1 ]', progress.info, progress.progress)
 
+        self.window.extracting_status_page.set_description(progress.info)
+        self.window.extracting_progress_bar.set_fraction(
+            progress.progress or 0.0
+        )
+
     def on_information(
         self, worker: ExtractorWorker, information: ExtractorInfoMessage
     ):
         print('==> [ ⚠️ XX WIP 2 ]', information.info)
 
+        # ⚠️ TODO display a pop-up?
+
+        dialog = Adw.AlertDialog.new('Information', information.info)
+        dialog.add_response('ok', 'Ok')
+        dialog.choose(self.window, None, None)
+
+    def on_error(
+        self, worker: ExtractorWorker, information: ExtractorErrorMessage
+    ):
+        print('==> [ ⚠️ XX WIP 3 ]', information.info)
+
+        # ⚠️ TODO display the text-view?
+
+        self.window.extraction_text_view.set_visible(True)
+        self.window.extraction_text_buffer.insert(
+            self.window.extraction_text_buffer.get_end_iter(), information.info
+        )
+
     def on_finished(self, worker: ExtractorWorker, outputs: ExtractorOutputs):
-        print('==> [ ⚠️ XX WIP 3 ]', outputs.folders.get_n_items())
+        print('==> [ ⚠️ XX WIP 4 ]', outputs.folders.get_n_items())
+
+        # ⚠️ TODO either switch view or display a pop-up?
+
+        dialog = Adw.AlertDialog.new('Information', 'Task done, XX were saved')
+        dialog.add_response('ok', 'Ok')
+        dialog.choose(self.window, None, None)
