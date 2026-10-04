@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from pbtk.gtk.datamodel.extractor import Extractor
 from collections import OrderedDict, defaultdict
 from os.path import exists, dirname, realpath
 from google.protobuf.message import Message
@@ -17,6 +18,7 @@ from json import dump, load
 from re import findall, sub
 from pathlib import Path
 from shutil import which
+from typing import Dict
 
 # Constructing paths - local data
 
@@ -58,7 +60,7 @@ environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
 # Decorators for registering pluggable modules, documented at [2]
 # [2] https://github.com/marin-m/pbtk#source-code-structure
 
-extractors = OrderedDict()
+extractors: Dict[str, Extractor] = OrderedDict()
 
 """
 def register_extractor(name = None, # Used to refer to internally
@@ -69,9 +71,24 @@ def register_extractor(name = None, # Used to refer to internally
 """
 
 
-def register_extractor(**kwargs):
+def register_extractor(
+    name: str,  # Used to refer to internally
+    readable_name: str,  # Used to display in the UI
+    description: str,  # Used to describe extractor in UI
+    pick_url=False,  # Pick URL rather than file
+    depends=None,
+):  # kwargs for assert_installed()
+
     def register_extractor_decorate(func):
-        extractors[kwargs['name']] = {'func': func, **kwargs}
+        extractor_obj = Extractor()
+        extractor_obj.name = readable_name
+        extractor_obj.description = description
+        extractor_obj.py_func = func
+        extractor_obj.pick_url = pick_url
+        extractor_obj.depends = depends
+
+        extractors[name] = extractor_obj
+
         return func
 
     return register_extractor_decorate
@@ -232,9 +249,12 @@ def load_proto_msgs(proto_path, ret_source_info=False):
 
         if ret_source_info:
             from google.protobuf.descriptor_pb2 import FileDescriptorSet
+            from pbtk.gtk.datamodel.extractor import ExtractorOutputFile
 
             with open(str(Path(arg_python_out) / 'desc_info'), 'rb') as fd:
-                yield FileDescriptorSet.FromString(fd.read()), arg_proto_path
+                yield ExtractorOutputFile(
+                    FileDescriptorSet.FromString(fd.read()), arg_proto_path
+                )
                 return
 
         # Do actual import
@@ -260,9 +280,11 @@ def load_proto_msgs(proto_path, ret_source_info=False):
 
 
 def iterate_proto_msg(module, base):
+    from pbtk.gtk.datamodel.extractor import ExtractorOutputFile
+
     for name, cls in getmembers(module):
         if isclass(cls) and issubclass(cls, Message):
-            yield base + name, cls
+            yield ExtractorOutputFile(base + name, cls)
             yield from iterate_proto_msg(cls, base + name + '.')
 
 
@@ -318,13 +340,13 @@ def extractor_save(base_path, folder, outputs):
 # CLI entry point when calling an extractor as an individual script
 
 
-def extractor_main(extractor):
-    extractor = extractors[extractor]
+def extractor_main(extractor_name: str):
+    extractor = extractors[extractor_name]
 
-    assert_installed(**extractor.get('depends', {}))
+    assert_installed(**(extractor.depends or {}))
 
-    parser = ArgumentParser(description=extractor['description'])
-    if extractor.get('pick_url'):
+    parser = ArgumentParser(description=extractor.description)
+    if extractor.pick_url:
         parser.add_argument('input_', metavar='input_url')
     else:
         parser.add_argument('input_', metavar='input_file')
@@ -332,7 +354,7 @@ def extractor_main(extractor):
     args = parser.parse_args()
 
     nb_written, wrote_endpoints = extractor_save(
-        args.output_dir, '', extractor['func'](args.input_)
+        args.output_dir, '', extractor.py_func(args.input_)
     )
     if nb_written:
         print(

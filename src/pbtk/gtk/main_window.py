@@ -58,14 +58,7 @@ class MainWindow(Adw.ApplicationWindow):
 
         self.extractor_objs = Gio.ListStore.new(Extractor)
 
-        for name, meta in extractors.items():
-            extractor_obj = Extractor()
-            extractor_obj.name = meta['readable_name']
-            extractor_obj.description = meta['description']
-            extractor_obj.py_func = meta['func']
-            extractor_obj.pick_url = meta.get('pick_url', False)
-            extractor_obj.depends = meta.get('depends')
-
+        for name, extractor_obj in extractors.items():
             self.extractor_objs.append(extractor_obj)
 
         self.extractors_list.bind_model(

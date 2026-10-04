@@ -6,7 +6,9 @@ from collections import OrderedDict
 from logging import warning, error
 from zipfile import ZipFile
 from os.path import exists
+from typing import Dict
 
+from pbtk.gtk.datamodel.extractor import ExtractorOutputFile
 from pbtk.extractors.from_binary import walk_binary
 from pbtk.utils.common import dex2jar, jad
 
@@ -22,7 +24,7 @@ class JarWrapper(TemporaryDirectory):
         self.classes = []
         self.decompiled = {}
 
-        self.bonus_protos = OrderedDict()
+        self.bonus_protos: Dict[str, ExtractorOutputFile] = OrderedDict()
 
         self.handle_file(fname)
 

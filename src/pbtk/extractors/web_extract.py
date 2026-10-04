@@ -2,6 +2,7 @@
 from urllib.parse import quote, quote_plus, unquote_plus, parse_qsl, urlencode
 from logging import getLogger, DEBUG, debug, info, error
 from tempfile import TemporaryDirectory
+from collections.abc import Generator
 from collections import OrderedDict
 from re import search, sub, findall
 from urllib.request import urlopen
@@ -17,6 +18,12 @@ from time import sleep
 from os.path import dirname, realpath
 
 __import__('sys').path.append(dirname(realpath(__file__)) + '/../..')
+from pbtk.gtk.datamodel.extractor import (
+    ExtractorThreadMessage,
+    ExtractorOutputFile,
+    ExtractorInfoMessage,
+    ExtractorProgress,
+)
 from pbtk.utils.transports import GMapsAPIPublic, GMapsAPIPrivate
 from pbtk.utils.common import register_extractor, extractor_main
 
@@ -64,7 +71,7 @@ browser = (
     pick_url=True,
     depends={'modules': ['websocket']},
 )
-def pburl_extract(url):
+def pburl_extract(url) -> Generator[ExtractorThreadMessage]:
     global \
         URL, \
         req_id, \
@@ -98,12 +105,8 @@ def pburl_extract(url):
                 '--no-default-browser-check',
             ]
 
-        yield (
-            '_progress',
-            (
-                'Trying to launch browser...\n(requires Chrome or Chromium)',
-                None,
-            ),
+        yield ExtractorProgress(
+            'Trying to launch browser...\n(requires Chrome or Chromium)', None
         )
 
         if which(browser) and access(realpath(which(browser)), X_OK):
@@ -113,14 +116,11 @@ def pburl_extract(url):
         else:
             chrome = None
             cmd[0] = '$(which google-chrome || which chromium-browser)'
-            yield (
-                '_info',
-                (
-                    "Can't launch Chrome or a Chromium-based "
-                    + 'browser, please launch yourself: "'
-                    + join(cmd)
-                    + '", interact with it, and close it'
-                ),
+            yield ExtractorInfoMessage(
+                "Can't launch Chrome or a Chromium-based "
+                + 'browser, please launch yourself: "'
+                + join(cmd)
+                + '", interact with it, and close it'
             )
 
         try:
@@ -139,13 +139,10 @@ def pburl_extract(url):
                 except OSError:
                     sleep(0.1)
 
-            yield (
-                '_progress',
-                (
-                    'Connecting to browser debugging controller...\n(Your activity '
-                    + 'from the first tab will be captured, until you close it)',
-                    None,
-                ),
+            yield ExtractorProgress(
+                'Connecting to browser debugging controller...\n(Your activity '
+                + 'from the first tab will be captured, until you close it)',
+                None,
             )
 
             from websocket import WebSocketApp
@@ -188,14 +185,16 @@ def pburl_extract(url):
 
         # Save generated .proto to ~/.pbtk
         if len(pbname) == 1:
-            yield (
+            yield ExtractorOutputFile(
                 pbname + '.proto',
                 proto.replace('message Top', 'message ' + pbname).replace(
                     'Top', '.' + pbname
                 ),
             )
         else:
-            yield pbname + '.proto', proto.replace('Top', pbname)
+            yield ExtractorOutputFile(
+                pbname + '.proto', proto.replace('Top', pbname)
+            )
         proto_to_urls[pbname] = proto_to_urls[proto]
         del proto_to_urls[proto]
 
@@ -206,7 +205,7 @@ def pburl_extract(url):
 
     # Save endpoint to ~/.pbtk
     for sample in endpoints:
-        yield (
+        yield ExtractorOutputFile(
             next(k for k, v in proto_to_urls.items() if sample['url'] in v)
             + '.sample',
             sample,

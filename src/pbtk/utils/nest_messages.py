@@ -2,7 +2,9 @@
 from google.protobuf.descriptor_pb2 import FileDescriptorProto, DescriptorProto
 from collections import defaultdict, OrderedDict
 
+from pbtk.gtk.datamodel.extractor import ExtractorOutputFile
 from pbtk.utils.descpb_to_proto import descpb_to_proto
+from collections.abc import Generator
 
 """
     When parsing output from e.g. the Java extractor, messages aren't
@@ -17,7 +19,9 @@ from pbtk.utils.descpb_to_proto import descpb_to_proto
 """
 
 
-def nest_and_print_to_files(msg_path_to_obj, msg_to_referrers):
+def nest_and_print_to_files(
+    msg_path_to_obj, msg_to_referrers
+) -> Generator[ExtractorOutputFile]:
     msg_to_topmost = OrderedDict()
     msg_to_newloc = {}
     newloc_to_msg = {}
@@ -230,10 +234,15 @@ def nest_and_print_to_files(msg_path_to_obj, msg_to_referrers):
             ]
 
     for path, file_obj in path_to_file.items():
-        name, proto = descpb_to_proto(file_obj)
+        output_proto: ExtractorOutputFile = descpb_to_proto(file_obj)
         header_lines = ['/**', 'Messages defined in this file:\n']
         header_lines += path_to_defines[path]
-        yield name, '\n * '.join(header_lines) + '\n */\n\n' + proto
+
+        output_proto.contents = (
+            '\n * '.join(header_lines) + '\n */\n\n' + output_proto.contents
+        )
+
+        yield output_proto
 
 
 def merge_and_rename(

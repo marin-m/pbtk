@@ -7,6 +7,7 @@ from google.protobuf.descriptor_pb2 import (
 from re import findall, MULTILINE, search, split, sub, escape, finditer
 from logging import debug, warning, error, getLogger, DEBUG
 from collections import OrderedDict, defaultdict
+from collections.abc import Generator
 from itertools import count, product
 from string import ascii_lowercase
 from ctypes import c_int, c_long
@@ -17,6 +18,10 @@ from ast import literal_eval
 from os.path import dirname, realpath
 
 __import__('sys').path.append(dirname(realpath(__file__)) + '/../..')
+from pbtk.gtk.datamodel.extractor import (
+    ExtractorProgress,
+    ExtractorThreadMessage,
+)
 from pbtk.utils.common import register_extractor, extractor_main
 from pbtk.utils.nest_messages import nest_and_print_to_files
 from pbtk.extractors.from_binary import walk_binary
@@ -52,13 +57,13 @@ from pbtk.utils.java_wrapper import JarWrapper
     ),
     depends={'binaries': ['java']},
 )
-def handle_jar(path):
+def handle_jar(path: str) -> Generator[ExtractorThreadMessage]:
     # Scan classes for Java Protobuf string signatures
 
     if path.endswith('.jar'):
-        yield '_progress', ('Decompressing JAR...', None)
+        yield ExtractorProgress('Decompressing JAR...')
     else:
-        yield '_progress', ('Converting DEX to JAR...', None)
+        yield ExtractorProgress('Converting DEX to JAR...')
 
     with JarWrapper(path) as jar:
         enums = {}
@@ -76,12 +81,9 @@ def handle_jar(path):
 
         for i, cls in enumerate(jar.classes):
             if i % 10 == 0:
-                yield (
-                    '_progress',
-                    (
-                        'Scanning Java package contents...',
-                        (i / len(jar.classes)) * 0.5,
-                    ),
+                yield ExtractorProgress(
+                    'Scanning Java package contents...',
+                    (i / len(jar.classes)) * 0.5,
                 )
 
             pkg = cls[: cls.rfind('.')] if '.' in cls else ''
@@ -226,12 +228,9 @@ def handle_jar(path):
 
         for i, cls in enumerate(jar.classes):
             if i % 10 == 0:
-                yield (
-                    '_progress',
-                    (
-                        'Scanning Java package contents...',
-                        (i / len(jar.classes)) * 0.5 + 0.5,
-                    ),
+                yield ExtractorProgress(
+                    'Scanning Java package contents...',
+                    (i / len(jar.classes)) * 0.5 + 0.5,
                 )
 
             binr = jar.read(cls)
@@ -321,7 +320,9 @@ def handle_jar(path):
         for i, (cls, (codedinputstream, codedoutputstream)) in enumerate(
             gen_classes.items()
         ):
-            yield '_progress', ('Extracting %s...' % cls, i / len(gen_classes))
+            yield ExtractorProgress(
+                'Extracting %s...' % cls, i / len(gen_classes)
+            )
 
             if cls.split('$')[0] not in had_metadata:
                 extract_lite(
@@ -341,9 +342,8 @@ def handle_jar(path):
         for i, (cls, (protobuftype_cls, consts)) in enumerate(
             gen_classes_j2me.items()
         ):
-            yield (
-                '_progress',
-                ('Extracting %s...' % cls, i / len(gen_classes_j2me)),
+            yield ExtractorProgress(
+                'Extracting %s...' % cls, i / len(gen_classes_j2me)
             )
 
             extract_j2me(
@@ -357,7 +357,7 @@ def handle_jar(path):
                 msg_to_referrers,
             )
 
-        yield '_progress', ('Dumping information to .protos...', None)
+        yield ExtractorProgress('Dumping information to .protos...')
 
         # Merge nested Protobuf messages and write them to files
         yield from nest_and_print_to_files(msg_path_to_obj, msg_to_referrers)
@@ -1072,7 +1072,7 @@ def extract_lite(
     msg_path_to_obj[cls] = message
 
 
-def namer():
+def namer() -> Generator[str]:
     for length in count(1):
         for name in product(ascii_lowercase, repeat=length):
             yield ''.join(name)

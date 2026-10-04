@@ -28,14 +28,27 @@ class ExtractorOutputFile(ExtractorThreadMessage):
     name: str
     contents: str
 
+    def __init__(self, name: str, contents: str):
+        self.name = name
+        self.contents = contents
+
 
 class ExtractorInfoMessage(ExtractorThreadMessage):
     info: str
+
+    def __init__(self, info: str):
+        self.info = info
 
 
 class ExtractorProgress(ExtractorThreadMessage):
     info: str
     progress: Optional[float]
+
+    def __init__(self, info: str, progress: Optional[float] = None):
+        super().__init__()
+
+        self.info = info
+        self.progress = progress
 
 
 # Objects passed by GUI/CLI extractor thread to
