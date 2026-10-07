@@ -135,6 +135,24 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                           <object class="GtkProgressBar" id="extracting_progress_bar"></object>
                         </child>
                         <child>
+                          <object class="GtkBox" id="extraction_next_steps">
+                            <property name="halign">3</property>
+                            <property name="spacing">5</property>
+                            <property name="visible">false</property>
+                            <child>
+                              <object class="GtkButton" id="match_endpoint_button">
+                                <property name="label">Match network endpoint</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkButton" id="open_extracted_button">
+                                <property name="css-classes">suggested-action</property>
+                                <property name="label">Open extracted files</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
                           <object class="GtkTextView" id="extraction_text_view">
                             <property name="buffer">
                               <object class="GtkTextBuffer" id="extraction_text_buffer"></object>
@@ -194,6 +212,24 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                 <property name="fraction">0.6</property>
                 <property name="show-text">true</property>
                 <property name="text">1/200</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="halign">3</property>
+                <property name="spacing">5</property>
+                <property name="visible">false</property>
+                <child>
+                  <object class="GtkButton">
+                    <property name="label">Match network endpoint</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton">
+                    <property name="css-classes">suggested-action</property>
+                    <property name="label">Open extracted files</property>
+                  </object>
+                </child>
               </object>
             </child>
             <child>

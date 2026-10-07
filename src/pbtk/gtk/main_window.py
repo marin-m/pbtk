@@ -33,8 +33,9 @@ class MainWindow(Adw.ApplicationWindow):
     extractors_list: Adw.PreferencesGroup = Gtk.Template.Child()
 
     extracting_status_page: Adw.StatusPage = Gtk.Template.Child()
-    extracting_progress_bar: Gtk.ProgressBar = Gtk.Template.Child()
     extraction_spinner: Adw.SpinnerPaintable = Gtk.Template.Child()
+    extracting_progress_bar: Gtk.ProgressBar = Gtk.Template.Child()
+    extraction_next_steps: Gtk.Box = Gtk.Template.Child()
     extraction_text_view: Gtk.TextView = Gtk.Template.Child()
     extraction_text_buffer: Gtk.TextBuffer = Gtk.Template.Child()
 

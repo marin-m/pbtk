@@ -114,6 +114,24 @@ template $MainWindow: Adw.ApplicationWindow {
 
             ProgressBar extracting_progress_bar {}
 
+            Box extraction_next_steps {
+              halign: center;
+              spacing: 5;
+              visible: false;
+
+              Button match_endpoint_button {
+                label: "Match network endpoint";
+              }
+
+              Button open_extracted_button {
+                css-classes: [
+                  "suggested-action",
+                ];
+
+                label: "Open extracted files";
+              }
+            }
+
             TextView extraction_text_view {
               buffer: TextBuffer extraction_text_buffer {};
 
@@ -169,6 +187,24 @@ Adw.Window test_dialog {
         fraction: 0.6;
         show-text: true;
         text: "1/200";
+      }
+
+      Box {
+        halign: center;
+        spacing: 5;
+        visible: false;
+
+        Button {
+          label: "Match network endpoint";
+        }
+
+        Button {
+          css-classes: [
+            "suggested-action",
+          ];
+
+          label: "Open extracted files";
+        }
       }
 
       TextView {

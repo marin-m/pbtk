@@ -93,6 +93,8 @@ class ExtractorRow(Adw.ActionRow):
                     self.window.extraction_text_view.set_visible(False)
                     self.window.extraction_text_buffer.set_text('')
 
+                    self.window.extraction_next_steps.set_visible(False)
+
                     worker = ExtractorWorker(self.extractor, inputs)
                     worker.progress.connect(self.on_progress)
                     worker.information.connect(self.on_information)
@@ -178,3 +180,5 @@ class ExtractorRow(Adw.ActionRow):
             '%d files were saved (XX in which folder?)' % num_files_out
         )
         self.window.extracting_progress_bar.set_fraction(1.0)
+
+        self.window.extraction_next_steps.set_visible(True)
