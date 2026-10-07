@@ -120,12 +120,17 @@ template $MainWindow: Adw.ApplicationWindow {
               visible: false;
 
               Button match_endpoint_button {
+                css-classes: [
+                  "pill",
+                ];
+
                 label: "Match network endpoint";
               }
 
               Button open_extracted_button {
                 css-classes: [
                   "suggested-action",
+                  "pill",
                 ];
 
                 label: "Open extracted files";
@@ -153,11 +158,13 @@ template $MainWindow: Adw.ApplicationWindow {
         };
 
         [top]
-        Adw.HeaderBar {}
+        Adw.HeaderBar {
+          show-title: false;
+        }
       };
 
       tag: "extracting_page";
-      title: "Extraction in progress...";
+      title: "Extraction progress";
     }
   };
 
@@ -195,12 +202,17 @@ Adw.Window test_dialog {
         visible: false;
 
         Button {
+          css-classes: [
+            "pill",
+          ];
+
           label: "Match network endpoint";
         }
 
         Button {
           css-classes: [
             "suggested-action",
+            "pill",
           ];
 
           label: "Open extracted files";

@@ -168,16 +168,17 @@ class ExtractorRow(Adw.ActionRow):
 
             num_files_out += folder_item.files.get_n_items()
 
-        dialog = Adw.AlertDialog.new(
-            'Information', 'Task done, %d files were saved' % num_files_out
-        )
-        dialog.add_response('ok', 'Ok')
-        dialog.choose(self.window, None, None)
+        # dialog = Adw.AlertDialog.new(
+        #     'Information', 'Task done, %d files were saved' % num_files_out
+        # )
+        # dialog.add_response('ok', 'Ok')
+        # dialog.choose(self.window, None, None)
 
+        self.window.present()
         self.window.extracting_status_page.set_paintable(None)
         self.window.extracting_status_page.set_title('Extraction done')
         self.window.extracting_status_page.set_description(
-            '%d files were saved (XX in which folder?)' % num_files_out
+            '%d .proto files have been extracted' % num_files_out
         )
         self.window.extracting_progress_bar.set_fraction(1.0)
 

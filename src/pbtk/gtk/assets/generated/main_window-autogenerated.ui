@@ -141,12 +141,14 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                             <property name="visible">false</property>
                             <child>
                               <object class="GtkButton" id="match_endpoint_button">
+                                <property name="css-classes">pill</property>
                                 <property name="label">Match network endpoint</property>
                               </object>
                             </child>
                             <child>
                               <object class="GtkButton" id="open_extracted_button">
-                                <property name="css-classes">suggested-action</property>
+                                <property name="css-classes">suggested-action
+pill</property>
                                 <property name="label">Open extracted files</property>
                               </object>
                             </child>
@@ -176,12 +178,14 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                   </object>
                 </property>
                 <child type="top">
-                  <object class="AdwHeaderBar"></object>
+                  <object class="AdwHeaderBar">
+                    <property name="show-title">false</property>
+                  </object>
                 </child>
               </object>
             </property>
             <property name="tag">extracting_page</property>
-            <property name="title">Extraction in progress...</property>
+            <property name="title">Extraction progress</property>
           </object>
         </child>
       </object>
@@ -221,12 +225,14 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                 <property name="visible">false</property>
                 <child>
                   <object class="GtkButton">
+                    <property name="css-classes">pill</property>
                     <property name="label">Match network endpoint</property>
                   </object>
                 </child>
                 <child>
                   <object class="GtkButton">
-                    <property name="css-classes">suggested-action</property>
+                    <property name="css-classes">suggested-action
+pill</property>
                     <property name="label">Open extracted files</property>
                   </object>
                 </child>
