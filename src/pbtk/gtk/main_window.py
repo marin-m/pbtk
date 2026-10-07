@@ -39,6 +39,8 @@ class MainWindow(Adw.ApplicationWindow):
     extraction_text_view: Gtk.TextView = Gtk.Template.Child()
     extraction_text_buffer: Gtk.TextBuffer = Gtk.Template.Child()
 
+    global_extraction_dir = GObject.Property(type=str)
+
     def __init__(self, app):
         super().__init__()
 
@@ -61,8 +63,10 @@ class MainWindow(Adw.ApplicationWindow):
         self.reset_state()
 
     def bind_data(self):
+        self.global_extraction_dir = str(BASE_PATH / 'protos')
+
         self.open_dir_section.set_description(
-            ('Location: %s') % str(BASE_PATH / 'protos')
+            ('Location: %s') % self.global_extraction_dir
         )
 
         self.extractor_objs = Gio.ListStore.new(Extractor)
@@ -86,10 +90,15 @@ class MainWindow(Adw.ApplicationWindow):
         self.add_simple_action('show-about', show_about)
 
         def open_proto_dir(*args):
-            proto_dir = Gio.File.new_for_path(str(BASE_PATH / 'protos'))
+            proto_dir = Gio.File.new_for_path(self.global_extraction_dir)
             Gtk.FileLauncher.new(proto_dir).launch(self, None, None)
 
         self.add_simple_action('open-proto-dir', open_proto_dir)
+
+        def go_back_to_main(*args):
+            self.main_nav_view.pop_to_tag('main_page')
+
+        self.add_simple_action('go-back-to-main', go_back_to_main)
 
     def add_simple_action(self, name, callback, param_type=None):
 

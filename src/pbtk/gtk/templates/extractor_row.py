@@ -18,7 +18,7 @@ import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 
-from gi.repository import Gtk, Gio, Adw
+from gi.repository import Gtk, Gio, GLib, Adw
 from os.path import join
 from pathlib import Path
 
@@ -44,7 +44,6 @@ class ExtractorRow(Adw.ActionRow):
         self.add_suffix(select_button)
 
     def on_clicked(self, target: Gtk.Button, *args):
-        debug('TODO')
 
         try:
             assert_installed(**(self.extractor.depends or {}))
@@ -60,8 +59,21 @@ class ExtractorRow(Adw.ActionRow):
                 def file_picked(
                     dialog: Gtk.FileDialog, result: Gio.AsyncResult
                 ):
-                    files: Gio.ListModel = dialog.open_multiple_finish(result)
-                    # ⚠️ TODO handle Dialog dismissal
+                    try:
+                        files: Gio.ListModel = dialog.open_multiple_finish(
+                            result
+                        )
+
+                    except GLib.GError as err:
+                        if err.message != 'Dismissed by user':
+                            dialog = Adw.AlertDialog.new(
+                                'Could not open file', err.message
+                            )
+                            dialog.add_response('ok', 'Ok')
+                            dialog.set_default_response('ok')
+                            dialog.set_close_response('ok')
+                            dialog.choose(self, None, None)
+                        return
 
                     inputs = ExtractorInputs()
 
@@ -74,11 +86,7 @@ class ExtractorRow(Adw.ActionRow):
                             ExtractorInputArgument(file_path, out_folder_name)
                         )
 
-                    # (⚠️ TODO show progress dialog - IN A SUBVIEW
-                    # PAGE OR A POPUP?, prepare info dialog,
-                    # RESULT SUBVIEW PAGE?)
-
-                    # __progress subview show__ WIP
+                    # Show progress dialog
                     self.window.main_nav_view.push_by_tag('extracting_page')
 
                     self.window.extracting_status_page.set_paintable(

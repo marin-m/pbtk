@@ -154,6 +154,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                             <property name="visible">false</property>
                             <child>
                               <object class="GtkButton" id="main_screen_button">
+                                <property name="action-name">win.go-back-to-main</property>
                                 <property name="css-classes">pill</property>
                                 <property name="label">Main screen</property>
                               </object>
@@ -167,6 +168,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                             </child>
                             <child>
                               <object class="GtkButton" id="open_extracted_button">
+                                <property name="action-name">win.open-proto-dir</property>
                                 <property name="css-classes">suggested-action
 pill</property>
                                 <property name="label">Open extracted files</property>

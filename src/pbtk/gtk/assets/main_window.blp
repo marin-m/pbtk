@@ -132,6 +132,8 @@ template $MainWindow: Adw.ApplicationWindow {
               visible: false;
 
               Button main_screen_button {
+                action-name: "win.go-back-to-main";
+
                 css-classes: [
                   "pill",
                 ];
@@ -150,6 +152,8 @@ template $MainWindow: Adw.ApplicationWindow {
               }
 
               Button open_extracted_button {
+                action-name: "win.open-proto-dir";
+
                 css-classes: [
                   "suggested-action",
                   "pill",
