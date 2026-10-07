@@ -1,0 +1,211 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $MainWindow: Adw.ApplicationWindow {
+  content: Adw.NavigationView main_nav_view {
+    Adw.NavigationPage main_page {
+      child: Adw.ToolbarView {
+        content: Adw.PreferencesPage {
+          description: "This GUI will get you to reverse engineer (and optionally network fuzz) apps using the Protobuf serialization format in minutes.";
+
+          Adw.PreferencesGroup {
+            title: "Follow these three steps in order to get started.";
+
+            Adw.ActionRow {
+              action-name: "navigation.push";
+              action-target: "\"extractors_page\"";
+              activatable: true;
+              title: " Step 1: Extract .proto structures from apps";
+
+              [suffix]
+              Image {
+                css-classes: [
+                  "dim-label",
+                ];
+
+                icon-name: "go-next-symbolic";
+              }
+            }
+
+            Adw.ActionRow {
+              title: "Step 2: Link .protos to endpoints";
+
+              [suffix]
+              Image {
+                css-classes: [
+                  "dim-label",
+                ];
+
+                icon-name: "go-next-symbolic";
+              }
+            }
+
+            Adw.ActionRow {
+              title: "Step 3: Fuzz and test endpoints live";
+
+              [suffix]
+              Image {
+                css-classes: [
+                  "dim-label",
+                ];
+
+                icon-name: "go-next-symbolic";
+              }
+            }
+          }
+
+          Adw.PreferencesGroup open_dir_section {
+            title: "All your extracted .proto files and JSON endpoint information is stored on disk.";
+
+            Adw.ActionRow {
+              activatable-widget: open_dir_button;
+              title: _("Using your regular file browser, you can move files in and out this place.");
+
+              Button open_dir_button {
+                action-name: "win.open-proto-dir";
+                label: _("Open this directory...");
+              }
+            }
+          }
+        };
+
+        [top]
+        Adw.HeaderBar {
+          [end]
+          MenuButton {
+            icon-name: "open-menu-symbolic";
+
+            menu-model: menu {
+              item {
+                action: "win.show-about";
+                label: _("_About...");
+              }
+            };
+          }
+        }
+
+        [bottom]
+        ActionBar {
+          visible: false;
+
+          Button {
+            action-name: "navigation.push";
+            action-target: "'extracting_page'";
+            label: "(Debug: go to extracted view)";
+            visible: false;
+          }
+        }
+      };
+
+      tag: "main_page";
+      title: _("Welcome to PBTK!");
+    }
+
+    Adw.NavigationPage extractors_page {
+      child: Adw.ToolbarView {
+        content: Adw.PreferencesPage {
+          Adw.PreferencesGroup extractors_list {
+            title: "Select an extractor";
+          }
+        };
+
+        [top]
+        Adw.HeaderBar {}
+      };
+
+      tag: "extractors_page";
+      title: "Extract structures...";
+    }
+
+    Adw.NavigationPage extracting_page {
+      child: Adw.ToolbarView {
+        content: Adw.StatusPage extracting_status_page {
+          child: Box {
+            orientation: vertical;
+            spacing: 20;
+
+            ProgressBar extracting_progress_bar {}
+
+            Box extraction_next_steps {
+              halign: center;
+              spacing: 5;
+              visible: false;
+
+              Button main_screen_button {
+                action-name: "win.go-back-to-main";
+
+                css-classes: [
+                  "pill",
+                ];
+
+                label: "Main screen";
+              }
+
+              Button extract_more_button {
+                action-name: "navigation.pop";
+
+                css-classes: [
+                  "pill",
+                ];
+
+                label: "Extract more";
+              }
+
+              Button open_extracted_button {
+                action-name: "win.open-proto-dir";
+
+                css-classes: [
+                  "suggested-action",
+                  "pill",
+                ];
+
+                label: "Open extracted files";
+              }
+            }
+
+            TextView extraction_text_view {
+              buffer: TextBuffer extraction_text_buffer {};
+
+              editable: false;
+              height-request: 230;
+              monospace: true;
+              visible: false;
+              wrap-mode: word_char;
+            }
+          };
+
+          description: "Current progress...";
+
+          paintable: Adw.SpinnerPaintable extraction_spinner {
+            widget: extracting_status_page;
+          };
+
+          title: "Extracting...";
+        };
+
+        [top]
+        Adw.HeaderBar {
+          show-title: false;
+        }
+      };
+
+      tag: "extracting_page";
+      title: "Extraction progress";
+    }
+  };
+
+  default-height: 520;
+  default-width: 720;
+  icon-name: "re.fossplant.pbtk";
+}
+
+Adw.AboutDialog about_dialog {
+  application-icon: "re.fossplant.pbtk";
+  application-name: "PBTK";
+  copyright: "© Marin Moulinier";
+  issue-url: "https://github.com/marin-m/pbtk/issues/new/choose";
+  license-type: gpl_3_0;
+  support-url: "https://matrix.to/#/#pbtk:matrix.org";
+  version: "0.x";
+  website: "https://github.com/marin-m/pbtk";
+}

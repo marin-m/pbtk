@@ -156,7 +156,7 @@ class PBTKGUI(QApplication):
 
         for name, meta in extractors.items():
             item = QListWidgetItem(
-                meta['desc'], self.choose_extractor.extractors
+                meta['description'], self.choose_extractor.extractors
             )
             item.setData(Qt.UserRole, name)
 
@@ -288,7 +288,7 @@ class PBTKGUI(QApplication):
 
                 for name, meta in transports.items():
                     item = QListWidgetItem(
-                        meta['desc'], self.create_endpoint.transports
+                        meta['description'], self.create_endpoint.transports
                     )
                     item.setData(Qt.UserRole, (name, meta.get('ui_data_form')))
 
@@ -303,15 +303,16 @@ class PBTKGUI(QApplication):
             self.set_view(self.create_endpoint)
 
     def pick_transport(self, item):
-        name, desc = item.data(Qt.UserRole)
-        self.has_pb_param = desc and 'regular' in desc
+        name, description = item.data(Qt.UserRole)
+        self.has_pb_param = description and 'regular' in description
         self.create_endpoint.reqDataSubform.show()
         if self.has_pb_param:
             self.create_endpoint.pbParamSubform.show()
         else:
             self.create_endpoint.pbParamSubform.hide()
         self.create_endpoint.sampleDataLabel.setText(
-            'Sample request data, one per line (in the form of %s):' % desc
+            'Sample request data, one per line (in the form of %s):'
+            % description
         )
 
     def load_another_pb(self):

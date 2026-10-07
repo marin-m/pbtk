@@ -3,9 +3,12 @@ from re import findall, MULTILINE, search, finditer, split, sub
 from subprocess import run, DEVNULL, TimeoutExpired
 from tempfile import TemporaryDirectory
 from collections import OrderedDict
+from logging import warning, error
 from zipfile import ZipFile
 from os.path import exists
+from typing import Dict
 
+from pbtk.gtk.datamodel.extractor import ExtractorOutputFile
 from pbtk.extractors.from_binary import walk_binary
 from pbtk.utils.common import dex2jar, jad
 
@@ -21,7 +24,7 @@ class JarWrapper(TemporaryDirectory):
         self.classes = []
         self.decompiled = {}
 
-        self.bonus_protos = OrderedDict()
+        self.bonus_protos: Dict[str, ExtractorOutputFile] = OrderedDict()
 
         self.handle_file(fname)
 
@@ -140,7 +143,7 @@ class ClassWrapper:
                 stderr=DEVNULL,
             )
         except TimeoutExpired:
-            print('(Jad timed out)')
+            error('(Jad timed out)')
 
         if not exists(outpath):
             self.raw = ''
@@ -396,7 +399,7 @@ class ClassWrapper:
             None,
         )
         if annote is None:
-            print(
+            warning(
                 "Note: Jad annotation couldn't be parsed:",
                 repr(name + '(' + args),
                 '/',

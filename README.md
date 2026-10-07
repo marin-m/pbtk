@@ -15,7 +15,7 @@ pbtk (*Protobuf toolkit*) is a full-fledged set of scripts, accessible through a
 
 ## Installation
 
-PBTK requires Python ≥ 3.10, PySide 6, Python-Protobuf 3, and a handful of executable programs (chromium, jad, dex2jar...) for running extractor scripts.
+PBTK requires Python ≥ 3.10, GTK 4, Adwaita ≥ 1.8, Python-Protobuf 3, and a handful of executable programs (chromium, jad, dex2jar...) for running extractor scripts.
 
 Ubuntu users can install it using `snap`:
 
@@ -35,7 +35,7 @@ On most other distributions, you'll want to run it directly:
 
 ```tcl
 # For Ubuntu/Debian testing derivates:
-$ sudo apt install python3-pip git openjdk-8-jre python3-qtpy-pyside6
+$ sudo apt install python3-pip git openjdk-8-jre gir1.2-adw-1 gir1.2-gtk-4.0
 
 # Then, using UV:
 $ sudo snap install --classic astral-uv
@@ -158,7 +158,8 @@ Extractors are defined in `src/pbtk/extractors/*.py`. They are defined as a meth
 
 ```python
 @register_extractor(name = 'my_extractor',
-                    desc = 'Extract Protobuf structures from Foobar code (*.foo, *.bar)',
+                    readable_name = 'My Extractor',
+                    description = 'Extract Protobuf structures from Foobar code (*.foo, *.bar)',
                     depends={'binaries': ['foobar-decompiler']})
 def my_extractor(path):
     # Load contents of the `path` input file and do your stuff...
@@ -177,7 +178,7 @@ Transports are defined in `src/pbtk/utils/transports.py`. They are defined as a 
 ```python
 @register_transport(
     name = 'my_transport',
-    desc = 'Protobuf as raw POST data',
+    description = 'Protobuf as raw POST data',
     ui_data_form = 'hex strings'
 )
 class MyTransport():

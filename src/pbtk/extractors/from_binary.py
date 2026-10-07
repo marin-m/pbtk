@@ -2,11 +2,14 @@
 from google.protobuf.descriptor_pb2 import FileDescriptorProto
 from google.protobuf.internal.decoder import _DecodeVarint
 
+from collections.abc import Generator
 from os.path import dirname, realpath
 from logging import getLogger, DEBUG
+from typing import Union
 
 __import__('sys').path.append(dirname(realpath(__file__)) + '/../..')
 from pbtk.utils.common import register_extractor, extractor_main
+from pbtk.gtk.datamodel.extractor import ExtractorOutputFile
 from pbtk.utils.descpb_to_proto import descpb_to_proto
 
 """
@@ -29,9 +32,10 @@ from pbtk.utils.descpb_to_proto import descpb_to_proto
 
 @register_extractor(
     name='from_binary',
-    desc='Extract Protobuf metadata from binary file (*.dll, *.so...)',
+    readable_name='Binary extractor',
+    description='Extract Protobuf metadata from binary file (*.dll, *.so...)',
 )
-def walk_binary(binr):
+def walk_binary(binr: Union[str, bytes]) -> Generator[ExtractorOutputFile]:
     if isinstance(binr, str):
         try:
             with open(binr, 'rb') as fd:

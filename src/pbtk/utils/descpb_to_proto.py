@@ -1,28 +1,31 @@
 #!/usr/bin/env python3
+from pbtk.gtk.datamodel.extractor import ExtractorOutputFile
 from google.protobuf.descriptor_pb2 import (
+    FileDescriptorProto,
     DescriptorProto,
     FieldDescriptorProto,
 )
-from collections import OrderedDict
 from collections.abc import MutableSequence
+from collections import OrderedDict
+from typing import List, Union
 from itertools import groupby
 
 """
     This script converts back a FileDescriptor structure to a readable .proto file.
-    
+
     There is already a function in the standard C++ library that does this [1], but
     - It is not accessible through the Python binding
     - This implementation has a few output readability improvements, i.e
     -- Declaring enums/messages after first use rather than at top of block
     -- Not always using full names when referencing messages types
     -- Smaller aesthetic differences (number of tabs, line jumps)
-    
+
     For reference of the FileDescriptor structure, see [2].
     Other (less complete) implementations of this are [3] or [4].
-    
-    [1] https://github.com/google/protobuf/blob/5a76e/src/google/protobuf/descriptor.cc#L2242
-    [2] https://github.com/google/protobuf/blob/bb77c/src/google/protobuf/descriptor.proto#L59
-    
+
+    [1] https://github.com/google/protobuf/blob/a9318d0/src/google/protobuf/descriptor.cc#L3423
+    [2] https://github.com/google/protobuf/blob/a9318d0/src/google/protobuf/descriptor.proto#L85
+
     [3] https://github.com/fry/d3/blob/master/decompile_protobins.py
     [4] https://github.com/sarum9in/bunsan_binlogs_python/blob/master/src/python/source.py
 """
@@ -30,7 +33,7 @@ from itertools import groupby
 INDENT = ' ' * 4
 
 
-def descpb_to_proto(desc):
+def descpb_to_proto(desc: FileDescriptorProto) -> ExtractorOutputFile:
     out = 'syntax = "%s";\n\n' % (desc.syntax or 'proto2')
 
     scopes = ['']
@@ -51,10 +54,14 @@ def descpb_to_proto(desc):
     out += parse_msg(desc, scopes, desc.syntax).strip('\n')
     name = desc.name.replace('..', '').strip('.\\/')
 
-    return name, out + '\n'
+    return ExtractorOutputFile(name, out + '\n')
 
 
-def parse_msg(desc, scopes, syntax):
+def parse_msg(
+    desc: Union[DescriptorProto, FileDescriptorProto],
+    scopes: List[str],
+    syntax: str,
+):
     out = ''
     is_msg = isinstance(desc, DescriptorProto)
 
