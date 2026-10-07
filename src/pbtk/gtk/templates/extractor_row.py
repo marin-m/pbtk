@@ -19,6 +19,7 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 
 from gi.repository import Gtk, Gio, Adw
+from os.path import join
 from pathlib import Path
 
 
@@ -167,6 +168,16 @@ class ExtractorRow(Adw.ActionRow):
             folder_item = outputs.folders.get_item(num_folder)
 
             num_files_out += folder_item.files.get_n_items()
+
+            for num_file in range(folder_item.files.get_n_items()):
+                file_item = folder_item.files.get_item(num_file)
+
+                self.window.extraction_text_view.set_visible(True)
+                self.window.extraction_text_buffer.insert(
+                    self.window.extraction_text_buffer.get_end_iter(),
+                    'Successfully extracted: %s\n'
+                    % join(folder_item.name, file_item.name),
+                )
 
         # dialog = Adw.AlertDialog.new(
         #     'Information', 'Task done, %d files were saved' % num_files_out
