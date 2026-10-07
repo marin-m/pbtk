@@ -93,6 +93,19 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                     </child>
                   </object>
                 </child>
+                <child type="bottom">
+                  <object class="GtkActionBar">
+                    <property name="visible">false</property>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="action-name">navigation.push</property>
+                        <property name="action-target">'extracting_page'</property>
+                        <property name="label">(Debug: go to extracted view)</property>
+                        <property name="visible">false</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
               </object>
             </property>
             <property name="tag">main_page</property>
@@ -140,9 +153,16 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                             <property name="spacing">5</property>
                             <property name="visible">false</property>
                             <child>
-                              <object class="GtkButton" id="match_endpoint_button">
+                              <object class="GtkButton" id="main_screen_button">
                                 <property name="css-classes">pill</property>
-                                <property name="label">Match network endpoint</property>
+                                <property name="label">Main screen</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkButton" id="extract_more_button">
+                                <property name="action-name">navigation.pop</property>
+                                <property name="css-classes">pill</property>
+                                <property name="label">Extract more</property>
                               </object>
                             </child>
                             <child>
@@ -203,62 +223,5 @@ pill</property>
     <property name="support-url">https://matrix.to/#/#pbtk:matrix.org</property>
     <property name="version">0.x</property>
     <property name="website">https://github.com/marin-m/pbtk</property>
-  </object>
-  <object class="AdwWindow" id="test_dialog">
-    <child>
-      <object class="AdwStatusPage" id="test_status_page">
-        <property name="child">
-          <object class="GtkBox">
-            <property name="orientation">1</property>
-            <property name="spacing">20</property>
-            <child>
-              <object class="GtkProgressBar">
-                <property name="fraction">0.6</property>
-                <property name="show-text">true</property>
-                <property name="text">1/200</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkBox">
-                <property name="halign">3</property>
-                <property name="spacing">5</property>
-                <property name="visible">false</property>
-                <child>
-                  <object class="GtkButton">
-                    <property name="css-classes">pill</property>
-                    <property name="label">Match network endpoint</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkButton">
-                    <property name="css-classes">suggested-action
-pill</property>
-                    <property name="label">Open extracted files</property>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkTextView">
-                <property name="buffer">
-                  <object class="GtkTextBuffer">
-                    <property name="text">(Test)</property>
-                  </object>
-                </property>
-                <property name="height-request">200</property>
-                <property name="monospace">true</property>
-              </object>
-            </child>
-          </object>
-        </property>
-        <property name="description">abcdef</property>
-        <property name="paintable">
-          <object class="AdwSpinnerPaintable">
-            <property name="widget">test_status_page</property>
-          </object>
-        </property>
-        <property name="title">abcdef</property>
-      </object>
-    </child>
   </object>
 </interface>

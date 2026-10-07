@@ -83,6 +83,18 @@ template $MainWindow: Adw.ApplicationWindow {
             };
           }
         }
+
+        [bottom]
+        ActionBar {
+          visible: false;
+
+          Button {
+            action-name: "navigation.push";
+            action-target: "'extracting_page'";
+            label: "(Debug: go to extracted view)";
+            visible: false;
+          }
+        }
       };
 
       tag: "main_page";
@@ -119,12 +131,22 @@ template $MainWindow: Adw.ApplicationWindow {
               spacing: 5;
               visible: false;
 
-              Button match_endpoint_button {
+              Button main_screen_button {
                 css-classes: [
                   "pill",
                 ];
 
-                label: "Match network endpoint";
+                label: "Main screen";
+              }
+
+              Button extract_more_button {
+                action-name: "navigation.pop";
+
+                css-classes: [
+                  "pill",
+                ];
+
+                label: "Extract more";
               }
 
               Button open_extracted_button {
@@ -182,59 +204,4 @@ Adw.AboutDialog about_dialog {
   support-url: "https://matrix.to/#/#pbtk:matrix.org";
   version: "0.x";
   website: "https://github.com/marin-m/pbtk";
-}
-
-Adw.Window test_dialog {
-  Adw.StatusPage test_status_page {
-    child: Box {
-      orientation: vertical;
-      spacing: 20;
-
-      ProgressBar {
-        fraction: 0.6;
-        show-text: true;
-        text: "1/200";
-      }
-
-      Box {
-        halign: center;
-        spacing: 5;
-        visible: false;
-
-        Button {
-          css-classes: [
-            "pill",
-          ];
-
-          label: "Match network endpoint";
-        }
-
-        Button {
-          css-classes: [
-            "suggested-action",
-            "pill",
-          ];
-
-          label: "Open extracted files";
-        }
-      }
-
-      TextView {
-        buffer: TextBuffer {
-          text: "(Test)";
-        };
-
-        height-request: 200;
-        monospace: true;
-      }
-    };
-
-    description: "abcdef";
-
-    paintable: Adw.SpinnerPaintable {
-      widget: test_status_page;
-    };
-
-    title: "abcdef";
-  }
 }
