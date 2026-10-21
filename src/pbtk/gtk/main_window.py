@@ -23,7 +23,7 @@ from gi.repository import Gtk, Adw, GObject, Gio
 class MainWindow(Adw.ApplicationWindow):
     __gtype_name__ = 'MainWindow'
 
-    about_dialog: Adw.AboutDialog = Gtk.Template.Child()
+    about_dialog: Adw.AboutDialog
 
     main_nav_view: Adw.NavigationView = Gtk.Template.Child()
 
@@ -45,6 +45,16 @@ class MainWindow(Adw.ApplicationWindow):
         super().__init__()
 
         self.set_application(app)
+
+        self.about_dialog = Adw.AboutDialog.new_from_appdata(
+            '/re/fossplant/pbtk/re.fossplant.pbtk.metainfo.xml',
+            version('pbtk'),
+        )
+        self.about_dialog.set_debug_info_filename('pbtk-debug-info.txt')
+        self.about_dialog.set_developer_name('')
+        self.about_dialog.set_developers(
+            ['Marin Moulinier https://fossplant.re/']
+        )
 
         # Perform data bindings
 
@@ -84,7 +94,6 @@ class MainWindow(Adw.ApplicationWindow):
     def connect_actions(self):
 
         def show_about(*args):
-            self.about_dialog.set_version(version('pbtk'))
             self.about_dialog.present(self)
 
         self.add_simple_action('show-about', show_about)
