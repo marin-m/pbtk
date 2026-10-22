@@ -33,9 +33,10 @@ def main():
 
 class MainApplication(Adw.Application):
     window: MainWindow = None
+    logging_central: LoggingCentral
 
     def __init__(self, **kwargs):
-        LoggingCentral(debug_mode=True)
+        self.logging_central = LoggingCentral(debug_mode=True)
 
         self.setup_error_handling()
 

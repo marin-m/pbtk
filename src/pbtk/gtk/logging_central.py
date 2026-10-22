@@ -8,14 +8,19 @@ from logging import (
     WARNING,
     ERROR,
     CRITICAL,
+    Handler,
     Formatter,
     Logger,
+    LogRecord,
 )
 
 from re import split, IGNORECASE
+from collections import deque
+from typing import Sequence
 import sys
 
 
+MEMORY_LOG_LINES = 5000
 LOG_FORMAT = '[{asctime}] [ui {process}] - {levelname} - {message} ({pathname_last}:{lineno})'
 
 # if '--service' in join(sys.argv).lower():
@@ -60,8 +65,22 @@ class ColorFormatter(Formatter):
         return formatter.format(record)
 
 
+class ScrollbackHandler(Handler):
+    def __init__(self):
+        Handler.__init__(self)
+        self.logs: Sequence[str] = deque(maxlen=MEMORY_LOG_LINES)
+
+    def emit(self, record: LogRecord):
+        string: str = self.format(record)
+        self.logs.append(string)
+
+
 class LoggingCentral:
     logger: Logger
+    scrollback_handler: ScrollbackHandler
+
+    def get_logs(self) -> Sequence[str]:
+        return list(self.scrollback_handler.logs)
 
     def __init__(self, debug_mode: bool):
         self.logger = getLogger()
@@ -74,3 +93,8 @@ class LoggingCentral:
         else:
             stderr_handler.setFormatter(NoColorFormatter())
         self.logger.addHandler(stderr_handler)
+
+        self.scrollback_handler = ScrollbackHandler()
+        self.scrollback_handler.setLevel(DEBUG)
+        self.scrollback_handler.setFormatter(NoColorFormatter())
+        self.logger.addHandler(self.scrollback_handler)

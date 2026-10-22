@@ -12,7 +12,7 @@ import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 
-from gi.repository import Gtk, Adw, GObject, Gio
+from gi.repository import Gtk, Adw, GObject, GLib, Gio
 
 # (⚠️ TODO: Load from BLP file)
 
@@ -23,7 +23,10 @@ from gi.repository import Gtk, Adw, GObject, Gio
 class MainWindow(Adw.ApplicationWindow):
     __gtype_name__ = 'MainWindow'
 
+    app: Adw.Application
+
     about_dialog: Adw.AboutDialog
+    debug_timer_source: int = None
 
     main_nav_view: Adw.NavigationView = Gtk.Template.Child()
 
@@ -45,6 +48,7 @@ class MainWindow(Adw.ApplicationWindow):
         super().__init__()
 
         self.set_application(app)
+        self.app = app
 
         self.about_dialog = Adw.AboutDialog.new_from_appdata(
             '/re/fossplant/pbtk/re.fossplant.pbtk.metainfo.xml',
@@ -55,6 +59,11 @@ class MainWindow(Adw.ApplicationWindow):
         self.about_dialog.set_developers(
             ['Marin Moulinier https://fossplant.re/']
         )
+
+        def on_closed(*args):
+            self.about_dialog.set_visible(False)
+
+        self.about_dialog.connect('closed', on_closed)
 
         # Perform data bindings
 
@@ -94,6 +103,29 @@ class MainWindow(Adw.ApplicationWindow):
     def connect_actions(self):
 
         def show_about(*args):
+
+            self.about_dialog.set_visible(True)
+
+            if not self.debug_timer_source:
+
+                def update_debug_info():
+                    self.about_dialog.set_debug_info(
+                        '\n'.join(
+                            self.app.logging_central.scrollback_handler.logs
+                        )
+                    )
+
+                    if not self.about_dialog.is_visible():
+                        self.debug_timer_source = None
+                        return GLib.SOURCE_REMOVE
+                    else:
+                        return GLib.SOURCE_CONTINUE
+
+                self.debug_timer_source = GLib.timeout_add_seconds(
+                    1, update_debug_info
+                )
+                update_debug_info()
+
             self.about_dialog.present(self)
 
         self.add_simple_action('show-about', show_about)
