@@ -11,7 +11,7 @@ from pbtk.gtk.datamodel.extractor import (
 from pbtk.gtk.workers.extractor_thread import ExtractorWorker
 from pbtk.utils.common import assert_installed
 
-from logging import debug
+from logging import debug, info, error
 
 import gi
 
@@ -129,7 +129,11 @@ class ExtractorRow(Adw.ActionRow):
     def on_progress(
         self, worker: ExtractorWorker, progress: ExtractorProgress
     ):
-        print('==> [ ⚠️ XX WIP 1 ]', progress.info, progress.progress)
+        debug(
+            'Extraction progress: %g %% - %s',
+            progress.progress or 0.0,
+            progress.info,
+        )
 
         self.window.extracting_status_page.set_description(progress.info)
         self.window.extracting_progress_bar.set_fraction(
@@ -139,7 +143,7 @@ class ExtractorRow(Adw.ActionRow):
     def on_information(
         self, worker: ExtractorWorker, information: ExtractorInfoMessage
     ):
-        print('==> [ ⚠️ XX WIP 2 ]', information.info)
+        debug('Extraction status: %s', information.info)
 
         # ⚠️ TODO display a pop-up?
 
@@ -156,7 +160,7 @@ class ExtractorRow(Adw.ActionRow):
     def on_error(
         self, worker: ExtractorWorker, information: ExtractorErrorMessage
     ):
-        print('==> [ ⚠️ XX WIP 3 ]', information.info)
+        error('Extraction error: %s', information.info)
 
         # ⚠️ TODO display the text-view?
 
@@ -167,8 +171,6 @@ class ExtractorRow(Adw.ActionRow):
         )
 
     def on_finished(self, worker: ExtractorWorker, outputs: ExtractorOutputs):
-        print('==> [ ⚠️ XX WIP 4 ]', outputs.folders.get_n_items())
-
         # ⚠️ TODO either switch view or display a pop-up?
 
         num_files_out = 0
@@ -179,6 +181,11 @@ class ExtractorRow(Adw.ActionRow):
 
             for num_file in range(folder_item.files.get_n_items()):
                 file_item = folder_item.files.get_item(num_file)
+
+                info(
+                    'Successfully extracted: %s',
+                    join(folder_item.name, file_item.name),
+                )
 
                 self.window.extraction_text_view.set_visible(True)
                 self.window.extraction_text_buffer.insert(
