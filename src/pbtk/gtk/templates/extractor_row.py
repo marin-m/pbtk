@@ -118,7 +118,24 @@ class ExtractorRow(Adw.ActionRow):
                 file_picker.open_multiple(self.window, callback=file_picked)
 
             else:
-                XX
+
+                def on_choose(
+                    dialog: Adw.AlertDialog, result: Gio.AsyncResult
+                ):
+                    result = dialog.choose_finish(result)
+
+                    input_url = self.window.input_url_buffer.get_text()
+                    if result == 'ok' and input_url:
+                        debug('INPUT URL: ' + input_url)
+
+                        WIP
+
+                self.window.input_url_buffer.set_text('', -1)
+
+                self.window.url_input_dialog.choose(
+                    self.window, None, on_choose
+                )
+                self.window.input_url_entry.grab_focus_without_selecting()
 
         # => 🪧 WIP: File picker branch
         #  => Use Gtk.FileDialog

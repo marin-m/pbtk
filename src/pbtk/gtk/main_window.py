@@ -30,6 +30,10 @@ class MainWindow(Adw.ApplicationWindow):
 
     main_nav_view: Adw.NavigationView = Gtk.Template.Child()
 
+    url_input_dialog: Adw.AlertDialog = Gtk.Template.Child()
+    input_url_entry: Gtk.Entry = Gtk.Template.Child()
+    input_url_buffer: Gtk.EntryBuffer = Gtk.Template.Child()
+
     open_dir_section: Adw.PreferencesGroup = Gtk.Template.Child()
 
     extractor_objs = GObject.Property(type=Gio.ListStore)  # Of Extractor
@@ -50,6 +54,8 @@ class MainWindow(Adw.ApplicationWindow):
         self.set_application(app)
         self.app = app
 
+        # Pre-draw about dialog using AppStream metadata
+
         self.about_dialog = Adw.AboutDialog.new_from_appdata(
             '/re/fossplant/pbtk/re.fossplant.pbtk.metainfo.xml',
             version('pbtk'),
@@ -64,6 +70,15 @@ class MainWindow(Adw.ApplicationWindow):
             self.about_dialog.set_visible(False)
 
         self.about_dialog.connect('closed', on_closed)
+
+        # Pre-draw URL prompt dialog
+
+        self.url_input_dialog.add_response('cancel', 'Cancel')
+        self.url_input_dialog.add_response('ok', 'Ok')
+
+        self.url_input_dialog.set_response_appearance(
+            'ok', Adw.ResponseAppearance.SUGGESTED
+        )
 
         # Perform data bindings
 
