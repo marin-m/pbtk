@@ -198,3 +198,11 @@ template $MainWindow: Adw.ApplicationWindow {
   default-width: 720;
   icon-name: "re.fossplant.pbtk";
 }
+
+Adw.AlertDialog url_input_dialog {
+  default-response: "ok";
+
+  extra-child: Entry input_url_entry {};
+
+  heading: "Please enter an URL";
+}

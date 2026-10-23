@@ -216,4 +216,11 @@ pill</property>
     <property name="default-width">720</property>
     <property name="icon-name">re.fossplant.pbtk</property>
   </template>
+  <object class="AdwAlertDialog" id="url_input_dialog">
+    <property name="default-response">ok</property>
+    <property name="extra-child">
+      <object class="GtkEntry" id="input_url_entry"></object>
+    </property>
+    <property name="heading">Please enter an URL</property>
+  </object>
 </interface>
