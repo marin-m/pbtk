@@ -22,6 +22,7 @@ from pbtk.gtk.datamodel.extractor import (
     ExtractorThreadMessage,
     ExtractorOutputFile,
     ExtractorInfoMessage,
+    ExtractorErrorMessage,
     ExtractorProgress,
 )
 from pbtk.utils.transports import GMapsAPIPublic, GMapsAPIPrivate
@@ -80,7 +81,8 @@ def pburl_extract(url) -> Generator[ExtractorThreadMessage]:
         awaiting_srcs, \
         endpoints, \
         sid_to_vars, \
-        proto_to_urls
+        proto_to_urls, \
+        teardown_reason
     URL = url
 
     req_id = 1
@@ -90,6 +92,7 @@ def pburl_extract(url) -> Generator[ExtractorThreadMessage]:
     endpoints = []
     sid_to_vars = {}
     proto_to_urls = OrderedDict()
+    teardown_reason = None
 
     port = randint(1024, 32767)
     temp_profile = True
@@ -138,6 +141,9 @@ def pburl_extract(url) -> Generator[ExtractorThreadMessage]:
                     break
                 except OSError:
                     sleep(0.1)
+                    if chrome and chrome.poll() is not None:
+                        yield ExtractorErrorMessage('Cannot launch Chrome')
+                        return
 
             yield ExtractorProgress(
                 'Connecting to browser debugging controller...\n(Your activity '
@@ -156,6 +162,9 @@ def pburl_extract(url) -> Generator[ExtractorThreadMessage]:
             ).run_forever()
 
             debug('[i] CDP connection succeeded')
+
+            if teardown_reason:
+                yield ExtractorErrorMessage(teardown_reason)
 
         finally:
             # Make sure that Chromium is killed when quitting by error
@@ -236,6 +245,8 @@ def send(ws, call, params=None, data=None):
 def on_message(ws, msg):
     try:
         global seen_scripts
+        global teardown_reason
+
         msg = loads(msg)
 
         # debug('[i] Received Websocket message: %r' % msg)
@@ -474,8 +485,13 @@ def on_message(ws, msg):
                 if not awaiting_srcs:
                     send(ws, 'Debugger.resume')
                 return
-            error('[Error] %r: %r' % (call, err))
-            exit()
+
+            # ❌ TODO: We need a cleaner way to dispatch this
+            # error to the extractor thread (⚠️ CHANGE THE
+            # ASYNC MODEL/WEBSOCKET LIB?)
+
+            teardown_reason = 'Encountered during "%r": %r' % (call, err)
+            ws.close()
 
         else:
             req_id, msg = msg['id'], msg['result']

@@ -86,6 +86,9 @@ class ExtractorThread(Thread):
                     elif isinstance(thread_msg, ExtractorInfoMessage):
                         GLib.idle_add(self.worker.information.emit, thread_msg)
 
+                    elif isinstance(thread_msg, ExtractorErrorMessage):
+                        GLib.idle_add(self.worker.error.emit, thread_msg)
+
                     elif isinstance(thread_msg, ExtractorProgress):
                         GLib.idle_add(self.worker.progress.emit, thread_msg)
 
@@ -96,7 +99,7 @@ class ExtractorThread(Thread):
                     'Error while extracting "%s": %s'
                     % (input_item.file_path_or_url, format_exc(err))
                 )
-                GLib.idle_add(self.worker.progress.emit, thread_msg)
+                GLib.idle_add(self.worker.error.emit, thread_msg)
 
             outputs.folders.append(output_folder)
 

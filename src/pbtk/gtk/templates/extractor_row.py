@@ -10,6 +10,7 @@ from pbtk.gtk.datamodel.extractor import (
 )
 from pbtk.gtk.workers.extractor_thread import ExtractorWorker
 from pbtk.utils.common import assert_installed
+from urllib.parse import urlparse
 
 from logging import debug, info, error
 
@@ -128,7 +129,42 @@ class ExtractorRow(Adw.ActionRow):
                     if result == 'ok' and input_url:
                         debug('INPUT URL: ' + input_url)
 
-                        WIP
+                        inputs = ExtractorInputs()
+
+                        url = urlparse(input_url)
+                        inputs.inputs.append(
+                            ExtractorInputArgument(url.geturl(), url.netloc)
+                        )
+
+                        # Show progress dialog
+                        self.window.main_nav_view.push_by_tag(
+                            'extracting_page'
+                        )
+
+                        self.window.extracting_status_page.set_paintable(
+                            self.window.extraction_spinner
+                        )
+                        self.window.extracting_status_page.set_title(
+                            'Spawning Google Chrome...'
+                        )
+                        self.window.extracting_status_page.set_description('')
+
+                        self.window.extracting_progress_bar.set_fraction(0.0)
+
+                        self.window.extraction_text_view.set_visible(False)
+                        self.window.extraction_text_buffer.set_text('')
+
+                        self.window.extraction_next_steps.set_visible(False)
+
+                        worker = ExtractorWorker(self.extractor, inputs)
+                        worker.progress.connect(self.on_progress)
+                        worker.information.connect(self.on_information)
+                        worker.error.connect(self.on_error)
+                        worker.finished.connect(self.on_finished)
+                        worker.start()
+
+                        # ⚠️ ⚠️ TODO: 🪧 Cancel the extraction process when QUITTING THE VIEW
+                        #  OR THE WINDOW?
 
                 self.window.input_url_buffer.set_text('', -1)
 
