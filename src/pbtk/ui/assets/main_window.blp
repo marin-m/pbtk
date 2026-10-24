@@ -28,6 +28,9 @@ template $MainWindow: Adw.ApplicationWindow {
             }
 
             Adw.ActionRow {
+              action-name: "navigation.push";
+              action-target: "\"endpoints_page\"";
+              activatable: true;
               title: "Step 2: Link .protos to endpoints";
 
               [suffix]
@@ -191,6 +194,18 @@ template $MainWindow: Adw.ApplicationWindow {
 
       tag: "extracting_page";
       title: "Extraction progress";
+    }
+
+    Adw.NavigationPage endpoints_page {
+      child: Adw.ToolbarView {
+        content: Adw.PreferencesPage {};
+
+        [top]
+        Adw.HeaderBar {}
+      };
+
+      tag: "endpoints_page";
+      title: "Endpoint selection";
     }
   };
 

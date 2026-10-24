@@ -35,6 +35,9 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                         </child>
                         <child>
                           <object class="AdwActionRow">
+                            <property name="action-name">navigation.push</property>
+                            <property name="action-target">"endpoints_page"</property>
+                            <property name="activatable">true</property>
                             <property name="title">Step 2: Link .protos to endpoints</property>
                             <child type="suffix">
                               <object class="GtkImage">
@@ -208,6 +211,22 @@ pill</property>
             </property>
             <property name="tag">extracting_page</property>
             <property name="title">Extraction progress</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwNavigationPage" id="endpoints_page">
+            <property name="child">
+              <object class="AdwToolbarView">
+                <property name="content">
+                  <object class="AdwPreferencesPage"></object>
+                </property>
+                <child type="top">
+                  <object class="AdwHeaderBar"></object>
+                </child>
+              </object>
+            </property>
+            <property name="tag">endpoints_page</property>
+            <property name="title">Endpoint selection</property>
           </object>
         </child>
       </object>
