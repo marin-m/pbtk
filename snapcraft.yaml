@@ -61,7 +61,7 @@ parts:
 
   share:
     plugin: dump
-    source: src/pbtk/gtk/assets/
+    source: src/pbtk/ui/assets/
     parse-info: [re.fossplant.pbtk.metainfo.xml]
     source-type: local
 

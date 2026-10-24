@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from pbtk.gtk.datamodel.extractor import ExtractorOutputFile
+from pbtk.datamodel.extractor import ExtractorOutputFile
 from google.protobuf.descriptor_pb2 import (
     FileDescriptorProto,
     DescriptorProto,

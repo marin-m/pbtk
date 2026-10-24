@@ -33,7 +33,7 @@ $ pbtk
 
 On most other distributions, you'll want to run it directly:
 
-```tcl
+```console-session
 # For Ubuntu/Debian testing derivates:
 $ sudo apt install python3-pip git openjdk-8-jre gir1.2-adw-1 gir1.2-gtk-4.0
 
@@ -76,6 +76,7 @@ The GUI can be lanched through the main script:
 uv sync # Download dependencies to the .venv folder
 source .venv/bin/activate # Put the local scripts in $PATH for the current shell session
 uv tool install -e . # Put the local scripts in $PATH all time
+cp -a .github/hooks/* .git/hooks/ # Needed for contributing to code
 pbtk
 ```
 

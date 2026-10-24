@@ -9,7 +9,7 @@ from typing import Union
 
 __import__('sys').path.append(dirname(realpath(__file__)) + '/../..')
 from pbtk.utils.common import register_extractor, extractor_main
-from pbtk.gtk.datamodel.extractor import ExtractorOutputFile
+from pbtk.datamodel.extractor import ExtractorOutputFile
 from pbtk.utils.descpb_to_proto import descpb_to_proto
 
 """

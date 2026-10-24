@@ -4,7 +4,7 @@ from gi.repository import GObject, GLib
 from traceback import format_exc
 from threading import Thread
 
-from pbtk.gtk.datamodel.extractor import (
+from pbtk.datamodel.extractor import (
     Extractor,
     ExtractorInputs,
     ExtractorOutputs,
@@ -68,9 +68,7 @@ class ExtractorThread(Thread):
 
     def run(self):
         outputs = ExtractorOutputs()
-        for input_pos in range(self.inputs.inputs.get_n_items()):
-            input_item = self.inputs.inputs.get_item(input_pos)
-
+        for input_item in self.inputs.inputs:
             output_folder = ExtractorOutputFolder(
                 input_item.output_folder_name
             )

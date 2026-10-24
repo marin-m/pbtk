@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pbtk"
-version = "1.1.3"
+version = "1.2.0"
 authors = [
   {name = "Marin Moulinier"},
 ]
@@ -39,8 +39,7 @@ Issues = "https://github.com/marin-m/pbtk/issues"
 Changelog = "https://github.com/marin-m/pbtk/releases"
 
 [project.gui-scripts]
-# pbtk = "pbtk.ui.gui:main"
-pbtk-gtk = "pbtk.gtk.app:main"
+pbtk = "pbtk.ui.app:main"
 
 [project.scripts]
 pbtk-jar-extract = "pbtk.extractors.jar_extract:main"
@@ -59,8 +58,7 @@ where = ["src"]
 "pbtk.utils.external.dex2jar.lib" = ["*"]
 "pbtk.utils.external.jad" = ["*"]
 "pbtk.utils.external.protoc" = ["*"]
-"pbtk.gtk.assets" = ["*"]
-"pbtk.ui" = ["*"]
+"pbtk.ui.assets" = ["*"]
 
 [tool.ruff]
 line-length = 79

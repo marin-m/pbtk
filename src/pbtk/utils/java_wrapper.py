@@ -8,7 +8,7 @@ from zipfile import ZipFile
 from os.path import exists
 from typing import Dict
 
-from pbtk.gtk.datamodel.extractor import ExtractorOutputFile
+from pbtk.datamodel.extractor import ExtractorOutputFile
 from pbtk.extractors.from_binary import walk_binary
 from pbtk.utils.common import dex2jar, jad
 

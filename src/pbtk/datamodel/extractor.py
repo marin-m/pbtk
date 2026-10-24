@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 from collections.abc import Callable, Generator
-from gi.repository import GObject, Gio
-from typing import Optional
+from gi.repository import GObject
+from typing import Optional, List
 
 # Objects passed by GUI/CLI runtime to
 # extractor routine:
@@ -20,12 +20,12 @@ class ExtractorInputArgument(GObject.Object):
 
 
 class ExtractorInputs(GObject.Object):
-    inputs = GObject.Property(type=Gio.ListStore)  # of ExtractorInputArgument
+    inputs: List[ExtractorInputArgument]
 
     def __init__(self):
         super().__init__()
 
-        self.inputs = Gio.ListStore.new(ExtractorInputArgument)
+        self.inputs = []
 
 
 # Objects returned by extractor routines to GUI/CLI
@@ -82,22 +82,22 @@ class ExtractorProgress(ExtractorThreadMessage):
 
 class ExtractorOutputFolder(GObject.Object):
     name: str
-    files = GObject.Property(type=Gio.ListStore)  # of ExtractorOutputFile
+    files: List[ExtractorOutputFile]
 
     def __init__(self, name: str):
         super().__init__()
 
         self.name = name
-        self.files = Gio.ListStore.new(ExtractorOutputFile)
+        self.files = []
 
 
 class ExtractorOutputs(GObject.Object):
-    folders = GObject.Property(type=Gio.ListStore)  # of ExtractorOutputFolder
+    folders: List[ExtractorOutputFolder]
 
     def __init__(self):
         super().__init__()
 
-        self.folders = Gio.ListStore.new(ExtractorOutputFolder)
+        self.folders = []
 
 
 # Info contained in decorators when creating an extractor:

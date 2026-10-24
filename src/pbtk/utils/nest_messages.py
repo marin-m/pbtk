@@ -2,7 +2,7 @@
 from google.protobuf.descriptor_pb2 import FileDescriptorProto, DescriptorProto
 from collections import defaultdict, OrderedDict
 
-from pbtk.gtk.datamodel.extractor import ExtractorOutputFile
+from pbtk.datamodel.extractor import ExtractorOutputFile
 from pbtk.utils.descpb_to_proto import descpb_to_proto
 from collections.abc import Generator
 

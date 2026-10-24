@@ -27,8 +27,8 @@ function run {
 }
 
 APP_ID="re.fossplant.pbtk"
-METAINFO="src/pbtk/gtk/assets/${APP_ID}.metainfo.xml"
-DESKTOP="src/pbtk/gtk/assets/${APP_ID}.desktop"
+METAINFO="src/pbtk/ui/assets/${APP_ID}.metainfo.xml"
+DESKTOP="src/pbtk/ui/assets/${APP_ID}.desktop"
 
 git diff --cached --quiet "${METAINFO}"
 if [ "$?" -ne "0" ]; then

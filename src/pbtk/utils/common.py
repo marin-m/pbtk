@@ -1,24 +1,33 @@
 #!/usr/bin/env python3
-from pbtk.gtk.datamodel.extractor import Extractor
 from collections import OrderedDict, defaultdict
 from os.path import exists, dirname, realpath
 from google.protobuf.message import Message
 from importlib import import_module, reload
 from tempfile import TemporaryDirectory
 from inspect import getmembers, isclass
+from logging import debug, error, info
 from sys import platform, path as PATH
 from os import environ, makedirs, sep
+from collections.abc import Sequence
 from importlib.util import find_spec
 from argparse import ArgumentParser
 from urllib.parse import urlparse
 from platform import architecture
 from subprocess import run, PIPE
-from logging import debug, info
 from json import dump, load
 from re import findall, sub
 from pathlib import Path
 from shutil import which
 from typing import Dict
+
+from pbtk.datamodel.extractor import (
+    Extractor,
+    ExtractorThreadMessage,
+    ExtractorOutputFile,
+    ExtractorErrorMessage,
+    ExtractorInfoMessage,
+    ExtractorProgress,
+)
 
 # Constructing paths - local data
 
@@ -291,48 +300,61 @@ def iterate_proto_msg(module, base):
 # Routine for saving data returned by an extractor
 
 
-def extractor_save(base_path, folder, outputs):
+def extractor_save(
+    base_path: str, folder: str, outputs: Sequence[ExtractorThreadMessage]
+):
     nb_written = 0
     name_to_path = {}
     wrote_endpoints = False
 
-    for name, contents in outputs:
-        if '.proto' in name:
-            if folder:
-                path = base_path / 'protos' / folder / name
+    # ⚠️ TODO make the output prettier
+    for thread_msg in outputs:
+        if isinstance(thread_msg, ExtractorOutputFile):
+            if '.proto' in thread_msg.name:
+                if folder:
+                    path = base_path / 'protos' / folder / thread_msg.name
+                else:
+                    path = base_path / thread_msg.name
+
+                makedirs(str(path.parent), exist_ok=True)
+                with open(str(path), 'w') as fd:
+                    fd.write(thread_msg.contents)
+
+                if thread_msg.name not in name_to_path:
+                    nb_written += 1
+                name_to_path[thread_msg.name] = str(path)
+
+            elif thread_msg.name.endswith('.sample'):
+                endpoint = thread_msg.contents
+
+                name = thread_msg.name.replace('.sample', '.proto')
+                endpoint['proto_path'] = name_to_path[name]
+                endpoint['proto_msg'] = name.replace('.proto', '')
+
+                wrote_endpoints = True
+                if folder:
+                    insert_endpoint(
+                        base_path / 'endpoints', {'request': endpoint}
+                    )
+                else:
+                    insert_endpoint(base_path, {'request': endpoint})
+
             else:
-                path = base_path / name
+                raise ValueError
 
-            makedirs(str(path.parent), exist_ok=True)
-            with open(str(path), 'w') as fd:
-                fd.write(contents)
+        elif isinstance(thread_msg, ExtractorInfoMessage):
+            info('[i] %s' % thread_msg.info)
 
-            if name not in name_to_path:
-                nb_written += 1
-            name_to_path[name] = str(path)
+        elif isinstance(thread_msg, ExtractorErrorMessage):
+            error('[!] %s' % thread_msg.info)
 
-        elif name.endswith('.sample'):
-            endpoint = contents
-
-            name = name.replace('.sample', '.proto')
-            endpoint['proto_path'] = name_to_path[name]
-            endpoint['proto_msg'] = name.replace('.proto', '')
-
-            wrote_endpoints = True
-            if folder:
-                insert_endpoint(base_path / 'endpoints', {'request': endpoint})
+        elif isinstance(thread_msg, ExtractorProgress):
+            if thread_msg.progress is None:
+                debug('[i] %s' % thread_msg.info)
             else:
-                insert_endpoint(base_path, {'request': endpoint})
-
-        elif name == '_info':
-            info('[i] %s' % contents)
-
-        elif name == '_progress':
-            label, progress_or_none = contents
-            if progress_or_none is None:
-                debug('[i] %s' % label)
-            else:
-                debug('[i] %s (%s %%)' % (label, progress_or_none))
+                debug(
+                    '[i] %s (%s %%)' % (thread_msg.info, thread_msg.progress)
+                )
 
     return nb_written, wrote_endpoints
 
@@ -341,7 +363,7 @@ def extractor_save(base_path, folder, outputs):
 
 
 def extractor_main(extractor_name: str):
-    extractor = extractors[extractor_name]
+    extractor: Extractor = extractors[extractor_name]
 
     assert_installed(**(extractor.depends or {}))
 

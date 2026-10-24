@@ -6,10 +6,10 @@ from logging import debug, error
 import sys
 
 # Register resources
-import pbtk.gtk.gresource
+import pbtk.ui.gresource
 
-from pbtk.gtk.logging_central import LoggingCentral
-from pbtk.gtk.main_window import MainWindow
+from pbtk.ui.logging_central import LoggingCentral
+from pbtk.ui.main_window import MainWindow
 
 import gi
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env
-from pbtk.gtk.datamodel.extractor import (
+from pbtk.datamodel.extractor import (
     Extractor,
     ExtractorProgress,
     ExtractorErrorMessage,
@@ -8,8 +8,8 @@ from pbtk.gtk.datamodel.extractor import (
     ExtractorInputs,
     ExtractorInputArgument,
 )
-from pbtk.gtk.workers.extractor_thread import ExtractorWorker
-from pbtk.utils.common import assert_installed
+from pbtk.utils.common import extractor_save, assert_installed, BASE_PATH
+from pbtk.ui.workers.extractor_thread import ExtractorWorker
 from urllib.parse import urlparse
 
 from logging import debug, info, error
@@ -224,17 +224,19 @@ class ExtractorRow(Adw.ActionRow):
         )
 
     def on_finished(self, worker: ExtractorWorker, outputs: ExtractorOutputs):
-        # ⚠️ TODO either switch view or display a pop-up?
-
         num_files_out = 0
-        for num_folder in range(outputs.folders.get_n_items()):
-            folder_item = outputs.folders.get_item(num_folder)
+        any_endpoints = False
 
-            num_files_out += folder_item.files.get_n_items()
+        for folder_item in outputs.folders:
+            nb_written, wrote_endpoints = extractor_save(
+                BASE_PATH, folder_item.name, folder_item.files
+            )
 
-            for num_file in range(folder_item.files.get_n_items()):
-                file_item = folder_item.files.get_item(num_file)
+            num_files_out += nb_written
+            if wrote_endpoints:
+                any_endpoints = True
 
+            for file_item in folder_item.files:
                 info(
                     'Successfully extracted: %s',
                     join(folder_item.name, file_item.name),
@@ -256,9 +258,15 @@ class ExtractorRow(Adw.ActionRow):
         self.window.present()
         self.window.extracting_status_page.set_paintable(None)
         self.window.extracting_status_page.set_title('Extraction done')
-        self.window.extracting_status_page.set_description(
-            '%d .proto files have been extracted' % num_files_out
-        )
+        if any_endpoints:
+            self.window.extracting_status_page.set_description(
+                '%d .proto files and endpoints have been extracted'
+                % num_files_out
+            )
+        else:
+            self.window.extracting_status_page.set_description(
+                '%d .proto files have been extracted' % num_files_out
+            )
         self.window.extracting_progress_bar.set_fraction(1.0)
 
         self.window.extraction_next_steps.set_visible(True)

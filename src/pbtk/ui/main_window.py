@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from pbtk.gtk.templates.extractor_row import ExtractorRow
+from pbtk.ui.templates.extractor_row import ExtractorRow
 from pbtk.utils.common import extractors, BASE_PATH
-from pbtk.gtk.datamodel.extractor import Extractor
+from pbtk.datamodel.extractor import Extractor
 from pbtk.extractors import *
 
 from importlib.metadata import version

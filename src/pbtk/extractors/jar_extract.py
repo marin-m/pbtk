@@ -18,7 +18,7 @@ from ast import literal_eval
 from os.path import dirname, realpath
 
 __import__('sys').path.append(dirname(realpath(__file__)) + '/../..')
-from pbtk.gtk.datamodel.extractor import (
+from pbtk.datamodel.extractor import (
     ExtractorProgress,
     ExtractorThreadMessage,
 )
