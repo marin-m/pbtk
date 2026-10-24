@@ -218,10 +218,65 @@ pill</property>
             <property name="child">
               <object class="AdwToolbarView">
                 <property name="content">
-                  <object class="AdwPreferencesPage"></object>
+                  <object class="AdwPreferencesPage">
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <property name="title">Message selection</property>
+                        <child>
+                          <object class="AdwComboRow"></object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <property name="title">Endpoint URL selection</property>
+                        <child>
+                          <object class="AdwEntryRow"></object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <property name="title">Transport type selection</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <property name="description">One per line (in the form of hex strings)</property>
+                        <property name="title">Sample request data</property>
+                        <child>
+                          <object class="GtkScrolledWindow">
+                            <child>
+                              <object class="GtkTextView">
+                                <property name="buffer">
+                                  <object class="GtkTextBuffer"></object>
+                                </property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <property name="title">Parse request as Protobuf</property>
+                      </object>
+                    </child>
+                  </object>
                 </property>
                 <child type="top">
                   <object class="AdwHeaderBar"></object>
+                </child>
+                <child type="bottom">
+                  <object class="GtkActionBar">
+                    <child type="end">
+                      <object class="GtkButton">
+                        <property name="css-classes">pill
+suggested-action</property>
+                        <property name="label">Add endpoint</property>
+                      </object>
+                    </child>
+                  </object>
                 </child>
               </object>
             </property>

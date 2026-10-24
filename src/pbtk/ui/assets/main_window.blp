@@ -198,10 +198,54 @@ template $MainWindow: Adw.ApplicationWindow {
 
     Adw.NavigationPage endpoints_page {
       child: Adw.ToolbarView {
-        content: Adw.PreferencesPage {};
+        content: Adw.PreferencesPage {
+          Adw.PreferencesGroup {
+            title: "Message selection";
+
+            Adw.ComboRow {}
+          }
+
+          Adw.PreferencesGroup {
+            title: "Endpoint URL selection";
+
+            Adw.EntryRow {}
+          }
+
+          Adw.PreferencesGroup {
+            title: "Transport type selection";
+          }
+
+          Adw.PreferencesGroup {
+            description: "One per line (in the form of hex strings)";
+            title: "Sample request data";
+
+            ScrolledWindow {
+              TextView {
+                buffer: TextBuffer {};
+              }
+            }
+          }
+
+          Adw.PreferencesGroup {
+            title: "Parse request as Protobuf";
+          }
+        };
 
         [top]
         Adw.HeaderBar {}
+
+        [bottom]
+        ActionBar {
+          [end]
+          Button {
+            css-classes: [
+              "pill",
+              "suggested-action",
+            ];
+
+            label: "Add endpoint";
+          }
+        }
       };
 
       tag: "endpoints_page";
