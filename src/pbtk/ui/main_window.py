@@ -176,7 +176,7 @@ class MainWindow(Adw.ApplicationWindow):
                     )
 
                     self.endpoint_msg_section.set_description(
-                        'Choose a message loaded from "<a href="file://%s">%s</a>":'
+                        'Pick a message loaded from "<a href="file://%s">%s</a>":'
                         % (
                             GLib.markup_escape_text(open_result.get_path()),
                             GLib.markup_escape_text(open_result.get_path()),

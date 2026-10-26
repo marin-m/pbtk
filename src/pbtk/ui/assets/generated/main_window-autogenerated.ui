@@ -228,7 +228,7 @@ pill</property>
                   <object class="AdwPreferencesPage">
                     <child>
                       <object class="AdwPreferencesGroup" id="endpoint_msg_section">
-                        <property name="description">Choose a message loaded from "%s":</property>
+                        <property name="description">Pick a message loaded from "%s":</property>
                         <property name="focus-on-click">false</property>
                         <property name="title">Message selection</property>
                         <child>
@@ -237,10 +237,31 @@ pill</property>
                             <property name="expression">
                               <lookup name="string" type="GtkStringObject"></lookup>
                             </property>
+                            <property name="factory">
+                              <object class="GtkBuilderListItemFactory">
+                                <property name="bytes"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkLabel">
+        <property name="xalign">0</property>
+        <property name="ellipsize">3</property>
+        <binding name="label">
+          <lookup name="string" type="GtkStringObject">
+            <lookup name="item" type="GtkListItem">GtkListItem</lookup>
+          </lookup>
+        </binding>
+      </object>
+    </property>
+  </template>
+</interface>]]></property>
+                              </object>
+                            </property>
                             <property name="model">
                               <object class="GtkStringList" id="endpoint_msg_names"></object>
                             </property>
                             <property name="search-match-mode">1</property>
+                            <property name="title">Message:</property>
                           </object>
                         </child>
                       </object>
@@ -313,8 +334,20 @@ pill</property>
                         </child>
                         <child>
                           <object class="AdwActionRow" id="endpoint_resp_msg_file">
+                            <property name="activatable-widget">pick_resp_msg_file_button</property>
+                            <property name="subtitle">/file/to/original/path.proto</property>
                             <property name="title">Find the message to parse in:</property>
                             <property name="visible">false</property>
+                            <child type="suffix">
+                              <object class="GtkButton" id="pick_resp_msg_file_button">
+                                <property name="child">
+                                  <object class="AdwButtonContent">
+                                    <property name="icon-name">document-open-symbolic</property>
+                                    <property name="label">Select...</property>
+                                  </object>
+                                </property>
+                              </object>
+                            </child>
                           </object>
                         </child>
                         <child>
@@ -323,11 +356,31 @@ pill</property>
                             <property name="expression">
                               <lookup name="string" type="GtkStringObject"></lookup>
                             </property>
+                            <property name="factory">
+                              <object class="GtkBuilderListItemFactory">
+                                <property name="bytes"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkLabel">
+        <property name="xalign">0</property>
+        <property name="ellipsize">3</property>
+        <binding name="label">
+          <lookup name="string" type="GtkStringObject">
+            <lookup name="item" type="GtkListItem">GtkListItem</lookup>
+          </lookup>
+        </binding>
+      </object>
+    </property>
+  </template>
+</interface>]]></property>
+                              </object>
+                            </property>
                             <property name="model">
                               <object class="GtkStringList" id="endpoint_resp_msg_names"></object>
                             </property>
                             <property name="search-match-mode">1</property>
-                            <property name="subtitle">Please select a message to parse:</property>
+                            <property name="title">Please select a message to parse</property>
                             <property name="visible">false</property>
                           </object>
                         </child>

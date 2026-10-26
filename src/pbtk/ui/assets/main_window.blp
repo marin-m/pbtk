@@ -207,7 +207,7 @@ template $MainWindow: Adw.ApplicationWindow {
       child: Adw.ToolbarView {
         content: Adw.PreferencesPage {
           Adw.PreferencesGroup endpoint_msg_section {
-            description: "Choose a message loaded from \"%s\":";
+            description: "Pick a message loaded from \"%s\":";
             focus-on-click: false;
             title: "Message selection";
 
@@ -215,9 +215,20 @@ template $MainWindow: Adw.ApplicationWindow {
               enable-search: true;
               expression: expr item as <StringObject>.string;
 
+              factory: BuilderListItemFactory {
+                template ListItem {
+                  child: Label {
+                    xalign: 0;
+                    ellipsize: end;
+                    label: bind template.item as <StringObject>.string;
+                  };
+                }
+              };
+
               model: StringList endpoint_msg_names {};
 
               search-match-mode: substring;
+              title: "Message:";
             }
           }
 
@@ -275,18 +286,38 @@ template $MainWindow: Adw.ApplicationWindow {
             }
 
             Adw.ActionRow endpoint_resp_msg_file {
+              activatable-widget: pick_resp_msg_file_button;
+              subtitle: "/file/to/original/path.proto";
               title: "Find the message to parse in:";
               visible: false;
+
+              [suffix]
+              Button pick_resp_msg_file_button {
+                child: Adw.ButtonContent {
+                  icon-name: "document-open-symbolic";
+                  label: "Select...";
+                };
+              }
             }
 
             Adw.ComboRow endpoint_resp_msg_list {
               enable-search: true;
               expression: expr item as <StringObject>.string;
 
+              factory: BuilderListItemFactory {
+                template ListItem {
+                  child: Label {
+                    xalign: 0;
+                    ellipsize: end;
+                    label: bind template.item as <StringObject>.string;
+                  };
+                }
+              };
+
               model: StringList endpoint_resp_msg_names {};
 
               search-match-mode: substring;
-              subtitle: "Please select a message to parse:";
+              title: "Please select a message to parse";
               visible: false;
             }
           }
