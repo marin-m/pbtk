@@ -261,7 +261,11 @@ pill</property>
                         <property name="description">Please define how the Proto payload should be serialized into the requests:</property>
                         <property name="title">Transport type selection</property>
                         <child>
-                          <object class="AdwComboRow" id="transport_type_list"></object>
+                          <object class="AdwComboRow" id="transport_type_list">
+                            <property name="model">
+                              <object class="GListStore"></object>
+                            </property>
+                          </object>
                         </child>
                       </object>
                     </child>
@@ -301,7 +305,32 @@ pill</property>
                     </child>
                     <child>
                       <object class="AdwPreferencesGroup">
-                        <property name="title">Parse request as Protobuf</property>
+                        <property name="title">Parse response as Protobuf</property>
+                        <child>
+                          <object class="AdwSwitchRow" id="endpoint_parse_resp">
+                            <property name="title">Parse the HTTP(S) response as Protobuf</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwActionRow" id="endpoint_resp_msg_file">
+                            <property name="title">Find the message to parse in:</property>
+                            <property name="visible">false</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwComboRow" id="endpoint_resp_msg_list">
+                            <property name="enable-search">true</property>
+                            <property name="expression">
+                              <lookup name="string" type="GtkStringObject"></lookup>
+                            </property>
+                            <property name="model">
+                              <object class="GtkStringList" id="endpoint_resp_msg_names"></object>
+                            </property>
+                            <property name="search-match-mode">1</property>
+                            <property name="subtitle">Please select a message to parse:</property>
+                            <property name="visible">false</property>
+                          </object>
+                        </child>
                       </object>
                     </child>
                   </object>

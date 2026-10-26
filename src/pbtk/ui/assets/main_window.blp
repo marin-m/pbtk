@@ -1,5 +1,6 @@
 using Gtk 4.0;
 using Adw 1;
+using Gio 2.0;
 
 template $MainWindow: Adw.ApplicationWindow {
   content: Adw.NavigationView main_nav_view {
@@ -233,7 +234,9 @@ template $MainWindow: Adw.ApplicationWindow {
             description: "Please define how the Proto payload should be serialized into the requests:";
             title: "Transport type selection";
 
-            Adw.ComboRow transport_type_list {}
+            Adw.ComboRow transport_type_list {
+              model: Gio.ListStore {};
+            }
           }
 
           Adw.PreferencesGroup {
@@ -265,7 +268,27 @@ template $MainWindow: Adw.ApplicationWindow {
           }
 
           Adw.PreferencesGroup {
-            title: "Parse request as Protobuf";
+            title: "Parse response as Protobuf";
+
+            Adw.SwitchRow endpoint_parse_resp {
+              title: "Parse the HTTP(S) response as Protobuf";
+            }
+
+            Adw.ActionRow endpoint_resp_msg_file {
+              title: "Find the message to parse in:";
+              visible: false;
+            }
+
+            Adw.ComboRow endpoint_resp_msg_list {
+              enable-search: true;
+              expression: expr item as <StringObject>.string;
+
+              model: StringList endpoint_resp_msg_names {};
+
+              search-match-mode: substring;
+              subtitle: "Please select a message to parse:";
+              visible: false;
+            }
           }
         };
 
