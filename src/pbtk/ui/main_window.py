@@ -145,6 +145,14 @@ class MainWindow(Adw.ApplicationWindow):
 
         self.add_simple_action('show-about', show_about)
 
+        def pick_proto_file(*args):
+            raise NotImplementedError(
+                '⚠️ TODO: Implement a file picker that would then lead to'
+                + 'load the "endpoints_page" page here'
+            )
+
+        self.add_simple_action('pick-proto-file', pick_proto_file)
+
         def open_proto_dir(*args):
             proto_dir = Gio.File.new_for_path(self.global_extraction_dir)
             Gtk.FileLauncher.new(proto_dir).launch(self, None, None)

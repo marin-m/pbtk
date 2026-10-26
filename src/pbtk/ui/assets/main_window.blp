@@ -1,5 +1,6 @@
 using Gtk 4.0;
 using Adw 1;
+using Gio 2.0;
 
 template $MainWindow: Adw.ApplicationWindow {
   content: Adw.NavigationView main_nav_view {
@@ -28,8 +29,7 @@ template $MainWindow: Adw.ApplicationWindow {
             }
 
             Adw.ActionRow {
-              action-name: "navigation.push";
-              action-target: "\"endpoints_page\"";
+              action-name: "win.pick-proto-file";
               activatable: true;
               title: "Step 2: Link .protos to endpoints";
 
@@ -93,8 +93,15 @@ template $MainWindow: Adw.ApplicationWindow {
 
           Button {
             action-name: "navigation.push";
-            action-target: "'extracting_page'";
+            action-target: "\"extracting_page\"";
             label: "(Debug: go to extracted view)";
+            visible: false;
+          }
+
+          Button {
+            action-name: "navigation.push";
+            action-target: "\"endpoints_page\"";
+            label: "(Debug: go to endpoint creation)";
             visible: false;
           }
         }
@@ -202,7 +209,9 @@ template $MainWindow: Adw.ApplicationWindow {
           Adw.PreferencesGroup {
             title: "Message selection";
 
-            Adw.ComboRow {}
+            Adw.ComboRow endpoint_msg_list {
+              model: Gio.ListStore endpoint_msg_store {};
+            }
           }
 
           Adw.PreferencesGroup {

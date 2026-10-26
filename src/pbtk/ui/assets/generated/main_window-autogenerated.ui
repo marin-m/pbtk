@@ -35,8 +35,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                         </child>
                         <child>
                           <object class="AdwActionRow">
-                            <property name="action-name">navigation.push</property>
-                            <property name="action-target">"endpoints_page"</property>
+                            <property name="action-name">win.pick-proto-file</property>
                             <property name="activatable">true</property>
                             <property name="title">Step 2: Link .protos to endpoints</property>
                             <child type="suffix">
@@ -102,8 +101,16 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                     <child>
                       <object class="GtkButton">
                         <property name="action-name">navigation.push</property>
-                        <property name="action-target">'extracting_page'</property>
+                        <property name="action-target">"extracting_page"</property>
                         <property name="label">(Debug: go to extracted view)</property>
+                        <property name="visible">false</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="action-name">navigation.push</property>
+                        <property name="action-target">"endpoints_page"</property>
+                        <property name="label">(Debug: go to endpoint creation)</property>
                         <property name="visible">false</property>
                       </object>
                     </child>
@@ -223,7 +230,11 @@ pill</property>
                       <object class="AdwPreferencesGroup">
                         <property name="title">Message selection</property>
                         <child>
-                          <object class="AdwComboRow"></object>
+                          <object class="AdwComboRow" id="endpoint_msg_list">
+                            <property name="model">
+                              <object class="GListStore" id="endpoint_msg_store"></object>
+                            </property>
+                          </object>
                         </child>
                       </object>
                     </child>
