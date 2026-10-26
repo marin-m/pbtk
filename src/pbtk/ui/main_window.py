@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
+from pbtk.utils.common import extractors, load_proto_msgs, BASE_PATH
 from pbtk.ui.templates.extractor_row import ExtractorRow
-from pbtk.utils.common import extractors, BASE_PATH
 from pbtk.datamodel.extractor import Extractor
 from pbtk.extractors import *
 
@@ -45,6 +45,9 @@ class MainWindow(Adw.ApplicationWindow):
     extraction_next_steps: Gtk.Box = Gtk.Template.Child()
     extraction_text_view: Gtk.TextView = Gtk.Template.Child()
     extraction_text_buffer: Gtk.TextBuffer = Gtk.Template.Child()
+
+    endpoint_msg_section: Adw.PreferencesGroup = Gtk.Template.Child()
+    endpoint_msg_names: Gtk.StringList = Gtk.Template.Child()
 
     global_extraction_dir = GObject.Property(type=str)
 
@@ -161,14 +164,24 @@ class MainWindow(Adw.ApplicationWindow):
                     dialog.set_close_response('ok')
                     dialog.choose(self, None, None)
                 else:
-                    self.main_nav_view.push_by_tag('endpoints_page')
+                    msg_names = [
+                        item.name
+                        for item in load_proto_msgs(open_result.get_path())
+                    ]
 
-                    raise NotImplementedError(
-                        (
-                            '⚠️ TODO: Parse Protobuf file (loaded "%s" - %d bytes)'
-                        )
-                        % (open_result.get_path(), len(data))
+                    self.endpoint_msg_names.splice(
+                        0, self.endpoint_msg_names.get_n_items(), msg_names
                     )
+
+                    self.endpoint_msg_section.set_description(
+                        'Choose a message loaded from "<a href="file://%s">%s</a>":'
+                        % (
+                            GLib.markup_escape_text(open_result.get_path()),
+                            GLib.markup_escape_text(open_result.get_path()),
+                        )
+                    )
+
+                    self.main_nav_view.push_by_tag('endpoints_page')
 
             def file_picked(file_dialog: Gtk.FileDialog, task: Gio.Task):
                 try:

@@ -227,12 +227,15 @@ pill</property>
                 <property name="content">
                   <object class="AdwPreferencesPage">
                     <child>
-                      <object class="AdwPreferencesGroup">
+                      <object class="AdwPreferencesGroup" id="endpoint_msg_section">
+                        <property name="description">Choose a message loaded from "%s":</property>
+                        <property name="focus-on-click">false</property>
                         <property name="title">Message selection</property>
                         <child>
                           <object class="AdwComboRow" id="endpoint_msg_list">
+                            <property name="enable-search">true</property>
                             <property name="model">
-                              <object class="GListStore" id="endpoint_msg_store"></object>
+                              <object class="GtkStringList" id="endpoint_msg_names"></object>
                             </property>
                           </object>
                         </child>
@@ -240,14 +243,18 @@ pill</property>
                     </child>
                     <child>
                       <object class="AdwPreferencesGroup">
+                        <property name="description">Please type a HTTP(S) URL receiving a message generated using the Proto file definition you provided as a parameter:</property>
                         <property name="title">Endpoint URL selection</property>
                         <child>
-                          <object class="AdwEntryRow"></object>
+                          <object class="AdwEntryRow">
+                            <property name="input-purpose">5</property>
+                          </object>
                         </child>
                       </object>
                     </child>
                     <child>
                       <object class="AdwPreferencesGroup">
+                        <property name="description">Please define how the Proto payload should be serialized into the requests:</property>
                         <property name="title">Transport type selection</property>
                       </object>
                     </child>

@@ -1,6 +1,5 @@
 using Gtk 4.0;
 using Adw 1;
-using Gio 2.0;
 
 template $MainWindow: Adw.ApplicationWindow {
   content: Adw.NavigationView main_nav_view {
@@ -206,21 +205,29 @@ template $MainWindow: Adw.ApplicationWindow {
     Adw.NavigationPage endpoints_page {
       child: Adw.ToolbarView {
         content: Adw.PreferencesPage {
-          Adw.PreferencesGroup {
+          Adw.PreferencesGroup endpoint_msg_section {
+            description: "Choose a message loaded from \"%s\":";
+            focus-on-click: false;
             title: "Message selection";
 
             Adw.ComboRow endpoint_msg_list {
-              model: Gio.ListStore endpoint_msg_store {};
+              enable-search: true;
+
+              model: StringList endpoint_msg_names {};
             }
           }
 
           Adw.PreferencesGroup {
+            description: "Please type a HTTP(S) URL receiving a message generated using the Proto file definition you provided as a parameter:";
             title: "Endpoint URL selection";
 
-            Adw.EntryRow {}
+            Adw.EntryRow {
+              input-purpose: url;
+            }
           }
 
           Adw.PreferencesGroup {
+            description: "Please define how the Proto payload should be serialized into the requests:";
             title: "Transport type selection";
           }
 

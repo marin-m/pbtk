@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from collections import OrderedDict, defaultdict
+from collections.abc import Sequence, Iterable
 from os.path import exists, dirname, realpath
 from google.protobuf.message import Message
 from importlib import import_module, reload
@@ -8,7 +9,6 @@ from inspect import getmembers, isclass
 from logging import debug, error, info
 from sys import platform, path as PATH
 from os import environ, makedirs, sep
-from collections.abc import Sequence
 from importlib.util import find_spec
 from argparse import ArgumentParser
 from urllib.parse import urlparse
@@ -207,7 +207,27 @@ def insert_endpoint(base_path, obj):
 # Turn a .proto input into Python classes.
 
 
-def load_proto_msgs(proto_path, ret_source_info=False):
+class ProtoMessageDeclaration:
+    name: str
+    definition: Message
+
+    def __init__(self, name, definition):
+        self.name = name
+        self.definition = definition
+
+
+class ProtoFileDescription:
+    definition: 'FileDescriptorSet'
+    file_path: str
+
+    def __init__(self, definition, file_path):
+        self.definition = definition
+        self.file_path = file_path
+
+
+def load_proto_msgs(
+    proto_path, ret_source_info=False
+) -> Iterable[ProtoMessageDeclaration | ProtoFileDescription]:
     # List imports that we need to specify to protoc for the necessary *_pb2.py to be generated
 
     proto_dir = Path(proto_path).parent
@@ -258,10 +278,9 @@ def load_proto_msgs(proto_path, ret_source_info=False):
 
         if ret_source_info:
             from google.protobuf.descriptor_pb2 import FileDescriptorSet
-            from pbtk.gtk.datamodel.extractor import ExtractorOutputFile
 
             with open(str(Path(arg_python_out) / 'desc_info'), 'rb') as fd:
-                yield ExtractorOutputFile(
+                yield ProtoFileDescription(
                     FileDescriptorSet.FromString(fd.read()), arg_proto_path
                 )
                 return
@@ -289,11 +308,9 @@ def load_proto_msgs(proto_path, ret_source_info=False):
 
 
 def iterate_proto_msg(module, base):
-    from pbtk.gtk.datamodel.extractor import ExtractorOutputFile
-
     for name, cls in getmembers(module):
         if isclass(cls) and issubclass(cls, Message):
-            yield ExtractorOutputFile(base + name, cls)
+            yield ProtoMessageDeclaration(base + name, cls)
             yield from iterate_proto_msg(cls, base + name + '.')
 
 
