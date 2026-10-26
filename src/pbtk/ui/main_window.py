@@ -49,6 +49,8 @@ class MainWindow(Adw.ApplicationWindow):
     endpoint_msg_section: Adw.PreferencesGroup = Gtk.Template.Child()
     endpoint_msg_names: Gtk.StringList = Gtk.Template.Child()
 
+    transport_type_list: Adw.ComboRow = Gtk.Template.Child()
+
     global_extraction_dir = GObject.Property(type=str)
 
     def __init__(self, app):

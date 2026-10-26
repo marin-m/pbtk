@@ -232,16 +232,35 @@ template $MainWindow: Adw.ApplicationWindow {
           Adw.PreferencesGroup {
             description: "Please define how the Proto payload should be serialized into the requests:";
             title: "Transport type selection";
+
+            Adw.ComboRow transport_type_list {}
           }
 
           Adw.PreferencesGroup {
-            description: "One per line (in the form of hex strings)";
+            description: "Please type one sample of data per line (in the form of %s)";
+            separate-rows: true;
             title: "Sample request data";
 
-            ScrolledWindow {
-              TextView {
-                buffer: TextBuffer {};
+            Adw.PreferencesRow {
+              ScrolledWindow {
+                min-content-height: 140;
+
+                TextView {
+                  bottom-margin: 15;
+
+                  buffer: TextBuffer {};
+
+                  left-margin: 15;
+                  monospace: true;
+                  right-margin: 15;
+                  top-margin: 15;
+                }
               }
+            }
+
+            Adw.EntryRow {
+              text: "pb";
+              title: "Please specify the key of parameter containing Protobuf data in request:";
             }
           }
 

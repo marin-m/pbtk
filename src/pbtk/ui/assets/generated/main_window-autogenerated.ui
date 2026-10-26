@@ -260,21 +260,41 @@ pill</property>
                       <object class="AdwPreferencesGroup">
                         <property name="description">Please define how the Proto payload should be serialized into the requests:</property>
                         <property name="title">Transport type selection</property>
+                        <child>
+                          <object class="AdwComboRow" id="transport_type_list"></object>
+                        </child>
                       </object>
                     </child>
                     <child>
                       <object class="AdwPreferencesGroup">
-                        <property name="description">One per line (in the form of hex strings)</property>
+                        <property name="description">Please type one sample of data per line (in the form of %s)</property>
+                        <property name="separate-rows">true</property>
                         <property name="title">Sample request data</property>
                         <child>
-                          <object class="GtkScrolledWindow">
+                          <object class="AdwPreferencesRow">
                             <child>
-                              <object class="GtkTextView">
-                                <property name="buffer">
-                                  <object class="GtkTextBuffer"></object>
-                                </property>
+                              <object class="GtkScrolledWindow">
+                                <property name="min-content-height">140</property>
+                                <child>
+                                  <object class="GtkTextView">
+                                    <property name="bottom-margin">15</property>
+                                    <property name="buffer">
+                                      <object class="GtkTextBuffer"></object>
+                                    </property>
+                                    <property name="left-margin">15</property>
+                                    <property name="monospace">true</property>
+                                    <property name="right-margin">15</property>
+                                    <property name="top-margin">15</property>
+                                  </object>
+                                </child>
                               </object>
                             </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwEntryRow">
+                            <property name="text">pb</property>
+                            <property name="title">Please specify the key of parameter containing Protobuf data in request:</property>
                           </object>
                         </child>
                       </object>
