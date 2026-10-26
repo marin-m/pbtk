@@ -212,8 +212,11 @@ template $MainWindow: Adw.ApplicationWindow {
 
             Adw.ComboRow endpoint_msg_list {
               enable-search: true;
+              expression: expr item as <StringObject>.string;
 
               model: StringList endpoint_msg_names {};
+
+              search-match-mode: substring;
             }
           }
 

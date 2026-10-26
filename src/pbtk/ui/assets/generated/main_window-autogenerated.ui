@@ -234,9 +234,13 @@ pill</property>
                         <child>
                           <object class="AdwComboRow" id="endpoint_msg_list">
                             <property name="enable-search">true</property>
+                            <property name="expression">
+                              <lookup name="string" type="GtkStringObject"></lookup>
+                            </property>
                             <property name="model">
                               <object class="GtkStringList" id="endpoint_msg_names"></object>
                             </property>
+                            <property name="search-match-mode">1</property>
                           </object>
                         </child>
                       </object>
