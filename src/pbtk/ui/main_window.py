@@ -146,10 +146,59 @@ class MainWindow(Adw.ApplicationWindow):
         self.add_simple_action('show-about', show_about)
 
         def pick_proto_file(*args):
-            raise NotImplementedError(
-                '⚠️ TODO: Implement a file picker that would then lead to'
-                + 'load the "endpoints_page" page here'
+
+            def load_bytes_cb(open_result, result):
+                try:
+                    data: bytes = open_result.load_bytes_finish(result)[
+                        0
+                    ].get_data()
+                except GLib.GError as err:
+                    dialog = Adw.AlertDialog.new(
+                        'Could not read file', err.message
+                    )
+                    dialog.add_response('ok', 'Ok')
+                    dialog.set_default_response('ok')
+                    dialog.set_close_response('ok')
+                    dialog.choose(self, None, None)
+                else:
+                    self.main_nav_view.push_by_tag('endpoints_page')
+
+                    raise NotImplementedError(
+                        (
+                            '⚠️ TODO: Parse Protobuf file (loaded "%s" - %d bytes)'
+                        )
+                        % (open_result.get_path(), len(data))
+                    )
+
+            def file_picked(file_dialog: Gtk.FileDialog, task: Gio.Task):
+                try:
+                    open_result: Gio.File = file_dialog.open_finish(task)
+
+                except GLib.GError as err:
+                    if err.message != 'Dismissed by user':
+                        dialog = Adw.AlertDialog.new(
+                            'Could not open file', err.message
+                        )
+                        dialog.add_response('ok', 'Ok')
+                        dialog.set_default_response('ok')
+                        dialog.set_close_response('ok')
+                        dialog.choose(self, None, None)
+                else:
+                    open_result.load_bytes_async(None, load_bytes_cb)
+
+            proto_filter = Gtk.FileFilter.new()
+            proto_filter.set_name('Protobuf definition (*.proto)')
+            proto_filter.add_suffix('proto')
+
+            filters = Gio.ListStore.new(Gtk.FileFilter)
+            filters.append(proto_filter)
+
+            file_picker = Gtk.FileDialog()
+            file_picker.set_initial_folder(
+                Gio.File.new_for_path(self.global_extraction_dir)
             )
+            file_picker.set_filters(filters)
+            file_picker.open(self, callback=file_picked)
 
         self.add_simple_action('pick-proto-file', pick_proto_file)
 
