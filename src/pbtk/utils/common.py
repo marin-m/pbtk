@@ -20,7 +20,7 @@ from pathlib import Path
 from shutil import which
 from typing import Dict
 
-from pbtk.datamodel.transport import Transport
+from pbtk.datamodel.transport import Transport, TransportDefinition
 from pbtk.datamodel.extractor import (
     Extractor,
     ExtractorThreadMessage,
@@ -104,11 +104,11 @@ def register_extractor(
     return register_extractor_decorate
 
 
-transports: dict[str, Transport] = OrderedDict()
+transports: dict[str, TransportDefinition] = OrderedDict()
 
 
 def register_transport(cls: Transport):
-    transports[cls.name] = cls
+    transports[cls.name] = TransportDefinition(cls)
     return cls
 
 

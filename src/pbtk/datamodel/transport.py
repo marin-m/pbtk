@@ -2,6 +2,7 @@
 
 from google.protobuf.message import Message
 from abc import ABC, abstractmethod
+from gi.repository import GObject
 
 # ⚠️ SEE https://docs.python.org/fr/3/library/abc.html#abc.abstractproperty
 # to replace decorator arguments
@@ -65,3 +66,19 @@ class Transport(ABC):
         object, and optionally other transport-specific side data.
         """
         ...
+
+
+"""
+    Used to list transport types in the GUI
+"""
+
+
+class TransportDefinition(GObject.Object):
+    description = GObject.Property(type=str)
+    transport_class: Transport
+
+    def __init__(self, transport_class):
+        super().__init__()
+
+        self.description = transport_class.description
+        self.transport_class = transport_class
