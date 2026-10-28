@@ -152,6 +152,7 @@ class MainWindow(Adw.ApplicationWindow):
 
         def pick_proto_file(*args):
 
+
             def load_bytes_cb(open_result, result):
                 try:
                     data: bytes = open_result.load_bytes_finish(result)[
@@ -182,6 +183,13 @@ class MainWindow(Adw.ApplicationWindow):
                             GLib.markup_escape_text(open_result.get_path()),
                         )
                     )
+
+                    # ⚠️ ⚠️ TODO:
+                    # We should warn "There is no message defined in this .proto."
+                    # to the user here instead of loading the view when adequate.
+
+                    # (... also, develop the rest of the interactivity for the
+                    #  "Step 2" panel, etc.)
 
                     self.main_nav_view.push_by_tag('endpoints_page')
 

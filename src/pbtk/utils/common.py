@@ -105,6 +105,9 @@ def register_extractor(
 
 transports = OrderedDict()
 
+# ⚠️ WIP 2026-10-18: ^ 🪧
+# MAKE THIS A FILL OBJECT JUST LIKE "EXTRACTORS"
+
 """
 def register_transport(name, # Used to refer to in JSON data files
                        description, # Used to describe protocol in GUI

@@ -268,7 +268,7 @@ pill</property>
                     </child>
                     <child>
                       <object class="AdwPreferencesGroup">
-                        <property name="description">Please type a HTTP(S) URL receiving a message generated using the Proto file definition you provided as a parameter:</property>
+                        <property name="description">Please type a HTTP(S) URL that will receive, as a parameter, a message generated using the Proto file definition you provided:</property>
                         <property name="title">Endpoint URL selection</property>
                         <child>
                           <object class="AdwEntryRow">
