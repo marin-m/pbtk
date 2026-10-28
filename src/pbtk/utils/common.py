@@ -20,6 +20,7 @@ from pathlib import Path
 from shutil import which
 from typing import Dict
 
+from pbtk.datamodel.transport import Transport
 from pbtk.datamodel.extractor import (
     Extractor,
     ExtractorThreadMessage,
@@ -103,26 +104,12 @@ def register_extractor(
     return register_extractor_decorate
 
 
-transports = OrderedDict()
-
-# ⚠️ WIP 2026-10-18: ^ 🪧
-# MAKE THIS A FILL OBJECT JUST LIKE "EXTRACTORS"
-
-"""
-def register_transport(name, # Used to refer to in JSON data files
-                       description, # Used to describe protocol in GUI
-                       ui_tab = None, # Used to name the protocol data tab in fuzzer GUI (if any)
-                       ui_data_form = None, # Used to describe the nature of protocol data
-                       enforce_int_parameter = False): # Whether keys in protocol data are integer
-"""
+transports: dict[str, Transport] = OrderedDict()
 
 
-def register_transport(**kwargs):
-    def register_transport_decorate(func):
-        transports[kwargs['name']] = {'func': func, **kwargs}
-        return func
-
-    return register_transport_decorate
+def register_transport(cls: Transport):
+    transports[cls.name] = cls
+    return cls
 
 
 # General utility functions

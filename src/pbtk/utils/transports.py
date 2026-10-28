@@ -9,6 +9,7 @@ from json import loads
 
 from pbtk.utils.pburl_decoder import proto_url_encode, proto_url_decode
 from pbtk.utils.common import register_transport
+from pbtk.datamodel.transport import Transport
 
 USER_AGENT = {
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36'
@@ -18,13 +19,13 @@ USER_AGENT = {
 #    ABSTRACT PROPERTIES?
 
 
-@register_transport(
-    name='raw_post',
-    description='Protobuf as raw POST data',
-    ui_tab='Headers',
-    ui_data_form='hex strings',
-)
-class RawPOST:
+@register_transport
+class RawPOST(Transport):
+    name = 'raw_post'
+    description = 'Protobuf as raw POST data'
+    ui_tab = 'Headers'
+    ui_data_form = 'hex strings'
+
     def __init__(self, pb_param, url):
         self.url = url
 
@@ -48,13 +49,13 @@ def my_quote(x):
     return quote_plus(str(x), safe='~()*!.')
 
 
-@register_transport(
-    name='base64_get',
-    description='Protobuf as Base64url GET component (use "{param_name}" for templating)',
-    ui_tab='GET',
-    ui_data_form='regular GET query strings',
-)
-class Base64GET:
+@register_transport
+class Base64GET(Transport):
+    name = 'base64_get'
+    description = 'Protobuf as Base64url GET component (use "{param_name}" for templating)'
+    ui_tab = 'GET'
+    ui_data_form = 'regular GET query strings'
+
     def __init__(self, pb_param, url):
         self.pb_param = pb_param
         self.url = url.split('?')[0]
@@ -88,13 +89,13 @@ class Base64GET:
         return get(url, headers=USER_AGENT)
 
 
-@register_transport(
-    name='pburl_private',
-    description='Protobuf-URL, Google Maps private API style ("!"-separated)',
-    ui_tab='GET',
-    ui_data_form='regular GET query strings',
-)
-class GMapsAPIPrivate:
+@register_transport
+class GMapsAPIPrivate(Transport):
+    name = 'pburl_private'
+    description = 'Protobuf-URL, Google Maps private API style ("!"-separated)'
+    ui_tab = 'GET'
+    ui_data_form = 'regular GET query strings'
+
     def __init__(self, pb_param, url):
         self.pb_param = pb_param
         self.url = url.split('?')[0]
@@ -131,13 +132,13 @@ class GMapsAPIPrivate:
         return get(url, headers=USER_AGENT)
 
 
-@register_transport(
-    name='pburl_public',
-    description='Protobuf-URL, Google Maps public API style ("&"-separated)',
-    ui_tab='GET',
-    ui_data_form='GET query strings copied as-is',
-)
-class GMapsAPIPublic:
+@register_transport
+class GMapsAPIPublic(Transport):
+    name = 'pburl_public'
+    description = 'Protobuf-URL, Google Maps public API style ("&"-separated)'
+    ui_tab = 'GET'
+    ui_data_form = 'GET query strings copied as-is'
+
     def __init__(self, pb_param, url):
         self.url = url.split('?')[0]
 

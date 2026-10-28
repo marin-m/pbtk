@@ -363,7 +363,7 @@ class PBTKGUI(QApplication):
             sample_data = list(filter(None, sample_data.split('\n')))
             if sample_data:
                 transport_obj = transports[transport.data(Qt.UserRole)[0]]
-                transport_obj = transport_obj['func'](pb_param, url)
+                transport_obj = transport_obj(pb_param, url)
 
                 for sample_id, sample in enumerate(sample_data):
                     try:
