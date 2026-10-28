@@ -206,10 +206,20 @@ template $MainWindow: Adw.ApplicationWindow {
     Adw.NavigationPage endpoints_page {
       child: Adw.ToolbarView {
         content: Adw.PreferencesPage {
+          Adw.PreferencesGroup {
+            description: "Please type a HTTP(S) URL that will receive, as a parameter, a message generated using the Proto file definition you provided:";
+            title: "Endpoint URL selection";
+
+            Adw.EntryRow {
+              input-purpose: url;
+              title: "URL";
+            }
+          }
+
           Adw.PreferencesGroup endpoint_msg_section {
             description: "Pick a message loaded from \"%s\":";
             focus-on-click: false;
-            title: "Message selection";
+            title: "Request - Message selection";
 
             Adw.ComboRow endpoint_msg_list {
               enable-search: true;
@@ -233,18 +243,8 @@ template $MainWindow: Adw.ApplicationWindow {
           }
 
           Adw.PreferencesGroup {
-            description: "Please type a HTTP(S) URL that will receive, as a parameter, a message generated using the Proto file definition you provided:";
-            title: "Endpoint URL selection";
-
-            Adw.EntryRow {
-              input-purpose: url;
-              title: "URL";
-            }
-          }
-
-          Adw.PreferencesGroup {
             description: "Please define how the Proto payload should be serialized into the requests:";
-            title: "Transport type selection";
+            title: "Request - Transport type selection";
 
             Adw.ComboRow transport_type_list {
               expression: expr item as <$TransportDefinition>.description;
@@ -270,7 +270,7 @@ template $MainWindow: Adw.ApplicationWindow {
           Adw.PreferencesGroup {
             description: "Please type one sample of data per line (in the form of %s)";
             separate-rows: true;
-            title: "Sample request data";
+            title: "Request - Sample data";
 
             Adw.PreferencesRow {
               ScrolledWindow {
@@ -296,7 +296,7 @@ template $MainWindow: Adw.ApplicationWindow {
           }
 
           Adw.PreferencesGroup {
-            title: "Parse response as Protobuf";
+            title: "Response - Parse as Protobuf";
 
             Adw.SwitchRow endpoint_parse_resp {
               title: "Parse the HTTP(S) response as Protobuf";

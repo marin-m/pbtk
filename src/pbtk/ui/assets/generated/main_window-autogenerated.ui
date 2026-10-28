@@ -227,10 +227,22 @@ pill</property>
                 <property name="content">
                   <object class="AdwPreferencesPage">
                     <child>
+                      <object class="AdwPreferencesGroup">
+                        <property name="description">Please type a HTTP(S) URL that will receive, as a parameter, a message generated using the Proto file definition you provided:</property>
+                        <property name="title">Endpoint URL selection</property>
+                        <child>
+                          <object class="AdwEntryRow">
+                            <property name="input-purpose">5</property>
+                            <property name="title">URL</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
                       <object class="AdwPreferencesGroup" id="endpoint_msg_section">
                         <property name="description">Pick a message loaded from "%s":</property>
                         <property name="focus-on-click">false</property>
-                        <property name="title">Message selection</property>
+                        <property name="title">Request - Message selection</property>
                         <child>
                           <object class="AdwComboRow" id="endpoint_msg_list">
                             <property name="enable-search">true</property>
@@ -268,20 +280,8 @@ pill</property>
                     </child>
                     <child>
                       <object class="AdwPreferencesGroup">
-                        <property name="description">Please type a HTTP(S) URL that will receive, as a parameter, a message generated using the Proto file definition you provided:</property>
-                        <property name="title">Endpoint URL selection</property>
-                        <child>
-                          <object class="AdwEntryRow">
-                            <property name="input-purpose">5</property>
-                            <property name="title">URL</property>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="AdwPreferencesGroup">
                         <property name="description">Please define how the Proto payload should be serialized into the requests:</property>
-                        <property name="title">Transport type selection</property>
+                        <property name="title">Request - Transport type selection</property>
                         <child>
                           <object class="AdwComboRow" id="transport_type_list">
                             <property name="expression">
@@ -321,7 +321,7 @@ pill</property>
                       <object class="AdwPreferencesGroup">
                         <property name="description">Please type one sample of data per line (in the form of %s)</property>
                         <property name="separate-rows">true</property>
-                        <property name="title">Sample request data</property>
+                        <property name="title">Request - Sample data</property>
                         <child>
                           <object class="AdwPreferencesRow">
                             <child>
@@ -353,7 +353,7 @@ pill</property>
                     </child>
                     <child>
                       <object class="AdwPreferencesGroup">
-                        <property name="title">Parse response as Protobuf</property>
+                        <property name="title">Response - Parse as Protobuf</property>
                         <child>
                           <object class="AdwSwitchRow" id="endpoint_parse_resp">
                             <property name="title">Parse the HTTP(S) response as Protobuf</property>
