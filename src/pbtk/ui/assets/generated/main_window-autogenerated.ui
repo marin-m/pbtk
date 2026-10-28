@@ -432,7 +432,7 @@ suggested-action</property>
               </object>
             </property>
             <property name="tag">endpoints_page</property>
-            <property name="title">Endpoint selection</property>
+            <property name="title">Define a new HTTPS endpoint</property>
           </object>
         </child>
       </object>
