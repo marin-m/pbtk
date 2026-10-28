@@ -74,6 +74,8 @@ class Transport(ABC):
 
 
 class TransportDefinition(GObject.Object):
+    __gtype_name__ = 'TransportDefinition'
+
     description = GObject.Property(type=str)
     transport_class: Transport
 

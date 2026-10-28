@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 
-from pbtk.utils.common import extractors, load_proto_msgs, BASE_PATH
+from pbtk.utils.common import (
+    extractors,
+    transports,
+    load_proto_msgs,
+    BASE_PATH,
+)
 from pbtk.ui.templates.extractor_row import ExtractorRow
 from pbtk.datamodel.extractor import Extractor
 from pbtk.extractors import *
@@ -50,6 +55,7 @@ class MainWindow(Adw.ApplicationWindow):
     endpoint_msg_names: Gtk.StringList = Gtk.Template.Child()
 
     transport_type_list: Adw.ComboRow = Gtk.Template.Child()
+    transport_type_objs: Gio.ListStore = Gtk.Template.Child()
 
     global_extraction_dir = GObject.Property(type=str)
 
@@ -117,8 +123,8 @@ class MainWindow(Adw.ApplicationWindow):
             self.extractor_objs, ExtractorRow, self
         )
 
-        # 🪧➡️ WIP ⚠️: BIND EXTRACTORS LIST TO UI PANEL #1
-        # Cf. https://lazka.github.io/pgi-docs/Adw-1/classes/PreferencesGroup.html#Adw.PreferencesGroup.bind_model
+        for transport in transports.values():
+            self.transport_type_objs.append(transport)
 
     def connect_actions(self):
 
@@ -154,7 +160,7 @@ class MainWindow(Adw.ApplicationWindow):
 
             def load_bytes_cb(open_result, result):
                 try:
-                    data: bytes = open_result.load_bytes_finish(result)[
+                    _data: bytes = open_result.load_bytes_finish(result)[
                         0
                     ].get_data()
                 except GLib.GError as err:

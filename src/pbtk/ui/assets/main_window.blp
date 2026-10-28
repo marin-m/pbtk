@@ -238,6 +238,7 @@ template $MainWindow: Adw.ApplicationWindow {
 
             Adw.EntryRow {
               input-purpose: url;
+              title: "URL";
             }
           }
 
@@ -246,7 +247,23 @@ template $MainWindow: Adw.ApplicationWindow {
             title: "Transport type selection";
 
             Adw.ComboRow transport_type_list {
-              model: Gio.ListStore {};
+              expression: expr item as <$TransportDefinition>.description;
+
+              factory: BuilderListItemFactory {
+                template ListItem {
+                  child: Label {
+                    xalign: 0;
+                    ellipsize: end;
+                    label: bind template.item as <$TransportDefinition>.description;
+                  };
+                }
+              };
+
+              model: Gio.ListStore transport_type_objs {
+                item-type: typeof<$TransportDefinition>;
+              };
+
+              title: "Type:";
             }
           }
 

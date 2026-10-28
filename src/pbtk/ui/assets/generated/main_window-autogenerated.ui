@@ -273,6 +273,7 @@ pill</property>
                         <child>
                           <object class="AdwEntryRow">
                             <property name="input-purpose">5</property>
+                            <property name="title">URL</property>
                           </object>
                         </child>
                       </object>
@@ -283,9 +284,35 @@ pill</property>
                         <property name="title">Transport type selection</property>
                         <child>
                           <object class="AdwComboRow" id="transport_type_list">
-                            <property name="model">
-                              <object class="GListStore"></object>
+                            <property name="expression">
+                              <lookup name="description" type="TransportDefinition"></lookup>
                             </property>
+                            <property name="factory">
+                              <object class="GtkBuilderListItemFactory">
+                                <property name="bytes"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkLabel">
+        <property name="xalign">0</property>
+        <property name="ellipsize">3</property>
+        <binding name="label">
+          <lookup name="description" type="TransportDefinition">
+            <lookup name="item" type="GtkListItem">GtkListItem</lookup>
+          </lookup>
+        </binding>
+      </object>
+    </property>
+  </template>
+</interface>]]></property>
+                              </object>
+                            </property>
+                            <property name="model">
+                              <object class="GListStore" id="transport_type_objs">
+                                <property name="item-type">TransportDefinition</property>
+                              </object>
+                            </property>
+                            <property name="title">Type:</property>
                           </object>
                         </child>
                       </object>
