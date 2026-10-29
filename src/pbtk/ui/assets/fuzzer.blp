@@ -1,13 +1,97 @@
 using Gtk 4.0;
 using Adw 1;
+using Gio 2.0;
 
 template $FuzzerWindow: Adw.Window {
-  content: Grid {};
+  content: Adw.ToolbarView {
+    content: Grid {
+      Box {
+        orientation: vertical;
 
-  title: "Fuzzer";
+        Adw.InlineViewSwitcher fuzzer_view_switcher {
+          stack: fuzzer_view_stack;
+        }
 
-  Adw.ToolbarView {
+        Adw.ViewStack fuzzer_view_stack {
+          visible-child-name: "proto_page";
+
+          Adw.ViewStackPage proto_page {
+            child: ScrolledWindow {
+              child: ListView {
+                vexpand: true;
+              };
+            };
+
+            name: "proto_page";
+            title: "Protobuf";
+          }
+
+          Adw.ViewStackPage get_page {
+            child: ScrolledWindow {
+              ListView {}
+            };
+
+            name: "get_page";
+            title: "GET";
+          }
+        }
+
+        layout {
+          column: "1";
+          column-span: "1";
+          row: "0";
+          row-span: "1";
+        }
+      }
+
+      Box {
+        css-name: "button_box";
+        margin-bottom: 7;
+        margin-end: 7;
+        margin-start: 7;
+        margin-top: 7;
+        orientation: vertical;
+        spacing: 7;
+
+        Button {
+          label: "Select another endpoint";
+        }
+
+        Button {
+          label: "Delete current endpoint";
+        }
+
+        Label {
+          label: "Set current values to:";
+        }
+
+        DropDown values_combo_box {
+          enable-search: true;
+
+          model: Gio.ListStore {};
+        }
+
+        layout {
+          column: "1";
+          column-span: "1";
+          row: "1";
+          row-span: "1";
+        }
+      }
+
+      TextView {
+        layout {
+          column: "0";
+          column-span: "1";
+          row: "1";
+          row-span: "1";
+        }
+      }
+    };
+
     [top]
     Adw.HeaderBar {}
-  }
+  };
+
+  title: "Fuzzer";
 }

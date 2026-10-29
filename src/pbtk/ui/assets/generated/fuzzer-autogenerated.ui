@@ -8,15 +8,115 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
   <requires lib="gtk" version="4.0"/>
   <template class="FuzzerWindow" parent="AdwWindow">
     <property name="content">
-      <object class="GtkGrid"></object>
-    </property>
-    <property name="title">Fuzzer</property>
-    <child>
       <object class="AdwToolbarView">
+        <property name="content">
+          <object class="GtkGrid">
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">1</property>
+                <child>
+                  <object class="AdwInlineViewSwitcher" id="fuzzer_view_switcher">
+                    <property name="stack">fuzzer_view_stack</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwViewStack" id="fuzzer_view_stack">
+                    <property name="visible-child-name">proto_page</property>
+                    <child>
+                      <object class="AdwViewStackPage" id="proto_page">
+                        <property name="child">
+                          <object class="GtkScrolledWindow">
+                            <property name="child">
+                              <object class="GtkListView">
+                                <property name="vexpand">true</property>
+                              </object>
+                            </property>
+                          </object>
+                        </property>
+                        <property name="name">proto_page</property>
+                        <property name="title">Protobuf</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwViewStackPage" id="get_page">
+                        <property name="child">
+                          <object class="GtkScrolledWindow">
+                            <child>
+                              <object class="GtkListView"></object>
+                            </child>
+                          </object>
+                        </property>
+                        <property name="name">get_page</property>
+                        <property name="title">GET</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="column-span">1</property>
+                  <property name="row">0</property>
+                  <property name="row-span">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="css-name">button_box</property>
+                <property name="margin-bottom">7</property>
+                <property name="margin-end">7</property>
+                <property name="margin-start">7</property>
+                <property name="margin-top">7</property>
+                <property name="orientation">1</property>
+                <property name="spacing">7</property>
+                <child>
+                  <object class="GtkButton">
+                    <property name="label">Select another endpoint</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton">
+                    <property name="label">Delete current endpoint</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label">Set current values to:</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkDropDown" id="values_combo_box">
+                    <property name="enable-search">true</property>
+                    <property name="model">
+                      <object class="GListStore"></object>
+                    </property>
+                  </object>
+                </child>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="column-span">1</property>
+                  <property name="row">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkTextView">
+                <layout>
+                  <property name="column">0</property>
+                  <property name="column-span">1</property>
+                  <property name="row">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+              </object>
+            </child>
+          </object>
+        </property>
         <child type="top">
           <object class="AdwHeaderBar"></object>
         </child>
       </object>
-    </child>
+    </property>
+    <property name="title">Fuzzer</property>
   </template>
 </interface>
