@@ -492,6 +492,7 @@ suggested-action</property>
             </property>
             <property name="tag">endpoint_selection_page</property>
             <property name="title">Select an endpoint to test...</property>
+            <signal name="showing" handler="update_endpoints_list"/>
           </object>
         </child>
       </object>

@@ -178,12 +178,6 @@ class MainWindow(Adw.ApplicationWindow):
             )
         )
 
-        test_item = EndpointListRow('(Test item)')
-        test_subitem = EndpointListRow('(Test sub-item)')
-        test_subitem.children = None
-        test_item.children.append(test_subitem)
-        self.endpoints_list.append(test_item)
-
     def connect_actions(self):
 
         def show_about(*args):
@@ -471,3 +465,13 @@ class MainWindow(Adw.ApplicationWindow):
         )
 
         self.pb_param_subform.set_visible(current_transport.has_pb_param)
+
+    @Gtk.Template.Callback()
+    def update_endpoints_list(self, *args):
+
+        self.endpoints_list.remove_all()
+
+        test_item = EndpointListRow('(Test item)')
+        test_subitem = EndpointListRow('(Test sub-item)', has_children=False)
+        test_item.children.append(test_subitem)
+        self.endpoints_list.append(test_item)
