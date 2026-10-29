@@ -210,7 +210,7 @@ template $MainWindow: Adw.ApplicationWindow {
             description: "Please type a HTTP(S) URL that will receive, as a parameter, a message generated using the Proto file definition you provided:";
             title: "Endpoint URL selection";
 
-            Adw.EntryRow {
+            Adw.EntryRow endpoint_url {
               input-purpose: url;
               title: "URL";
             }
@@ -281,7 +281,7 @@ template $MainWindow: Adw.ApplicationWindow {
                 TextView {
                   bottom-margin: 15;
 
-                  buffer: TextBuffer {};
+                  buffer: TextBuffer sample_data_buffer {};
 
                   left-margin: 15;
                   monospace: true;

@@ -231,7 +231,7 @@ pill</property>
                         <property name="description">Please type a HTTP(S) URL that will receive, as a parameter, a message generated using the Proto file definition you provided:</property>
                         <property name="title">Endpoint URL selection</property>
                         <child>
-                          <object class="AdwEntryRow">
+                          <object class="AdwEntryRow" id="endpoint_url">
                             <property name="input-purpose">5</property>
                             <property name="title">URL</property>
                           </object>
@@ -333,7 +333,7 @@ pill</property>
                                   <object class="GtkTextView">
                                     <property name="bottom-margin">15</property>
                                     <property name="buffer">
-                                      <object class="GtkTextBuffer"></object>
+                                      <object class="GtkTextBuffer" id="sample_data_buffer"></object>
                                     </property>
                                     <property name="left-margin">15</property>
                                     <property name="monospace">true</property>

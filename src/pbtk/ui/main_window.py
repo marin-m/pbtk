@@ -5,13 +5,16 @@ from pbtk.utils.common import (
     transports,
     load_proto_msgs,
     ProtoMessageDeclaration,
+    insert_endpoint,
     BASE_PATH,
 )
 from pbtk.ui.templates.extractor_row import ExtractorRow
+from pbtk.datamodel.transport import TransportDefinition
 from pbtk.datamodel.extractor import Extractor
 from pbtk.extractors import *
 
 from importlib.metadata import version
+from urllib.parse import urlparse
 
 import gi
 
@@ -61,7 +64,10 @@ class MainWindow(Adw.ApplicationWindow):
     selected_req_proto = GObject.Property(type=Gio.File)
     selected_resp_proto = GObject.Property(type=Gio.File)
 
+    endpoint_url: Adw.EntryRow = Gtk.Template.Child()
+
     endpoint_msg_section: Adw.PreferencesGroup = Gtk.Template.Child()
+    endpoint_msg_list: Adw.ComboRow = Gtk.Template.Child()
     endpoint_req_msgs: Gio.ListStore = Gtk.Template.Child()
 
     transport_type_list: Adw.ComboRow = Gtk.Template.Child()
@@ -74,6 +80,8 @@ class MainWindow(Adw.ApplicationWindow):
     endpoint_resp_msg_file: Adw.ActionRow = Gtk.Template.Child()
     endpoint_resp_msg_list: Adw.ComboRow = Gtk.Template.Child()
     endpoint_resp_msgs: Gio.ListStore = Gtk.Template.Child()
+
+    sample_data_buffer: Gtk.TextBuffer = Gtk.Template.Child()
 
     def __init__(self, app):
         super().__init__()
@@ -191,28 +199,19 @@ class MainWindow(Adw.ApplicationWindow):
                     _data: bytes = open_result.load_bytes_finish(result)[
                         0
                     ].get_data()
+
                 except GLib.GError as err:
-                    dialog = Adw.AlertDialog.new(
-                        'Could not read file', err.message
-                    )
-                    dialog.add_response('ok', 'Ok')
-                    dialog.set_default_response('ok')
-                    dialog.set_close_response('ok')
-                    dialog.choose(self, None, None)
+                    self.alert_popup('Could not read file', err.message)
+
                 else:
                     messages: list[ProtoMessageDeclaration] = list(
                         load_proto_msgs(open_result.get_path())
                     )
 
                     if not messages:
-                        dialog = Adw.AlertDialog.new(
+                        self.alert_popup(
                             'There is no message defined in this .proto.'
                         )
-                        dialog.add_response('ok', 'Ok')
-                        dialog.set_default_response('ok')
-                        dialog.set_close_response('ok')
-                        dialog.choose(self, None, None)
-
                         return
 
                     self.endpoint_req_msgs.splice(
@@ -250,13 +249,7 @@ class MainWindow(Adw.ApplicationWindow):
 
                 except GLib.GError as err:
                     if err.message != 'Dismissed by user':
-                        dialog = Adw.AlertDialog.new(
-                            'Could not open file', err.message
-                        )
-                        dialog.add_response('ok', 'Ok')
-                        dialog.set_default_response('ok')
-                        dialog.set_close_response('ok')
-                        dialog.choose(self, None, None)
+                        self.alert_popup('Could not open file', err.message)
                 else:
                     open_result.load_bytes_async(None, load_bytes_cb)
 
@@ -295,27 +288,16 @@ class MainWindow(Adw.ApplicationWindow):
                         0
                     ].get_data()
                 except GLib.GError as err:
-                    dialog = Adw.AlertDialog.new(
-                        'Could not read file', err.message
-                    )
-                    dialog.add_response('ok', 'Ok')
-                    dialog.set_default_response('ok')
-                    dialog.set_close_response('ok')
-                    dialog.choose(self, None, None)
+                    self.alert_popup('Could not read file', err.message)
                 else:
                     msgs: list[ProtoMessageDeclaration] = list(
                         load_proto_msgs(open_result.get_path())
                     )
 
                     if not msgs:
-                        dialog = Adw.AlertDialog.new(
+                        self.alert_popup(
                             'There is no message defined in this .proto.'
                         )
-                        dialog.add_response('ok', 'Ok')
-                        dialog.set_default_response('ok')
-                        dialog.set_close_response('ok')
-                        dialog.choose(self, None, None)
-
                         return
 
                     self.endpoint_resp_msgs.splice(
@@ -338,13 +320,7 @@ class MainWindow(Adw.ApplicationWindow):
 
                 except GLib.GError as err:
                     if err.message != 'Dismissed by user':
-                        dialog = Adw.AlertDialog.new(
-                            'Could not open file', err.message
-                        )
-                        dialog.add_response('ok', 'Ok')
-                        dialog.set_default_response('ok')
-                        dialog.set_close_response('ok')
-                        dialog.choose(self, None, None)
+                        self.alert_popup('Could not open file', err.message)
                 else:
                     open_result.load_bytes_async(None, load_bytes_cb)
 
@@ -365,7 +341,81 @@ class MainWindow(Adw.ApplicationWindow):
         self.add_simple_action('pick-resp-msg', pick_resp_msg)
 
         def create_endpoint(*args):
-            pass  # ⚠️ WIP
+            request_pb: ProtoMessageDeclaration = (
+                self.endpoint_msg_list.get_selected_item()
+            )
+            url: str = self.endpoint_url.get_text()
+            transport: TransportDefinition = (
+                self.transport_type_list.get_selected_item()
+            )
+            sample_data = self.sample_data_buffer.props.text
+            pb_param = self.pb_param_subform.get_text()
+            has_resp_pb = self.endpoint_parse_resp.get_active()
+            resp_pb = self.endpoint_resp_msg_list.get_selected_item()
+
+            if not (
+                request_pb
+                and urlparse(url).netloc
+                and transport
+                and (not transport.transport_class.has_pb_param or pb_param)
+                and (not has_resp_pb or resp_pb)
+            ):
+                self.alert_popup(
+                    'Please fill all relevant information fields.'
+                )
+                return
+
+            else:
+                json = {
+                    'request': {
+                        'transport': transport.transport_class.name,
+                        'proto_path': self.selected_req_proto.get_path()
+                        .replace(str(BASE_PATH / 'protos'), '')
+                        .strip('/\\'),
+                        'proto_msg': request_pb.name,
+                        'url': url,
+                    }
+                }
+                if transport.transport_class.has_pb_param:
+                    json['request']['pb_param'] = pb_param
+
+                sample_data = list(filter(None, sample_data.split('\n')))
+                if sample_data:
+                    transport_obj = transport.transport_class
+                    transport_obj = transport_obj(pb_param, url)
+
+                    for sample_id, sample in enumerate(sample_data):
+                        try:
+                            sample = transport_obj.serialize_sample(sample)
+                        except Exception:
+                            self.alert_popup(
+                                'Some of your sample data is not in the specified format.'
+                            )
+                            return
+
+                        if not sample:
+                            self.alert_popup(
+                                "Some of your sample data didn't contain the Protobuf parameter key you specified."
+                            )
+                            return
+
+                        sample_data[sample_id] = sample
+
+                    json['request']['samples'] = sample_data
+
+                if has_resp_pb:
+                    json['response'] = {
+                        'format': 'raw_pb',
+                        'proto_path': self.selected_resp_proto.get_path()
+                        .replace(str(BASE_PATH / 'protos'), '')
+                        .strip('/\\'),
+                        'proto_msg': resp_pb.name,
+                    }
+                insert_endpoint(BASE_PATH / 'endpoints', json)
+
+                self.alert_popup('Endpoint created successfully.')
+
+                self.main_nav_view.pop_to_tag('main_page')
 
         self.add_simple_action('create-endpoint', create_endpoint)
 
@@ -374,6 +424,14 @@ class MainWindow(Adw.ApplicationWindow):
         action = Gio.SimpleAction.new(name, param_type)
         action.connect('activate', callback)
         self.add_action(action)
+
+    def alert_popup(self, *args):
+
+        dialog = Adw.AlertDialog.new(*args)
+        dialog.add_response('ok', 'Ok')
+        dialog.set_default_response('ok')
+        dialog.set_close_response('ok')
+        dialog.choose(self, None, None)
 
     def connect_signals(self):
         self.transport_type_list.connect(
