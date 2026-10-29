@@ -4,4 +4,5 @@
 <cambalache-project version="1.0.0" target_tk="gtk-4.0" depends="libadwaita-1,webkitgtk-6.0">
   <gresources filename="pbtk.gresource.xml"/>
   <ui template-class="MainWindow" filename="main_window.blp"/>
+  <ui template-class="FuzzerWindow" filename="fuzzer.blp"/>
 </cambalache-project>
