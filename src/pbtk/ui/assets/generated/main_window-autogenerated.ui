@@ -318,7 +318,7 @@ pill</property>
                       </object>
                     </child>
                     <child>
-                      <object class="AdwPreferencesGroup">
+                      <object class="AdwPreferencesGroup" id="sample_data_section">
                         <property name="description">Please type one sample of data per line (in the form of %s)</property>
                         <property name="separate-rows">true</property>
                         <property name="title">Request - Sample data</property>
@@ -344,9 +344,10 @@ pill</property>
                           </object>
                         </child>
                         <child>
-                          <object class="AdwEntryRow">
+                          <object class="AdwEntryRow" id="pb_param_subform">
                             <property name="text">pb</property>
                             <property name="title">Please specify the key of parameter containing Protobuf data in request:</property>
+                            <property name="visible">false</property>
                           </object>
                         </child>
                       </object>

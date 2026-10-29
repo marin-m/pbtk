@@ -25,6 +25,7 @@ class RawPOST(Transport):
     description = 'Protobuf as raw POST data'
     ui_tab = 'Headers'
     ui_data_form = 'hex strings'
+    has_pb_param = False
 
     def __init__(self, pb_param, url):
         self.url = url
@@ -55,6 +56,7 @@ class Base64GET(Transport):
     description = 'Protobuf as Base64url GET component (use "{param_name}" for templating)'
     ui_tab = 'GET'
     ui_data_form = 'regular GET query strings'
+    has_pb_param = True
 
     def __init__(self, pb_param, url):
         self.pb_param = pb_param
@@ -95,6 +97,7 @@ class GMapsAPIPrivate(Transport):
     description = 'Protobuf-URL, Google Maps private API style ("!"-separated)'
     ui_tab = 'GET'
     ui_data_form = 'regular GET query strings'
+    has_pb_param = True
 
     def __init__(self, pb_param, url):
         self.pb_param = pb_param
@@ -138,6 +141,7 @@ class GMapsAPIPublic(Transport):
     description = 'Protobuf-URL, Google Maps public API style ("&"-separated)'
     ui_tab = 'GET'
     ui_data_form = 'GET query strings copied as-is'
+    has_pb_param = False
 
     def __init__(self, pb_param, url):
         self.url = url.split('?')[0]

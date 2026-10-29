@@ -267,7 +267,7 @@ template $MainWindow: Adw.ApplicationWindow {
             }
           }
 
-          Adw.PreferencesGroup {
+          Adw.PreferencesGroup sample_data_section {
             description: "Please type one sample of data per line (in the form of %s)";
             separate-rows: true;
             title: "Request - Sample data";
@@ -289,9 +289,10 @@ template $MainWindow: Adw.ApplicationWindow {
               }
             }
 
-            Adw.EntryRow {
+            Adw.EntryRow pb_param_subform {
               text: "pb";
               title: "Please specify the key of parameter containing Protobuf data in request:";
+              visible: false;
             }
           }
 

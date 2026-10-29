@@ -57,6 +57,13 @@ class MainWindow(Adw.ApplicationWindow):
     transport_type_list: Adw.ComboRow = Gtk.Template.Child()
     transport_type_objs: Gio.ListStore = Gtk.Template.Child()
 
+    sample_data_section: Adw.PreferencesGroup = Gtk.Template.Child()
+    pb_param_subform: Adw.EntryRow = Gtk.Template.Child()
+
+    endpoint_parse_resp: Adw.SwitchRow = Gtk.Template.Child()
+    endpoint_resp_msg_file: Adw.ActionRow = Gtk.Template.Child()
+    endpoint_resp_msg_list: Adw.ComboRow = Gtk.Template.Child()
+
     global_extraction_dir = GObject.Property(type=str)
 
     def __init__(self, app):
@@ -103,10 +110,6 @@ class MainWindow(Adw.ApplicationWindow):
 
         self.connect_signals()
 
-        # Reset the default UI state
-
-        self.reset_state()
-
     def bind_data(self):
         self.global_extraction_dir = str(BASE_PATH / 'protos')
 
@@ -125,6 +128,22 @@ class MainWindow(Adw.ApplicationWindow):
 
         for transport in transports.values():
             self.transport_type_objs.append(transport)
+
+        self.update_endpoint_data_type()
+
+        self.endpoint_parse_resp.bind_property(
+            'active',
+            self.endpoint_resp_msg_file,
+            'visible',
+            GObject.BindingFlags.SYNC_CREATE,
+        )
+
+        self.endpoint_parse_resp.bind_property(
+            'active',
+            self.endpoint_resp_msg_list,
+            'visible',
+            GObject.BindingFlags.SYNC_CREATE,
+        )
 
     def connect_actions(self):
 
@@ -248,7 +267,18 @@ class MainWindow(Adw.ApplicationWindow):
         self.add_action(action)
 
     def connect_signals(self):
-        pass  # TODO
+        self.transport_type_list.connect(
+            'notify::selected-item', self.update_endpoint_data_type
+        )
 
-    def reset_state(self):
-        pass  # TODO
+    def update_endpoint_data_type(self, *args):
+        current_transport = (
+            self.transport_type_list.get_selected_item().transport_class
+        )
+
+        self.sample_data_section.set_description(
+            'Please type one sample of data per line (in the form of %s)'
+            % current_transport.ui_data_form
+        )
+
+        self.pb_param_subform.set_visible(current_transport.has_pb_param)

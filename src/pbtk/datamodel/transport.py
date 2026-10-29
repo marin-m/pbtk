@@ -35,7 +35,9 @@ class Transport(ABC):
     """Whether keys in protocol data are integer"""
     enforce_int_parameter: bool = False
 
-    pb_param: str | None
+    has_pb_param: bool = False
+
+    pb_param: str | None = None
     url: str
 
     def __init__(self, pb_param, url):
