@@ -5,6 +5,9 @@ using Gio 2.0;
 template $FuzzerWindow: Adw.Window {
   content: Adw.ToolbarView {
     content: Grid {
+      column-homogeneous: true;
+      row-homogeneous: true;
+
       Box {
         orientation: vertical;
 
@@ -93,5 +96,7 @@ template $FuzzerWindow: Adw.Window {
     Adw.HeaderBar {}
   };
 
+  default-height: 480;
+  default-width: 720;
   title: "Fuzzer";
 }

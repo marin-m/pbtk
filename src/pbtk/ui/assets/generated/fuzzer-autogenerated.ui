@@ -11,6 +11,8 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
       <object class="AdwToolbarView">
         <property name="content">
           <object class="GtkGrid">
+            <property name="column-homogeneous">true</property>
+            <property name="row-homogeneous">true</property>
             <child>
               <object class="GtkBox">
                 <property name="orientation">1</property>
@@ -117,6 +119,8 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
         </child>
       </object>
     </property>
+    <property name="default-height">480</property>
+    <property name="default-width">720</property>
     <property name="title">Fuzzer</property>
   </template>
 </interface>
