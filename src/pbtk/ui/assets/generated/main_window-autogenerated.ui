@@ -428,6 +428,7 @@ pill</property>
                   <object class="GtkActionBar">
                     <child type="end">
                       <object class="GtkButton">
+                        <property name="action-name">win.create-endpoint</property>
                         <property name="css-classes">pill
 suggested-action</property>
                         <property name="label">Add endpoint</property>

@@ -364,6 +364,11 @@ class MainWindow(Adw.ApplicationWindow):
 
         self.add_simple_action('pick-resp-msg', pick_resp_msg)
 
+        def create_endpoint(*args):
+            pass  # ⚠️ WIP
+
+        self.add_simple_action('create-endpoint', create_endpoint)
+
     def add_simple_action(self, name, callback, param_type=None):
 
         action = Gio.SimpleAction.new(name, param_type)
