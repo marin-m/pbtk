@@ -10,6 +10,7 @@ from pbtk.utils.common import (
 )
 from pbtk.ui.templates.extractor_row import ExtractorRow
 from pbtk.datamodel.transport import TransportDefinition
+from pbtk.datamodel.endpoint import EndpointListRow
 from pbtk.datamodel.extractor import Extractor
 from pbtk.extractors import *
 
@@ -82,6 +83,11 @@ class MainWindow(Adw.ApplicationWindow):
     endpoint_resp_msgs: Gio.ListStore = Gtk.Template.Child()
 
     sample_data_buffer: Gtk.TextBuffer = Gtk.Template.Child()
+
+    # Step #3 - Send off network data
+
+    endpoints_selection: Gtk.NoSelection = Gtk.Template.Child()
+    endpoints_list = GObject.Property(type=Gio.ListStore)  # Of EndpointListRow
 
     def __init__(self, app):
         super().__init__()
@@ -161,6 +167,22 @@ class MainWindow(Adw.ApplicationWindow):
             'visible',
             GObject.BindingFlags.SYNC_CREATE,
         )
+
+        self.endpoints_list = Gio.ListStore.new(EndpointListRow)
+        self.endpoints_selection.set_model(
+            Gtk.TreeListModel.new(
+                self.endpoints_list,
+                passthrough=False,
+                autoexpand=True,
+                create_func=lambda item: item.children,
+            )
+        )
+
+        test_item = EndpointListRow('(Test item)')
+        test_subitem = EndpointListRow('(Test sub-item)')
+        test_subitem.children = None
+        test_item.children.append(test_subitem)
+        self.endpoints_list.append(test_item)
 
     def connect_actions(self):
 

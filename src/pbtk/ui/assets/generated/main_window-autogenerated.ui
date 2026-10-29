@@ -452,16 +452,35 @@ suggested-action</property>
                 <property name="content">
                   <object class="GtkListView">
                     <property name="factory">
-                      <object class="GtkBuilderListItemFactory"></object>
+                      <object class="GtkBuilderListItemFactory">
+                        <property name="bytes"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkTreeExpander">
+        <binding name="list-row">
+          <lookup name="item" type="GtkListItem">GtkListItem</lookup>
+        </binding>
+        <property name="child">
+          <object class="GtkLabel">
+            <property name="use-markup">true</property>
+            <binding name="label">
+              <lookup name="label" type="EndpointListRow">
+                <lookup name="item" type="GtkTreeListRow">
+                  <lookup name="item" type="GtkListItem">GtkListItem</lookup>
+                </lookup>
+              </lookup>
+            </binding>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>]]></property>
+                      </object>
                     </property>
                     <property name="model">
-                      <object class="GtkNoSelection">
-                        <property name="model">
-                          <object class="GtkTreeListModel" id="endpoints_model">
-                            <property name="autoexpand">true</property>
-                          </object>
-                        </property>
-                      </object>
+                      <object class="GtkNoSelection" id="endpoints_selection"></object>
                     </property>
                     <property name="single-click-activate">true</property>
                   </object>

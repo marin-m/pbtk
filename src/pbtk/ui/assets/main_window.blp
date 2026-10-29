@@ -376,13 +376,20 @@ template $MainWindow: Adw.ApplicationWindow {
     Adw.NavigationPage endpoint_selection_page {
       child: Adw.ToolbarView {
         content: ListView {
-          factory: BuilderListItemFactory {};
+          factory: BuilderListItemFactory {
+            template ListItem {
+              child: TreeExpander {
+                list-row: bind template.item as <Gtk.TreeListRow>;
 
-          model: NoSelection {
-            model: TreeListModel endpoints_model {
-              autoexpand: true;
-            };
+                child: Label {
+                  use-markup: true;
+                  label: bind template.item as <TreeListRow>.item as <$EndpointListRow>.label;
+                };
+              };
+            }
           };
+
+          model: NoSelection endpoints_selection {};
 
           single-click-activate: true;
         };
