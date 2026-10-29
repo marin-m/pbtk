@@ -235,7 +235,7 @@ template $MainWindow: Adw.ApplicationWindow {
                 }
               };
 
-              model: StringList endpoint_msg_names {};
+              model: StringList endpoint_req_msg_names {};
 
               search-match-mode: substring;
               title: "Message:";
@@ -311,6 +311,8 @@ template $MainWindow: Adw.ApplicationWindow {
 
               [suffix]
               Button pick_resp_msg_file_button {
+                action-name: "win.pick-resp-msg";
+
                 child: Adw.ButtonContent {
                   icon-name: "document-open-symbolic";
                   label: "Select...";

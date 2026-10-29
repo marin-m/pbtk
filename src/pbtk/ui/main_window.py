@@ -44,6 +44,10 @@ class MainWindow(Adw.ApplicationWindow):
     extractor_objs = GObject.Property(type=Gio.ListStore)  # Of Extractor
     extractors_list: Adw.PreferencesGroup = Gtk.Template.Child()
 
+    global_extraction_dir = GObject.Property(type=str)
+
+    # Step 1 - Extract Proto cefinitions from file
+
     extracting_status_page: Adw.StatusPage = Gtk.Template.Child()
     extraction_spinner: Adw.SpinnerPaintable = Gtk.Template.Child()
     extracting_progress_bar: Gtk.ProgressBar = Gtk.Template.Child()
@@ -51,8 +55,13 @@ class MainWindow(Adw.ApplicationWindow):
     extraction_text_view: Gtk.TextView = Gtk.Template.Child()
     extraction_text_buffer: Gtk.TextBuffer = Gtk.Template.Child()
 
+    # Step #2 - Define an HTTPS endpoint
+
+    selected_req_proto = GObject.Property(type=Gio.File)
+    selected_resp_proto = GObject.Property(type=Gio.File)
+
     endpoint_msg_section: Adw.PreferencesGroup = Gtk.Template.Child()
-    endpoint_msg_names: Gtk.StringList = Gtk.Template.Child()
+    endpoint_req_msg_names: Gtk.StringList = Gtk.Template.Child()
 
     transport_type_list: Adw.ComboRow = Gtk.Template.Child()
     transport_type_objs: Gio.ListStore = Gtk.Template.Child()
@@ -63,8 +72,7 @@ class MainWindow(Adw.ApplicationWindow):
     endpoint_parse_resp: Adw.SwitchRow = Gtk.Template.Child()
     endpoint_resp_msg_file: Adw.ActionRow = Gtk.Template.Child()
     endpoint_resp_msg_list: Adw.ComboRow = Gtk.Template.Child()
-
-    global_extraction_dir = GObject.Property(type=str)
+    endpoint_resp_msg_names: Gtk.StringList = Gtk.Template.Child()
 
     def __init__(self, app):
         super().__init__()
@@ -177,7 +185,7 @@ class MainWindow(Adw.ApplicationWindow):
 
         def pick_proto_file(*args):
 
-            def load_bytes_cb(open_result, result):
+            def load_bytes_cb(open_result: Gio.File, result: Gio.AsyncResult):
                 try:
                     _data: bytes = open_result.load_bytes_finish(result)[
                         0
@@ -196,8 +204,23 @@ class MainWindow(Adw.ApplicationWindow):
                         for item in load_proto_msgs(open_result.get_path())
                     ]
 
-                    self.endpoint_msg_names.splice(
-                        0, self.endpoint_msg_names.get_n_items(), msg_names
+                    if not msg_names:
+                        dialog = Adw.AlertDialog.new(
+                            'There is no message defined in this .proto.'
+                        )
+                        dialog.add_response('ok', 'Ok')
+                        dialog.set_default_response('ok')
+                        dialog.set_close_response('ok')
+                        dialog.choose(self, None, None)
+
+                        return
+
+                    self.endpoint_req_msg_names.splice(
+                        0, self.endpoint_req_msg_names.get_n_items(), msg_names
+                    )
+
+                    self.endpoint_resp_msg_names.splice(
+                        0, self.endpoint_resp_msg_names.get_n_items(), msg_names
                     )
 
                     self.endpoint_msg_section.set_description(
@@ -208,16 +231,16 @@ class MainWindow(Adw.ApplicationWindow):
                         )
                     )
 
-                    # ⚠️ ⚠️ TODO:
-                    # We should warn "There is no message defined in this .proto."
-                    # to the user here instead of loading the view when adequate.
+                    self.endpoint_resp_msg_file.set_subtitle(open_result.get_path())
 
-                    # (... also, develop the rest of the interactivity for the
-                    #  "Step 2" panel, etc.)
+                    self.selected_req_proto = open_result
+                    self.selected_resp_proto = open_result
 
                     self.main_nav_view.push_by_tag('endpoints_page')
 
-            def file_picked(file_dialog: Gtk.FileDialog, task: Gio.Task):
+            def file_picked(
+                file_dialog: Gtk.FileDialog, task: Gio.AsyncResult
+            ):
                 try:
                     open_result: Gio.File = file_dialog.open_finish(task)
 
@@ -259,6 +282,80 @@ class MainWindow(Adw.ApplicationWindow):
             self.main_nav_view.pop_to_tag('main_page')
 
         self.add_simple_action('go-back-to-main', go_back_to_main)
+
+        def pick_resp_msg(*args):
+
+            def load_bytes_cb(open_result: Gio.File, result: Gio.AsyncResult):
+                try:
+                    _data: bytes = open_result.load_bytes_finish(result)[
+                        0
+                    ].get_data()
+                except GLib.GError as err:
+                    dialog = Adw.AlertDialog.new(
+                        'Could not read file', err.message
+                    )
+                    dialog.add_response('ok', 'Ok')
+                    dialog.set_default_response('ok')
+                    dialog.set_close_response('ok')
+                    dialog.choose(self, None, None)
+                else:
+                    msg_names = [
+                        item.name
+                        for item in load_proto_msgs(open_result.get_path())
+                    ]
+
+                    if not msg_names:
+                        dialog = Adw.AlertDialog.new(
+                            'There is no message defined in this .proto.'
+                        )
+                        dialog.add_response('ok', 'Ok')
+                        dialog.set_default_response('ok')
+                        dialog.set_close_response('ok')
+                        dialog.choose(self, None, None)
+
+                        return
+
+                    self.endpoint_resp_msg_names.splice(
+                        0, self.endpoint_resp_msg_names.get_n_items(), msg_names
+                    )
+
+                    self.endpoint_resp_msg_file.set_subtitle(open_result.get_path())
+
+                    self.selected_resp_proto = open_result
+
+            def file_picked(
+                file_dialog: Gtk.FileDialog, task: Gio.AsyncResult
+            ):
+                try:
+                    open_result: Gio.File = file_dialog.open_finish(task)
+
+                except GLib.GError as err:
+                    if err.message != 'Dismissed by user':
+                        dialog = Adw.AlertDialog.new(
+                            'Could not open file', err.message
+                        )
+                        dialog.add_response('ok', 'Ok')
+                        dialog.set_default_response('ok')
+                        dialog.set_close_response('ok')
+                        dialog.choose(self, None, None)
+                else:
+                    open_result.load_bytes_async(None, load_bytes_cb)
+
+            proto_filter = Gtk.FileFilter.new()
+            proto_filter.set_name('Protobuf definition (*.proto)')
+            proto_filter.add_suffix('proto')
+
+            filters = Gio.ListStore.new(Gtk.FileFilter)
+            filters.append(proto_filter)
+
+            file_picker = Gtk.FileDialog()
+            file_picker.set_initial_folder(
+                Gio.File.new_for_path(self.global_extraction_dir)
+            )
+            file_picker.set_filters(filters)
+            file_picker.open(self, callback=file_picked)
+
+        self.add_simple_action('pick-resp-msg', pick_resp_msg)
 
     def add_simple_action(self, name, callback, param_type=None):
 

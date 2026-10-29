@@ -270,7 +270,7 @@ pill</property>
                               </object>
                             </property>
                             <property name="model">
-                              <object class="GtkStringList" id="endpoint_msg_names"></object>
+                              <object class="GtkStringList" id="endpoint_req_msg_names"></object>
                             </property>
                             <property name="search-match-mode">1</property>
                             <property name="title">Message:</property>
@@ -368,6 +368,7 @@ pill</property>
                             <property name="visible">false</property>
                             <child type="suffix">
                               <object class="GtkButton" id="pick_resp_msg_file_button">
+                                <property name="action-name">win.pick-resp-msg</property>
                                 <property name="child">
                                   <object class="AdwButtonContent">
                                     <property name="icon-name">document-open-symbolic</property>
