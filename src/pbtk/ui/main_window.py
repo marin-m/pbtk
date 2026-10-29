@@ -14,8 +14,11 @@ from pbtk.datamodel.endpoint import EndpointListRow
 from pbtk.datamodel.extractor import Extractor
 from pbtk.extractors import *
 
+from collections import defaultdict, OrderedDict
 from importlib.metadata import version
 from urllib.parse import urlparse
+from os import scandir
+from json import load
 
 import gi
 
@@ -471,7 +474,34 @@ class MainWindow(Adw.ApplicationWindow):
 
         self.endpoints_list.remove_all()
 
-        test_item = EndpointListRow('(Test item)')
-        test_subitem = EndpointListRow('(Test sub-item)', has_children=False)
-        test_item.children.append(test_subitem)
-        self.endpoints_list.append(test_item)
+        for entry in scandir(str(BASE_PATH / 'endpoints')):
+            if entry.name.endswith('.json'):
+                domain_item = EndpointListRow(
+                    GLib.markup_escape_text(entry.name.split('.json')[0])
+                )
+                self.endpoints_list.append(domain_item)
+
+                pb_msg_to_endpoints = defaultdict(list)
+                with open(entry.path) as fd:
+                    for endpoint in load(fd, object_pairs_hook=OrderedDict):
+                        pb_msg_to_endpoints[
+                            endpoint['request']['proto_msg'].split('.')[-1]
+                        ].append(endpoint)
+
+                for pb_msg, endpoints in pb_msg_to_endpoints.items():
+                    proto_item = EndpointListRow(
+                        GLib.markup_escape_text(pb_msg)
+                    )
+                    domain_item.children.append(proto_item)
+
+                    for endpoint in endpoints:
+                        path_and_qs = (
+                            '/'
+                            + endpoint['request']['url'].split('/', 3).pop()
+                        )
+                        endpoint_item = EndpointListRow(
+                            '<b>%s</b>' % GLib.markup_escape_text(path_and_qs),
+                            endpoint,
+                            has_children=False,
+                        )
+                        proto_item.children.append(endpoint_item)

@@ -464,6 +464,10 @@ suggested-action</property>
         <property name="child">
           <object class="GtkLabel">
             <property name="use-markup">true</property>
+            <property name="margin-bottom">7</property>
+            <property name="margin-top">7</property>
+            <property name="margin-start">7</property>
+            <property name="margin-end">7</property>
             <binding name="label">
               <lookup name="label" type="EndpointListRow">
                 <lookup name="item" type="GtkTreeListRow">

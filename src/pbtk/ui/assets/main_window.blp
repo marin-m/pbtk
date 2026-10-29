@@ -383,6 +383,10 @@ template $MainWindow: Adw.ApplicationWindow {
 
                 child: Label {
                   use-markup: true;
+                  margin-bottom: 7;
+                  margin-top: 7;
+                  margin-start: 7;
+                  margin-end: 7;
                   label: bind template.item as <TreeListRow>.item as <$EndpointListRow>.label;
                 };
               };
