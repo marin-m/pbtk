@@ -4,6 +4,7 @@ from pbtk.utils.common import (
     extractors,
     transports,
     load_proto_msgs,
+    ProtoMessageDeclaration,
     BASE_PATH,
 )
 from pbtk.ui.templates.extractor_row import ExtractorRow
@@ -61,7 +62,7 @@ class MainWindow(Adw.ApplicationWindow):
     selected_resp_proto = GObject.Property(type=Gio.File)
 
     endpoint_msg_section: Adw.PreferencesGroup = Gtk.Template.Child()
-    endpoint_req_msg_names: Gtk.StringList = Gtk.Template.Child()
+    endpoint_req_msgs: Gio.ListStore = Gtk.Template.Child()
 
     transport_type_list: Adw.ComboRow = Gtk.Template.Child()
     transport_type_objs: Gio.ListStore = Gtk.Template.Child()
@@ -72,7 +73,7 @@ class MainWindow(Adw.ApplicationWindow):
     endpoint_parse_resp: Adw.SwitchRow = Gtk.Template.Child()
     endpoint_resp_msg_file: Adw.ActionRow = Gtk.Template.Child()
     endpoint_resp_msg_list: Adw.ComboRow = Gtk.Template.Child()
-    endpoint_resp_msg_names: Gtk.StringList = Gtk.Template.Child()
+    endpoint_resp_msgs: Gio.ListStore = Gtk.Template.Child()
 
     def __init__(self, app):
         super().__init__()
@@ -199,12 +200,11 @@ class MainWindow(Adw.ApplicationWindow):
                     dialog.set_close_response('ok')
                     dialog.choose(self, None, None)
                 else:
-                    msg_names = [
-                        item.name
-                        for item in load_proto_msgs(open_result.get_path())
-                    ]
+                    messages: list[ProtoMessageDeclaration] = list(
+                        load_proto_msgs(open_result.get_path())
+                    )
 
-                    if not msg_names:
+                    if not messages:
                         dialog = Adw.AlertDialog.new(
                             'There is no message defined in this .proto.'
                         )
@@ -215,12 +215,14 @@ class MainWindow(Adw.ApplicationWindow):
 
                         return
 
-                    self.endpoint_req_msg_names.splice(
-                        0, self.endpoint_req_msg_names.get_n_items(), msg_names
+                    self.endpoint_req_msgs.splice(
+                        0, self.endpoint_req_msgs.get_n_items(), messages
                     )
 
-                    self.endpoint_resp_msg_names.splice(
-                        0, self.endpoint_resp_msg_names.get_n_items(), msg_names
+                    self.endpoint_resp_msgs.splice(
+                        0,
+                        self.endpoint_resp_msgs.get_n_items(),
+                        messages,
                     )
 
                     self.endpoint_msg_section.set_description(
@@ -231,7 +233,9 @@ class MainWindow(Adw.ApplicationWindow):
                         )
                     )
 
-                    self.endpoint_resp_msg_file.set_subtitle(open_result.get_path())
+                    self.endpoint_resp_msg_file.set_subtitle(
+                        open_result.get_path()
+                    )
 
                     self.selected_req_proto = open_result
                     self.selected_resp_proto = open_result
@@ -299,12 +303,11 @@ class MainWindow(Adw.ApplicationWindow):
                     dialog.set_close_response('ok')
                     dialog.choose(self, None, None)
                 else:
-                    msg_names = [
-                        item.name
-                        for item in load_proto_msgs(open_result.get_path())
-                    ]
+                    msgs: list[ProtoMessageDeclaration] = list(
+                        load_proto_msgs(open_result.get_path())
+                    )
 
-                    if not msg_names:
+                    if not msgs:
                         dialog = Adw.AlertDialog.new(
                             'There is no message defined in this .proto.'
                         )
@@ -315,11 +318,15 @@ class MainWindow(Adw.ApplicationWindow):
 
                         return
 
-                    self.endpoint_resp_msg_names.splice(
-                        0, self.endpoint_resp_msg_names.get_n_items(), msg_names
+                    self.endpoint_resp_msgs.splice(
+                        0,
+                        self.endpoint_resp_msgs.get_n_items(),
+                        msgs,
                     )
 
-                    self.endpoint_resp_msg_file.set_subtitle(open_result.get_path())
+                    self.endpoint_resp_msg_file.set_subtitle(
+                        open_result.get_path()
+                    )
 
                     self.selected_resp_proto = open_result
 

@@ -223,19 +223,21 @@ template $MainWindow: Adw.ApplicationWindow {
 
             Adw.ComboRow endpoint_msg_list {
               enable-search: true;
-              expression: expr item as <StringObject>.string;
+              expression: expr item as <$ProtoMessageDeclaration>.name;
 
               factory: BuilderListItemFactory {
                 template ListItem {
                   child: Label {
                     xalign: 0;
                     ellipsize: end;
-                    label: bind template.item as <StringObject>.string;
+                    label: bind template.item as <$ProtoMessageDeclaration>.name;
                   };
                 }
               };
 
-              model: StringList endpoint_req_msg_names {};
+              model: Gio.ListStore endpoint_req_msgs {
+                item-type: typeof<$ProtoMessageDeclaration>;
+              };
 
               search-match-mode: substring;
               title: "Message:";
@@ -322,19 +324,21 @@ template $MainWindow: Adw.ApplicationWindow {
 
             Adw.ComboRow endpoint_resp_msg_list {
               enable-search: true;
-              expression: expr item as <StringObject>.string;
+              expression: expr item as <$ProtoMessageDeclaration>.name;
 
               factory: BuilderListItemFactory {
                 template ListItem {
                   child: Label {
                     xalign: 0;
                     ellipsize: end;
-                    label: bind template.item as <StringObject>.string;
+                    label: bind template.item as <$ProtoMessageDeclaration>.name;
                   };
                 }
               };
 
-              model: StringList endpoint_resp_msg_names {};
+              model: Gio.ListStore endpoint_resp_msgs {
+                item-type: typeof<$ProtoMessageDeclaration>;
+              };
 
               search-match-mode: substring;
               title: "Please select a message to parse";

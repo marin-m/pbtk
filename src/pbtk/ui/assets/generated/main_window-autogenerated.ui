@@ -247,7 +247,7 @@ pill</property>
                           <object class="AdwComboRow" id="endpoint_msg_list">
                             <property name="enable-search">true</property>
                             <property name="expression">
-                              <lookup name="string" type="GtkStringObject"></lookup>
+                              <lookup name="name" type="ProtoMessageDeclaration"></lookup>
                             </property>
                             <property name="factory">
                               <object class="GtkBuilderListItemFactory">
@@ -259,7 +259,7 @@ pill</property>
         <property name="xalign">0</property>
         <property name="ellipsize">3</property>
         <binding name="label">
-          <lookup name="string" type="GtkStringObject">
+          <lookup name="name" type="ProtoMessageDeclaration">
             <lookup name="item" type="GtkListItem">GtkListItem</lookup>
           </lookup>
         </binding>
@@ -270,7 +270,9 @@ pill</property>
                               </object>
                             </property>
                             <property name="model">
-                              <object class="GtkStringList" id="endpoint_req_msg_names"></object>
+                              <object class="GListStore" id="endpoint_req_msgs">
+                                <property name="item-type">ProtoMessageDeclaration</property>
+                              </object>
                             </property>
                             <property name="search-match-mode">1</property>
                             <property name="title">Message:</property>
@@ -383,7 +385,7 @@ pill</property>
                           <object class="AdwComboRow" id="endpoint_resp_msg_list">
                             <property name="enable-search">true</property>
                             <property name="expression">
-                              <lookup name="string" type="GtkStringObject"></lookup>
+                              <lookup name="name" type="ProtoMessageDeclaration"></lookup>
                             </property>
                             <property name="factory">
                               <object class="GtkBuilderListItemFactory">
@@ -395,7 +397,7 @@ pill</property>
         <property name="xalign">0</property>
         <property name="ellipsize">3</property>
         <binding name="label">
-          <lookup name="string" type="GtkStringObject">
+          <lookup name="name" type="ProtoMessageDeclaration">
             <lookup name="item" type="GtkListItem">GtkListItem</lookup>
           </lookup>
         </binding>
@@ -406,7 +408,9 @@ pill</property>
                               </object>
                             </property>
                             <property name="model">
-                              <object class="GtkStringList" id="endpoint_resp_msg_names"></object>
+                              <object class="GListStore" id="endpoint_resp_msgs">
+                                <property name="item-type">ProtoMessageDeclaration</property>
+                              </object>
                             </property>
                             <property name="search-match-mode">1</property>
                             <property name="title">Please select a message to parse</property>

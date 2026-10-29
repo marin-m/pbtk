@@ -12,6 +12,7 @@ from os import environ, makedirs, sep
 from importlib.util import find_spec
 from argparse import ArgumentParser
 from urllib.parse import urlparse
+from gi.repository import GObject
 from platform import architecture
 from subprocess import run, PIPE
 from json import dump, load
@@ -197,11 +198,15 @@ def insert_endpoint(base_path, obj):
 # Turn a .proto input into Python classes.
 
 
-class ProtoMessageDeclaration:
-    name: str
+class ProtoMessageDeclaration(GObject.Object):
+    __gtype_name__ = 'ProtoMessageDeclaration'
+
+    name = GObject.Property(type=str)
     definition: Message
 
     def __init__(self, name, definition):
+        super().__init__()
+
         self.name = name
         self.definition = definition
 
