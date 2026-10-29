@@ -48,6 +48,9 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                         </child>
                         <child>
                           <object class="AdwActionRow">
+                            <property name="action-name">navigation.push</property>
+                            <property name="action-target">"endpoint_selection_page"</property>
+                            <property name="activatable">true</property>
                             <property name="title">Step 3: Fuzz and test endpoints live</property>
                             <child type="suffix">
                               <object class="GtkImage">
@@ -109,7 +112,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                     <child>
                       <object class="GtkButton">
                         <property name="action-name">navigation.push</property>
-                        <property name="action-target">"endpoints_page"</property>
+                        <property name="action-target">"new_endpoint_page"</property>
                         <property name="label">(Debug: go to endpoint creation)</property>
                         <property name="visible">false</property>
                       </object>
@@ -221,7 +224,7 @@ pill</property>
           </object>
         </child>
         <child>
-          <object class="AdwNavigationPage" id="endpoints_page">
+          <object class="AdwNavigationPage" id="new_endpoint_page">
             <property name="child">
               <object class="AdwToolbarView">
                 <property name="content">
@@ -438,8 +441,38 @@ suggested-action</property>
                 </child>
               </object>
             </property>
-            <property name="tag">endpoints_page</property>
+            <property name="tag">new_endpoint_page</property>
             <property name="title">Define a new HTTPS endpoint</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwNavigationPage" id="endpoint_selection_page">
+            <property name="child">
+              <object class="AdwToolbarView">
+                <property name="content">
+                  <object class="GtkListView">
+                    <property name="factory">
+                      <object class="GtkBuilderListItemFactory"></object>
+                    </property>
+                    <property name="model">
+                      <object class="GtkNoSelection">
+                        <property name="model">
+                          <object class="GtkTreeListModel" id="endpoints_model">
+                            <property name="autoexpand">true</property>
+                          </object>
+                        </property>
+                      </object>
+                    </property>
+                    <property name="single-click-activate">true</property>
+                  </object>
+                </property>
+                <child type="top">
+                  <object class="AdwHeaderBar"></object>
+                </child>
+              </object>
+            </property>
+            <property name="tag">endpoint_selection_page</property>
+            <property name="title">Select an endpoint to test...</property>
           </object>
         </child>
       </object>

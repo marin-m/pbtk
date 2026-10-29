@@ -239,7 +239,7 @@ class MainWindow(Adw.ApplicationWindow):
                     self.selected_req_proto = open_result
                     self.selected_resp_proto = open_result
 
-                    self.main_nav_view.push_by_tag('endpoints_page')
+                    self.main_nav_view.push_by_tag('new_endpoint_page')
 
             def file_picked(
                 file_dialog: Gtk.FileDialog, task: Gio.AsyncResult

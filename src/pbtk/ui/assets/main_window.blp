@@ -44,6 +44,9 @@ template $MainWindow: Adw.ApplicationWindow {
             }
 
             Adw.ActionRow {
+              action-name: "navigation.push";
+              action-target: "\"endpoint_selection_page\"";
+              activatable: true;
               title: "Step 3: Fuzz and test endpoints live";
 
               [suffix]
@@ -100,7 +103,7 @@ template $MainWindow: Adw.ApplicationWindow {
 
           Button {
             action-name: "navigation.push";
-            action-target: "\"endpoints_page\"";
+            action-target: "\"new_endpoint_page\"";
             label: "(Debug: go to endpoint creation)";
             visible: false;
           }
@@ -203,7 +206,7 @@ template $MainWindow: Adw.ApplicationWindow {
       title: "Extraction progress";
     }
 
-    Adw.NavigationPage endpoints_page {
+    Adw.NavigationPage new_endpoint_page {
       child: Adw.ToolbarView {
         content: Adw.PreferencesPage {
           Adw.PreferencesGroup {
@@ -366,8 +369,30 @@ template $MainWindow: Adw.ApplicationWindow {
         }
       };
 
-      tag: "endpoints_page";
+      tag: "new_endpoint_page";
       title: "Define a new HTTPS endpoint";
+    }
+
+    Adw.NavigationPage endpoint_selection_page {
+      child: Adw.ToolbarView {
+        content: ListView {
+          factory: BuilderListItemFactory {};
+
+          model: NoSelection {
+            model: TreeListModel endpoints_model {
+              autoexpand: true;
+            };
+          };
+
+          single-click-activate: true;
+        };
+
+        [top]
+        Adw.HeaderBar {}
+      };
+
+      tag: "endpoint_selection_page";
+      title: "Select an endpoint to test...";
     }
   };
 
