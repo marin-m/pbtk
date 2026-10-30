@@ -16,8 +16,6 @@ template $FuzzerWindow: Adw.Window {
         }
 
         Adw.ViewStack fuzzer_view_stack {
-          visible-child-name: "proto_page";
-
           Adw.ViewStackPage proto_page {
             child: ScrolledWindow {
               child: ListView {
@@ -87,6 +85,15 @@ template $FuzzerWindow: Adw.Window {
           column: "0";
           column-span: "1";
           row: "1";
+          row-span: "1";
+        }
+      }
+
+      $WebKitWebView {
+        layout {
+          column: "0";
+          column-span: "1";
+          row: "0";
           row-span: "1";
         }
       }

@@ -23,7 +23,6 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                 </child>
                 <child>
                   <object class="AdwViewStack" id="fuzzer_view_stack">
-                    <property name="visible-child-name">proto_page</property>
                     <child>
                       <object class="AdwViewStackPage" id="proto_page">
                         <property name="child">
@@ -108,6 +107,16 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                   <property name="column">0</property>
                   <property name="column-span">1</property>
                   <property name="row">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="WebKitWebView">
+                <layout>
+                  <property name="column">0</property>
+                  <property name="column-span">1</property>
+                  <property name="row">0</property>
                   <property name="row-span">1</property>
                 </layout>
               </object>
