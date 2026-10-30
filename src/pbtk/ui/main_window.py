@@ -1,33 +1,32 @@
 #!/usr/bin/env python3
 
-from pbtk.utils.common import (
-    extractors,
-    transports,
-    load_proto_msgs,
-    ProtoMessageDeclaration,
-    insert_endpoint,
-    BASE_PATH,
-)
-from pbtk.ui.templates.extractor_row import ExtractorRow
-from pbtk.datamodel.transport import TransportDefinition
-from pbtk.datamodel.endpoint import EndpointListRow
-from pbtk.datamodel.extractor import Extractor
-from pbtk.extractors import *
-
-from collections import defaultdict, OrderedDict
+from collections import OrderedDict, defaultdict
 from importlib.metadata import version
-from urllib.parse import urlparse
-from os import scandir
 from json import load
+from os import scandir
+from urllib.parse import urlparse
 
 import gi
+
+from pbtk.datamodel.endpoint import EndpointListRow
+from pbtk.datamodel.extractor import Extractor
+from pbtk.datamodel.transport import TransportDefinition
+from pbtk.extractors import *
+from pbtk.ui.fuzzer import FuzzerWindow
+from pbtk.ui.templates.extractor_row import ExtractorRow
+from pbtk.utils.common import (
+    BASE_PATH,
+    ProtoMessageDeclaration,
+    extractors,
+    insert_endpoint,
+    load_proto_msgs,
+    transports,
+)
 
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 
-from gi.repository import Gtk, Adw, GObject, GLib, Gio
-
-# (⚠️ TODO: Load from BLP file)
+from gi.repository import Adw, Gio, GLib, GObject, Gtk
 
 
 @Gtk.Template(
@@ -37,6 +36,7 @@ class MainWindow(Adw.ApplicationWindow):
     __gtype_name__ = 'MainWindow'
 
     app: Adw.Application
+    fuzzer: FuzzerWindow
 
     about_dialog: Adw.AboutDialog
     debug_timer_source: int = None
@@ -97,6 +97,10 @@ class MainWindow(Adw.ApplicationWindow):
 
         self.set_application(app)
         self.app = app
+
+        self.fuzzer = FuzzerWindow()
+        self.fuzzer.set_modal(True)
+        self.fuzzer.set_transient_for(self)
 
         # Pre-draw about dialog using AppStream metadata
 

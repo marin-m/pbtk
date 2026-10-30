@@ -158,17 +158,19 @@ PBTK uses two kinds of pluggable modules internally: extractors, and transports.
 Extractors are defined in `src/pbtk/extractors/*.py`. They are defined as a method preceded by a decorator, like this:
 
 ```python
-@register_extractor(name = 'my_extractor',
-                    readable_name = 'My Extractor',
-                    description = 'Extract Protobuf structures from Foobar code (*.foo, *.bar)',
-                    depends={'binaries': ['foobar-decompiler']})
+@register_extractor(
+    name='my_extractor',
+    readable_name='My Extractor',
+    description='Extract Protobuf structures from Foobar code (*.foo, *.bar)',
+    depends={'binaries': ['foobar-decompiler']},
+)
 def my_extractor(path):
     # Load contents of the `path` input file and do your stuff...
-    
+
     # Then, yield extracted .protos using a generator:
     for i in do_your_extraction_work():
         yield proto_name + '.proto', proto_contents
-    
+
     # Other kinds of information can be yield, such as endpoint information or progress to display.
 ```
 
@@ -178,25 +180,25 @@ Transports are defined in `src/pbtk/utils/transports.py`. They are defined as a 
 
 ```python
 @register_transport(
-    name = 'my_transport',
-    description = 'Protobuf as raw POST data',
-    ui_data_form = 'hex strings'
+    name='my_transport',
+    description='Protobuf as raw POST data',
+    ui_data_form='hex strings',
 )
-class MyTransport():
+class MyTransport:
     def __init__(self, pb_param, url):
         self.url = url
-    
+
     def serialize_sample(self, sample):
         # We got a sample of input data from the user.
         # Verify that it is valid in the form described through "ui_data_form" parameter, fail with an exception or return False otherwise.
         # Optionally modify this data prior to returning it.
         bytes.fromhex(sample)
         return sample
-    
+
     def load_sample(self, sample, pb_msg):
         # Parse input data into the provided Protobuf object.
         pb_msg.ParseFromString(bytes.fromhex(sample))
-    
+
     def perform_request(self, pb_data, tab_data):
         # Perform a request using the provided URL and Protobuf object, and optionally other transport-specific side data.
         return post(url, pb_data.SerializeToString(), headers=USER_AGENT)

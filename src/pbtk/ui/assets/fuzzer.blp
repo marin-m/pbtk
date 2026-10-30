@@ -1,6 +1,7 @@
 using Gtk 4.0;
 using Adw 1;
 using Gio 2.0;
+using WebKit 6.0;
 
 template $FuzzerWindow: Adw.Window {
   content: Adw.ToolbarView {
@@ -89,7 +90,7 @@ template $FuzzerWindow: Adw.Window {
         }
       }
 
-      $WebKitWebView {
+      WebKit.WebView {
         layout {
           column: "0";
           column-span: "1";
