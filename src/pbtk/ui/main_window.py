@@ -175,6 +175,12 @@ class MainWindow(Adw.ApplicationWindow):
             GObject.BindingFlags.SYNC_CREATE,
         )
 
+        # ➡️ TODO: Either use passthrough, or
+        #    use a signal-based factory in
+        #    order to build selectable
+        #    endpoint rows with on-click signals
+        #    (cf. https://discourse.gnome.org/t/how-to-get-item-under-gtk-4-listview/21184/5)
+
         self.endpoints_list = Gio.ListStore.new(EndpointListRow)
         self.endpoints_selection.set_model(
             Gtk.TreeListModel.new(
