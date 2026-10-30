@@ -3,11 +3,14 @@
 from pathlib import Path
 
 import gi
+from google.protobuf.message import Message
 
+from pbtk.datamodel.transport import Transport, TransportDefinition
 from pbtk.utils.common import (
-    load_proto_msgs,
-    ProtoMessageDeclaration,
     BASE_PATH,
+    ProtoMessageDeclaration,
+    load_proto_msgs,
+    transports,
 )
 
 gi.require_version('WebKit', '6.0')
@@ -24,10 +27,41 @@ from gi.repository.WebKit import WebView
 class FuzzerWindow(Adw.Window):
     __gtype_name__ = 'FuzzerWindow'
 
+    endpoint: dict
+    transport_meta: TransportDefinition
+    transport: Transport
+
+    base_url: str
+    pb_param: str | None = None
+
     current_req_proto: Path
     current_req_proto_msgs: list[ProtoMessageDeclaration]
+    pb_request: Message
+
+    current_resp_proto: Path = None
+    current_resp_proto_msgs: list[ProtoMessageDeclaration] = None
+    pb_response: Message = None
 
     def load(self, endpoint: dict, sample_id: int = 0):
+
+        self.endpoint = endpoint
+
+        self.base_url = endpoint['request']['url']
+        self.pb_param = endpoint['request'].get('pb_param')
+
+        self.transport_meta = transports[endpoint['request']['transport']]
+        self.transport = self.transport_meta.transport_class(
+            self.pb_param, self.base_url
+        )
+
+        # Load sample
+
+        sample = ''
+        if endpoint['request'].get('samples'):
+            sample = endpoint['request']['samples'][sample_id]
+        self.get_params = self.transport.load_sample(sample, self.pb_request)
+
+        # Load Protobuf request message
 
         self.current_req_proto = (
             BASE_PATH / 'protos' / endpoint['request']['proto_path']
@@ -36,6 +70,38 @@ class FuzzerWindow(Adw.Window):
         self.current_req_proto_msgs = list(
             load_proto_msgs(self.current_req_proto)
         )
+        self.pb_request = next(
+            (
+                item
+                for item in self.current_req_proto_msgs
+                if item.name == endpoint['request']['proto_msg']
+            ),
+            None,
+        ).definition()
+
+        # Load Protobuf response message, if any
+
+        if (
+            endpoint.get('response')
+            and endpoint['response']['format'] == 'raw_pb'
+        ):
+            self.current_resp_proto = (
+                BASE_PATH / 'protos' / endpoint['response']['proto_path']
+            )
+
+            self.current_resp_proto_msgs = list(
+                load_proto_msgs(self.current_resp_proto)
+            )
+            self.pb_response = next(
+                (
+                    item
+                    for item in self.current_resp_proto_msgs
+                    if item.name == endpoint['response']['proto_msg']
+                ),
+                None,
+            ).definition()
+
+        # Present fuzzer window
 
         self.present()
 

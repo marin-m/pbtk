@@ -1,35 +1,37 @@
 #!/usr/bin/env python3
-from collections import OrderedDict, defaultdict
-from collections.abc import Sequence, Iterable
-from os.path import exists, dirname, realpath
-from google.protobuf.message import Message
-from importlib import import_module, reload
-from tempfile import TemporaryDirectory
-from inspect import getmembers, isclass
-from logging import debug, error, info
-from sys import platform, path as PATH
-from os import environ, makedirs, sep
-from importlib.util import find_spec
 from argparse import ArgumentParser
-from urllib.parse import urlparse
-from gi.repository import GObject
-from platform import architecture
-from subprocess import run, PIPE
+from collections import OrderedDict, defaultdict
+from collections.abc import Iterable, Sequence
+from importlib import import_module, reload
+from importlib.util import find_spec
+from inspect import getmembers, isclass
 from json import dump, load
-from re import findall, sub
+from logging import debug, error, info
+from os import environ, makedirs, sep
+from os.path import dirname, exists, realpath
 from pathlib import Path
+from platform import architecture
+from re import findall, sub
 from shutil import which
+from subprocess import PIPE, run
+from sys import path as PATH
+from sys import platform
+from tempfile import TemporaryDirectory
 from typing import Dict
+from urllib.parse import urlparse
 
-from pbtk.datamodel.transport import Transport, TransportDefinition
+from gi.repository import GObject
+from google.protobuf.message import Message
+
 from pbtk.datamodel.extractor import (
     Extractor,
-    ExtractorThreadMessage,
-    ExtractorOutputFile,
     ExtractorErrorMessage,
     ExtractorInfoMessage,
+    ExtractorOutputFile,
     ExtractorProgress,
+    ExtractorThreadMessage,
 )
+from pbtk.datamodel.transport import Transport, TransportDefinition
 
 # Constructing paths - local data
 

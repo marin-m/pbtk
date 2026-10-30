@@ -1,8 +1,10 @@
-# ⚠️ WIP
+#!/usr/bin/env python3
 
-from google.protobuf.message import Message
 from abc import ABC, abstractmethod
+
 from gi.repository import GObject
+from google.protobuf.message import Message
+from requests import Response
 
 # ⚠️ SEE https://docs.python.org/fr/3/library/abc.html#abc.abstractproperty
 # to replace decorator arguments
@@ -45,24 +47,36 @@ class Transport(ABC):
         self.url = url
 
     @abstractmethod
-    def serialize_sample(self, sample: str) -> str | dict:
+    def serialize_sample(self, sample: str) -> str | dict | bool:
         """
         We got a sample of input data from the user.
         Verify that it is valid in the form described
         through "ui_data_form" parameter, fail with an
         exception or return False otherwise.
 
-        Optionally modify this data prior to returning it.
+        Optionally modify this data prior to returning it,
+        so that it can readily be serialized in the saved
+        JSON endpoint information file.
         """
         ...
 
     @abstractmethod
-    def load_sample(self, sample: str | dict, pb_msg: Message):
-        """Parse input data into the provided Protobuf object."""
+    def load_sample(self, sample: str | dict, pb_msg: Message) -> dict:
+        """
+        Parse data returned by serialize_sample() and
+        stored into pbtk's disk-persistent JSON state
+        into the provided Protobuf object, and return
+        editable additional protocol-specific data (extra
+         query string part if any, or extra HTTPS
+         headers if the input is a raw ex-encoded
+         binary POST body)
+        """
         ...
 
     @abstractmethod
-    def perform_request(self, pb_data: Message, tab_data: dict | None):
+    def perform_request(
+        self, pb_data: Message, tab_data: dict | None
+    ) -> Response:
         """
         Perform a request using the provided URL and Protobuf
         object, and optionally other transport-specific side data.

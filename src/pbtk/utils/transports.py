@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
-from urllib.parse import quote_plus, urlencode, parse_qsl, urlparse
 from base64 import urlsafe_b64decode, urlsafe_b64encode
 from collections import OrderedDict
-from requests import get, post
 from functools import reduce
-from re import sub, match
 from json import loads
+from re import match, sub
+from urllib.parse import parse_qsl, quote_plus, urlencode, urlparse
 
-from pbtk.utils.pburl_decoder import proto_url_encode, proto_url_decode
-from pbtk.utils.common import register_transport
+from google.protobuf.message import Message
+from requests import Response, get, post
+
 from pbtk.datamodel.transport import Transport
+from pbtk.utils.common import register_transport
+from pbtk.utils.pburl_decoder import proto_url_decode, proto_url_encode
 
 USER_AGENT = {
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36'
@@ -27,26 +29,26 @@ class RawPOST(Transport):
     ui_data_form = 'hex strings'
     has_pb_param = False
 
-    def __init__(self, pb_param, url):
+    def __init__(self, pb_param: None, url: str):
         self.url = url
 
-    def serialize_sample(self, sample):
+    def serialize_sample(self, sample: str) -> str:
         bytes.fromhex(sample)
         return sample
 
-    def load_sample(self, sample, pb_msg):
+    def load_sample(self, sample: str, pb_msg: Message) -> dict:
         pb_msg.ParseFromString(bytes.fromhex(sample))
         self.headers = OrderedDict(USER_AGENT)
         self.headers['Content-Type'] = 'application/x-protobuf'
         return self.headers
 
-    def perform_request(self, pb_data, tab_data):
+    def perform_request(self, pb_data: Message, tab_data: dict) -> Response:
         return post(
             self.url, pb_data.SerializeToString(), headers=self.headers
         )
 
 
-def my_quote(x):
+def my_quote(x: str) -> str:
     return quote_plus(str(x), safe='~()*!.')
 
 
@@ -58,24 +60,24 @@ class Base64GET(Transport):
     ui_data_form = 'regular GET query strings'
     has_pb_param = True
 
-    def __init__(self, pb_param, url):
+    def __init__(self, pb_param: str, url: str):
         self.pb_param = pb_param
         self.url = url.split('?')[0]
 
-    def serialize_sample(self, sample):
+    def serialize_sample(self, sample: str) -> dict | bool:
         sample = OrderedDict(parse_qsl(sample))
         if self.pb_param not in sample:
             return False
         return sample
 
-    def load_sample(self, sample, pb_msg):
+    def load_sample(self, sample: dict, pb_msg: Message) -> dict:
         sample = OrderedDict(sample or {self.pb_param: ''})
         base64 = sample.pop(self.pb_param)
         base64 = urlsafe_b64decode(base64 + '=' * (4 - len(base64) % 4))
         pb_msg.ParseFromString(base64)
         return sample
 
-    def perform_request(self, pb_data, tab_data):
+    def perform_request(self, pb_data: Message, tab_data: dict) -> Response:
         base64 = urlsafe_b64encode(pb_data.SerializeToString()).decode('utf8')
         params = OrderedDict({self.pb_param: base64.strip('=')})
         params.update(tab_data)
@@ -99,11 +101,11 @@ class GMapsAPIPrivate(Transport):
     ui_data_form = 'regular GET query strings'
     has_pb_param = True
 
-    def __init__(self, pb_param, url):
+    def __init__(self, pb_param: str, url: str):
         self.pb_param = pb_param
         self.url = url.split('?')[0]
 
-    def serialize_sample(self, sample):
+    def serialize_sample(self, sample: str) -> dict | bool:
         sample = OrderedDict(parse_qsl(sample))
         if self.pb_param not in sample:
             return False
@@ -113,14 +115,14 @@ class GMapsAPIPrivate(Transport):
             sample['callback'] = ''
         return sample
 
-    def load_sample(self, sample, pb_msg):
+    def load_sample(self, sample: dict, pb_msg: Message) -> dict:
         sample = OrderedDict(sample or {self.pb_param: ''})
         if 'callback' in sample:
             sample['callback'] = '_xdc_._'
         proto_url_decode(sample.pop(self.pb_param), pb_msg)
         return sample
 
-    def perform_request(self, pb_data, tab_data):
+    def perform_request(self, pb_data: Message, tab_data: dict) -> Response:
         params = OrderedDict({self.pb_param: proto_url_encode(pb_data)})
         params.update(tab_data)
         url = sub(
@@ -143,10 +145,10 @@ class GMapsAPIPublic(Transport):
     ui_data_form = 'GET query strings copied as-is'
     has_pb_param = False
 
-    def __init__(self, pb_param, url):
+    def __init__(self, pb_param: None, url: str):
         self.url = url.split('?')[0]
 
-    def serialize_sample(self, sample):
+    def serialize_sample(self, sample: str) -> str:
         sample = self.parse_qs(sample)
         if 'token' in sample:
             del sample['token']
@@ -154,21 +156,21 @@ class GMapsAPIPublic(Transport):
             sample['callback'] = ''
         return self.rebuild_qs(sample)
 
-    def parse_qs(self, sample):
+    def parse_qs(self, sample: str) -> dict:
         pb = match(r'(?:&?\d[^&=]+)*', sample)
         return OrderedDict(
             [(pb.group(0), ''), *parse_qsl(sample[pb.end() + 1 :], True)]
         )
 
-    def rebuild_qs(self, sample):
+    def rebuild_qs(self, sample: str) -> str:
         return '&'.join(
             k if not k or k[0].isdigit() else my_quote(k) + '=' + my_quote(v)
             for k, v in sample.items()
         )
 
-    def load_sample(self, sample, pb_msg):
+    def load_sample(self, sample: str, pb_msg: Message) -> dict:
         sample = self.parse_qs(sample)
-        pb_data = '&'.join(k for k in sample.keys() if not k or k[0].isdigit())
+        pb_data = '&'.join(k for k in sample if not k or k[0].isdigit())
         get_data = OrderedDict(
             (k, v) for k, v in sample.items() if k and not k[0].isdigit()
         )
@@ -177,7 +179,7 @@ class GMapsAPIPublic(Transport):
         proto_url_decode(pb_data, pb_msg, '&')
         return get_data
 
-    def perform_request(self, pb_data, tab_data):
+    def perform_request(self, pb_data: Message, tab_data: dict) -> Response:
         params = OrderedDict({proto_url_encode(pb_data, '&'): ''})
         params.update(tab_data)
         params['token'] = self.hash_token(
@@ -187,7 +189,7 @@ class GMapsAPIPublic(Transport):
             self.url + '?' + self.rebuild_qs(params), headers=USER_AGENT
         )
 
-    def hash_token(self, url):
+    def hash_token(self, url: str) -> int:
         if not hasattr(self, 'token'):
             self.token = get(
                 'https://maps.google.com/maps/api/js', headers=USER_AGENT
