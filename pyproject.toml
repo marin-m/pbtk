@@ -27,9 +27,7 @@ requires-python = ">=3.10"
 dependencies = [
     "protobuf<7.34",
     "pygobject>=3.56.3",
-    "pyside6>=6.10.2",
     "requests",
-    "system-pyside6>=0.1.1",
     "websocket-client",
 ]
 
