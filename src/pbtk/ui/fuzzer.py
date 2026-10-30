@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 
+from pathlib import Path
+
 import gi
+
+from pbtk.utils.common import (
+    load_proto_msgs,
+    ProtoMessageDeclaration,
+    BASE_PATH,
+)
 
 gi.require_version('WebKit', '6.0')
 gi.require_version('Gtk', '4.0')
@@ -15,3 +23,20 @@ from gi.repository.WebKit import WebView
 )
 class FuzzerWindow(Adw.Window):
     __gtype_name__ = 'FuzzerWindow'
+
+    current_req_proto: Path
+    current_req_proto_msgs: list[ProtoMessageDeclaration]
+
+    def load(self, endpoint: dict, sample_id: int = 0):
+
+        self.current_req_proto = (
+            BASE_PATH / 'protos' / endpoint['request']['proto_path']
+        )
+
+        self.current_req_proto_msgs = list(
+            load_proto_msgs(self.current_req_proto)
+        )
+
+        self.present()
+
+        pass  # ⚠️ 🪧TODO... (importing code from pbtk._ui_legacy.gui.launch_fuzzer)
