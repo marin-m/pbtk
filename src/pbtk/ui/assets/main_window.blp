@@ -376,21 +376,9 @@ template $MainWindow: Adw.ApplicationWindow {
     Adw.NavigationPage endpoint_selection_page {
       child: Adw.ToolbarView {
         content: ListView {
-          factory: BuilderListItemFactory {
-            template ListItem {
-              child: TreeExpander {
-                list-row: bind template.item as <Gtk.TreeListRow>;
-
-                child: Label {
-                  use-markup: true;
-                  margin-bottom: 7;
-                  margin-top: 7;
-                  margin-start: 7;
-                  margin-end: 7;
-                  label: bind template.item as <TreeListRow>.item as <$EndpointListRow>.label;
-                };
-              };
-            }
+          factory: SignalListItemFactory {
+            bind => $endpoints_bind_cb();
+            setup => $endpoints_setup_cb();
           };
 
           model: NoSelection endpoints_selection {};

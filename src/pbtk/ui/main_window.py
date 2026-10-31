@@ -175,9 +175,8 @@ class MainWindow(Adw.ApplicationWindow):
             GObject.BindingFlags.SYNC_CREATE,
         )
 
-        # ➡️ TODO: Either use passthrough, or
-        #    use a signal-based factory in
-        #    order to build selectable
+        # ➡️ WIP: Use a signal-based factory
+        #    in order to build selectable
         #    endpoint rows with on-click signals
         #    (cf. https://discourse.gnome.org/t/how-to-get-item-under-gtk-4-listview/21184/5)
 
@@ -515,3 +514,36 @@ class MainWindow(Adw.ApplicationWindow):
                             has_children=False,
                         )
                         proto_item.children.append(endpoint_item)
+
+    @Gtk.Template.Callback()
+    def endpoints_bind_cb(
+        self,
+        factory: Gtk.SignalListItemFactory,
+        list_item: Gtk.ListItem,
+    ):
+        tree_list_row: Gtk.TreeListRow = list_item.get_item()
+        endpoint_row: EndpointListRow = tree_list_row.get_item()
+
+        expander = Gtk.TreeExpander()
+        expander.set_list_row(tree_list_row)
+
+        label = Gtk.Label()
+        label.set_use_markup(True)
+        label.set_label(endpoint_row.label)
+        label.set_margin_top(7)
+        label.set_margin_bottom(7)
+        label.set_margin_start(7)
+        label.set_margin_end(7)
+        expander.set_child(label)
+
+        list_item.set_child(expander)
+
+    @Gtk.Template.Callback()
+    def endpoints_setup_cb(
+        self,
+        factory: Gtk.SignalListItemFactory,
+        list_item: Gtk.ListItem,
+    ):
+        # ⚠️ TODO
+
+        pass
