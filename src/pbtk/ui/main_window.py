@@ -516,20 +516,16 @@ class MainWindow(Adw.ApplicationWindow):
                         proto_item.children.append(endpoint_item)
 
     @Gtk.Template.Callback()
-    def endpoints_bind_cb(
+    def endpoints_setup_cb(
         self,
         factory: Gtk.SignalListItemFactory,
         list_item: Gtk.ListItem,
     ):
-        tree_list_row: Gtk.TreeListRow = list_item.get_item()
-        endpoint_row: EndpointListRow = tree_list_row.get_item()
-
         expander = Gtk.TreeExpander()
-        expander.set_list_row(tree_list_row)
+        list_item.bind_property('item', expander, 'list-row')
 
         label = Gtk.Label()
         label.set_use_markup(True)
-        label.set_label(endpoint_row.label)
         label.set_margin_top(7)
         label.set_margin_bottom(7)
         label.set_margin_start(7)
@@ -539,11 +535,16 @@ class MainWindow(Adw.ApplicationWindow):
         list_item.set_child(expander)
 
     @Gtk.Template.Callback()
-    def endpoints_setup_cb(
+    def endpoints_bind_cb(
         self,
         factory: Gtk.SignalListItemFactory,
         list_item: Gtk.ListItem,
     ):
-        # ⚠️ TODO
+        tree_list_row: Gtk.TreeListRow = list_item.get_item()
+        endpoint_row: EndpointListRow = tree_list_row.get_item()
 
-        pass
+        expander: Gtk.TreeExpander = list_item.get_child()
+        label: Gtk.Label = expander.get_child()
+
+        label.set_label(endpoint_row.label)
+        # ⚠️ TODO: bind signals
