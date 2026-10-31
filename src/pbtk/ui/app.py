@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 
+from os import environ
+
+# Disable the C++ extension for Python-Protobuf (for consistent behaviour) [1]
+# [1] https://github.com/google/protobuf/blob/cf1418/python/google/protobuf/internal/api_implementation.py#L72
+
+environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
+
 from traceback import format_exception
 from argparse import ArgumentParser
 from logging import debug, error

@@ -40,12 +40,19 @@ types_dec: dict[str, int] = {
 }
 
 
-def proto_url_decode(pburl, pbdesc, sep='!'):
+def proto_url_check_format(pburl: str, sep: str = '!') -> bool:
+    for field in pburl.strip(sep).split(sep):
+        if not match(r'(\d+)(\w)(.*)', field):
+            return False
+    return True
+
+
+def proto_url_decode(pburl: str, pbdesc: Message, sep: str = '!'):
     if pburl:
         consume(pburl.strip(sep).split(sep), pbdesc, sep)
 
 
-def consume(obj, pb, sep):
+def consume(obj: list[str], pb: Message, sep: str):
     while obj:
         field = obj.pop(0)
         index, type_, val = match(r'(\d+)(\w)(.*)', field).groups()

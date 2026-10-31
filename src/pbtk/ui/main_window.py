@@ -90,6 +90,7 @@ class MainWindow(Adw.ApplicationWindow):
     # Step #3 - Send off network data
 
     endpoints_selection: Gtk.NoSelection = Gtk.Template.Child()
+    endpoints_model = GObject.Property(type=Gtk.TreeListModel)
     endpoints_list = GObject.Property(type=Gio.ListStore)  # Of EndpointListRow
 
     def __init__(self, app):
@@ -181,14 +182,13 @@ class MainWindow(Adw.ApplicationWindow):
         #    (cf. https://discourse.gnome.org/t/how-to-get-item-under-gtk-4-listview/21184/5)
 
         self.endpoints_list = Gio.ListStore.new(EndpointListRow)
-        self.endpoints_selection.set_model(
-            Gtk.TreeListModel.new(
-                self.endpoints_list,
-                passthrough=False,
-                autoexpand=True,
-                create_func=lambda item: item.children,
-            )
+        self.endpoints_model = Gtk.TreeListModel.new(
+            self.endpoints_list,
+            passthrough=False,
+            autoexpand=True,
+            create_func=lambda item: item.children,
         )
+        self.endpoints_selection.set_model(self.endpoints_model)
 
     def connect_actions(self):
 
@@ -479,6 +479,16 @@ class MainWindow(Adw.ApplicationWindow):
         self.pb_param_subform.set_visible(current_transport.has_pb_param)
 
     @Gtk.Template.Callback()
+    def endpoint_row_selected(self, list_view: Gtk.ListView, position: int):
+        tree_list_row: Gtk.TreeListRow = self.endpoints_model.get_item(
+            position
+        )
+        endpoint_row: EndpointListRow = tree_list_row.get_item()
+
+        if endpoint_row.endpoint:
+            self.fuzzer.load(endpoint_row.endpoint)
+
+    @Gtk.Template.Callback()
     def update_endpoints_list(self, *args):
 
         self.endpoints_list.remove_all()
@@ -514,37 +524,3 @@ class MainWindow(Adw.ApplicationWindow):
                             has_children=False,
                         )
                         proto_item.children.append(endpoint_item)
-
-    @Gtk.Template.Callback()
-    def endpoints_setup_cb(
-        self,
-        factory: Gtk.SignalListItemFactory,
-        list_item: Gtk.ListItem,
-    ):
-        expander = Gtk.TreeExpander()
-        list_item.bind_property('item', expander, 'list-row')
-
-        label = Gtk.Label()
-        label.set_use_markup(True)
-        label.set_margin_top(7)
-        label.set_margin_bottom(7)
-        label.set_margin_start(7)
-        label.set_margin_end(7)
-        expander.set_child(label)
-
-        list_item.set_child(expander)
-
-    @Gtk.Template.Callback()
-    def endpoints_bind_cb(
-        self,
-        factory: Gtk.SignalListItemFactory,
-        list_item: Gtk.ListItem,
-    ):
-        tree_list_row: Gtk.TreeListRow = list_item.get_item()
-        endpoint_row: EndpointListRow = tree_list_row.get_item()
-
-        expander: Gtk.TreeExpander = list_item.get_child()
-        label: Gtk.Label = expander.get_child()
-
-        label.set_label(endpoint_row.label)
-        # ⚠️ TODO: bind signals

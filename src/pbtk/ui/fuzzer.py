@@ -56,15 +56,6 @@ class FuzzerWindow(Adw.Window):
             self.pb_param, self.base_url
         )
 
-        # Load sample
-
-        sample = ''
-        if endpoint['request'].get('samples'):
-            sample = endpoint['request']['samples'][sample_id]
-        self.protocol_specific_params = self.transport.load_sample(
-            sample, self.pb_request
-        )
-
         # Load Protobuf request message
 
         self.current_req_proto = (
@@ -104,6 +95,16 @@ class FuzzerWindow(Adw.Window):
                 ),
                 None,
             ).definition()
+
+        # Load sample
+
+        sample = ''
+        if endpoint['request'].get('samples'):
+            sample = endpoint['request']['samples'][sample_id]
+
+        self.protocol_specific_params = self.transport.load_sample(
+            sample, self.pb_request
+        )
 
         # Present fuzzer window
 

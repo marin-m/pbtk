@@ -130,6 +130,8 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
     </property>
     <property name="default-height">480</property>
     <property name="default-width">720</property>
+    <property name="destroy-with-parent">true</property>
+    <property name="hide-on-close">true</property>
     <property name="title">Fuzzer</property>
   </template>
 </interface>

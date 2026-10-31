@@ -11,7 +11,11 @@ from requests import Response, get, post
 
 from pbtk.datamodel.transport import Transport
 from pbtk.utils.common import register_transport
-from pbtk.utils.pburl_decoder import proto_url_decode, proto_url_encode
+from pbtk.utils.pburl_decoder import (
+    proto_url_decode,
+    proto_url_check_format,
+    proto_url_encode,
+)
 
 USER_AGENT = {
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36'
@@ -113,6 +117,8 @@ class GMapsAPIPrivate(Transport):
             del sample['token']
         if 'callback' in sample:
             sample['callback'] = ''
+        if not proto_url_check_format(sample[self.pb_param]):
+            return False
         return sample
 
     def load_sample(self, sample: dict, pb_msg: Message) -> dict:
