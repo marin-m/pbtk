@@ -111,22 +111,20 @@ wheels = [
 
 [[package]]
 name = "pbtk"
-version = "1.1.3"
+version = "1.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "protobuf" },
-    { name = "pyside6" },
+    { name = "pygobject" },
     { name = "requests" },
-    { name = "system-pyside6" },
     { name = "websocket-client" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "protobuf", specifier = "<7.34" },
-    { name = "pyside6", specifier = ">=6.10.2" },
+    { name = "pygobject", specifier = ">=3.56.3" },
     { name = "requests" },
-    { name = "system-pyside6", specifier = ">=0.1.1" },
     { name = "websocket-client" },
 ]
 
@@ -146,52 +144,42 @@ wheels = [
 ]
 
 [[package]]
-name = "pyside6"
-version = "6.10.2"
+name = "pycairo"
+version = "1.29.1"
 source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "pyside6-addons" },
-    { name = "pyside6-essentials" },
-    { name = "shiboken6" },
-]
+sdist = { url = "https://files.pythonhosted.org/packages/26/7c/ab4637b028d9ee12280ab9342f28310e613d5ca30c4d72d2aebeaa6a4969/pycairo-1.29.1.tar.gz", hash = "sha256:4fbd26b4af24c9787d84cf5448e34eb8dca064b732479aaecd03109520eebd5f", size = 666272, upload-time = "2026-08-07T08:45:50.095Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/35/0f/5736889fc850794623692cb369e295a994175e51295fa52134626f486296/pyside6-6.10.2-cp39-abi3-macosx_13_0_universal2.whl", hash = "sha256:4b084293caa7845d0064aaf6af258e0f7caae03a14a33537d0a552131afddaf0", size = 563185, upload-time = "2026-02-02T08:50:47.161Z" },
-    { url = "https://files.pythonhosted.org/packages/35/d3/ab5cd2fac3d34469c7376e0cd18eec92905dbe44748c70bda7699a2a7206/pyside6-6.10.2-cp39-abi3-manylinux_2_34_x86_64.whl", hash = "sha256:1b89ce8558d4b4f35b85bff1db90d680912e4d3ce9e79ff804d6fef1d1a151ef", size = 563357, upload-time = "2026-02-02T08:50:48.919Z" },
-    { url = "https://files.pythonhosted.org/packages/ea/8c/55bbd50c138c8dc12edc9f25e9d94760a33e574905468e98dff399094baa/pyside6-6.10.2-cp39-abi3-manylinux_2_39_aarch64.whl", hash = "sha256:0439f5e9b10ebe6177981bac9e219096ec970ac6ec215bef055279802ba50601", size = 563357, upload-time = "2026-02-02T08:50:50.077Z" },
-    { url = "https://files.pythonhosted.org/packages/4f/d4/673b8112b4a260377f760be835c4e357163fdaf68a56a1aec59aeb8e584b/pyside6-6.10.2-cp39-abi3-win_amd64.whl", hash = "sha256:032bad6b18a17fcbf4dddd0397f49b07f8aae7f1a45b7e4de7037bf7fd6e0edf", size = 569554, upload-time = "2026-02-02T08:50:51.147Z" },
-    { url = "https://files.pythonhosted.org/packages/14/95/bda648fcccf61fe58cb417284716ae30acdddd44f7d4cbad6eea4ccaa872/pyside6-6.10.2-cp39-abi3-win_arm64.whl", hash = "sha256:65a59ad0bc92525639e3268d590948ce07a80ee97b55e7a9200db41d493cac31", size = 553828, upload-time = "2026-02-02T08:50:52.244Z" },
+    { url = "https://files.pythonhosted.org/packages/1d/70/358f2a617c024d491a8db8cc40f090c2fdb771c13ae5afb2c82471166663/pycairo-1.29.1-cp310-cp310-win32.whl", hash = "sha256:46abf30e61d4c27022296e858af900d3e5dae764c1e6acfb9b9e4082af860131", size = 751304, upload-time = "2026-08-07T08:46:02.516Z" },
+    { url = "https://files.pythonhosted.org/packages/b7/29/359b2bacc7e2d85e02e18fc4edd6e6f9c3807c518e04e95c5222c5980d05/pycairo-1.29.1-cp310-cp310-win_amd64.whl", hash = "sha256:507fefbddc8eeb27862a815c4a4ec648f06d6e22a671e00dcbe766a899e4bcef", size = 845458, upload-time = "2026-08-07T08:46:03.838Z" },
+    { url = "https://files.pythonhosted.org/packages/b3/1c/a8f3649b867fd7e176ac530935fd00fb0e22dd9863c84f304ccb80b1878b/pycairo-1.29.1-cp310-cp310-win_arm64.whl", hash = "sha256:eae57db7719c8b717f0d69fe81a1586621dcbfd7f92a1277a181dd89e754be25", size = 694624, upload-time = "2026-08-07T08:46:05.458Z" },
+    { url = "https://files.pythonhosted.org/packages/4d/83/d2dfb322cc3acc583aa6e8e601e7c320108804f3f3c677383f23a0de8624/pycairo-1.29.1-cp311-cp311-win32.whl", hash = "sha256:50da6e8eb1525f216e564b3e634b19ede5465080d4fa813416ed45a69b3f6605", size = 751309, upload-time = "2026-08-07T08:46:07.317Z" },
+    { url = "https://files.pythonhosted.org/packages/34/e6/f09d1c0ca4a887aea020774c59adabc04b7e1d2f00287ef48473540001e5/pycairo-1.29.1-cp311-cp311-win_amd64.whl", hash = "sha256:73a364341ce6b382200d13cfdf814f8ea50a8a2e0f8280c2d2e7dfb3ba52edcf", size = 845463, upload-time = "2026-08-07T08:46:09.287Z" },
+    { url = "https://files.pythonhosted.org/packages/69/a6/84415dce82c4865169847acc2de7895a1463956569383f17cb39e89f1287/pycairo-1.29.1-cp311-cp311-win_arm64.whl", hash = "sha256:59eb4a6d1101834a7ba2c7a8096fccd54eb8514d8189f896b4a8e24a19cfa1f0", size = 694560, upload-time = "2026-08-07T08:46:10.657Z" },
+    { url = "https://files.pythonhosted.org/packages/72/f6/b6a2e016cf0df97b2cd094c228c9303af21d626993607d8ea750ea8b704b/pycairo-1.29.1-cp312-cp312-win32.whl", hash = "sha256:cf25a97a15bedd0cdabee5b18652de45eff70b4a7999416ed18dcee2144d17f5", size = 751363, upload-time = "2026-08-07T08:46:12.545Z" },
+    { url = "https://files.pythonhosted.org/packages/69/7e/7be1346df5ab8cd7f748f2d17d25d61f34550cfd141f60e8319e9c70df87/pycairo-1.29.1-cp312-cp312-win_amd64.whl", hash = "sha256:839cd8c98e1933426d8959168b466901b398bf4867454451023b93d91030cca9", size = 846004, upload-time = "2026-08-07T08:46:14.067Z" },
+    { url = "https://files.pythonhosted.org/packages/04/97/40966895bc12319ff3173cbb5d7876149a8e90e99bbf3b70e4af492c73a9/pycairo-1.29.1-cp312-cp312-win_arm64.whl", hash = "sha256:7cb6279cf0a7951ae9aaa21c6a0adff0fce62c0a68797b6a26a54f9a0859ad4d", size = 694560, upload-time = "2026-08-07T08:46:15.839Z" },
+    { url = "https://files.pythonhosted.org/packages/95/7d/26191cac03e8c0d957856839736ee9fb45c6d4ae68c30393895558f1f7ad/pycairo-1.29.1-cp313-cp313-win32.whl", hash = "sha256:4506a15f0dcd9d65b2706f417f8e5633e1456867d5cf272dc69c0b48e2302842", size = 750753, upload-time = "2026-08-07T08:46:17.523Z" },
+    { url = "https://files.pythonhosted.org/packages/81/ba/3499ae0f6f8be6d55ef5db620a60693b4ef925b710890bf66c17aeff036e/pycairo-1.29.1-cp313-cp313-win_amd64.whl", hash = "sha256:859f5f29d7c30fc28dbc5ce91eb30a45e0b7e447a7bd738c231dd7f9be368d1a", size = 844528, upload-time = "2026-08-07T08:46:19.1Z" },
+    { url = "https://files.pythonhosted.org/packages/91/c1/f83f25aab64418d4de6527cbf951988fc9449020e416113e3a7a4ad7e7b8/pycairo-1.29.1-cp313-cp313-win_arm64.whl", hash = "sha256:0c6159117680798da1457404b648e69b0a0eb23597b22f8a97315eaeea19f917", size = 693588, upload-time = "2026-08-07T08:46:21.087Z" },
+    { url = "https://files.pythonhosted.org/packages/9d/ef/87408894ebef901c2accde14dcacfbdbd9bc9abe617039ee6ff382847b75/pycairo-1.29.1-cp314-cp314-win32.whl", hash = "sha256:7222587a4ae1674287c17d10d1c42c4219914f7ef64cac4b2fb995df4f7918cb", size = 767089, upload-time = "2026-08-07T08:46:25.92Z" },
+    { url = "https://files.pythonhosted.org/packages/1d/13/aef0ea29661a2fa0cadb3cbb470b514d439efe763cafc956c8b740ad1480/pycairo-1.29.1-cp314-cp314-win_amd64.whl", hash = "sha256:f635a60b7525661b562061e4b1635670b804d1efc9c7f40796c2fa14b24c3ddf", size = 872072, upload-time = "2026-08-07T08:46:27.605Z" },
+    { url = "https://files.pythonhosted.org/packages/68/95/fc823a255ed1967ec5bda7243247a2fb484faf868c0cd1ffd1425ae515e8/pycairo-1.29.1-cp314-cp314-win_arm64.whl", hash = "sha256:b5db545cc8e59fe9bb68039db86c5ebcf9d1e6417695d0d2cb5530e67d925af9", size = 719612, upload-time = "2026-08-07T08:46:29.127Z" },
+    { url = "https://files.pythonhosted.org/packages/ef/25/4cd521dd9e0f280930717bb93499c50008a6f14b312649d34a54dbd1df71/pycairo-1.29.1-cp314-cp314t-win_amd64.whl", hash = "sha256:3836feabfaf35ef9c502234c5924f3b2db935b6c55d8850ed190b3a58ab3b4ca", size = 874492, upload-time = "2026-08-07T08:46:22.695Z" },
+    { url = "https://files.pythonhosted.org/packages/c2/ee/006df2caa60f2df242b9baf13ab95d4575b47acabc54f3ab6d757d3a9691/pycairo-1.29.1-cp314-cp314t-win_arm64.whl", hash = "sha256:85127fb834a8a37a550fa5c684a4c49fc546b465a64ac8df94d7728914a56279", size = 721461, upload-time = "2026-08-07T08:46:24.104Z" },
+    { url = "https://files.pythonhosted.org/packages/ce/ec/4466cce6363c07759d04f9481f81d84a6dc506b735e795c193eb63e4f9ef/pycairo-1.29.1-cp315-cp315-win_amd64.whl", hash = "sha256:5c51bd98d2190841389845deae8243479393c1f2d9423de85e9fb4c95afebc10", size = 872007, upload-time = "2026-08-07T08:46:34.392Z" },
+    { url = "https://files.pythonhosted.org/packages/92/03/214ee759a86bd821e306c2071aef0de9c201020e7690f9cf165fa2d61d42/pycairo-1.29.1-cp315-cp315-win_arm64.whl", hash = "sha256:e923875c96cfe935d632de50aeebf49db7dffdd23f9042587c3f34af7596868e", size = 719602, upload-time = "2026-08-07T08:46:35.802Z" },
+    { url = "https://files.pythonhosted.org/packages/14/df/b163de08eb5307eacda6ee98001a4b920df8432d49f1da9b8d1c8d0342f5/pycairo-1.29.1-cp315-cp315t-win_amd64.whl", hash = "sha256:12515e71e2f17db8c40911ff089c23c465f92ddbabb89cd01304f275030c80ec", size = 874517, upload-time = "2026-08-07T08:46:30.779Z" },
+    { url = "https://files.pythonhosted.org/packages/ab/04/81a13cde3c6685186fd79770d619c9b861d51de7450975618a85e8676772/pycairo-1.29.1-cp315-cp315t-win_arm64.whl", hash = "sha256:e5dde8dc08d92ad6935d1a45ff6ea71ea6d5739ed08dbf8677313935f94d5c6d", size = 721459, upload-time = "2026-08-07T08:46:32.19Z" },
 ]
 
 [[package]]
-name = "pyside6-addons"
-version = "6.10.2"
+name = "pygobject"
+version = "3.56.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "pyside6-essentials" },
-    { name = "shiboken6" },
+    { name = "pycairo" },
 ]
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/61/06/c283567628ffa2cefc3c72374ad607f1dfc9842a03db65f1347b9ae52bee/pyside6_addons-6.10.2-cp39-abi3-macosx_13_0_universal2.whl", hash = "sha256:0de7d0c9535e17d5e3b634b61314a1867f3b0f6d35c3d7cdc99efc353192faff", size = 322745605, upload-time = "2026-02-02T08:39:19.929Z" },
-    { url = "https://files.pythonhosted.org/packages/a5/69/e1ab8c756fd3984b1fd7b186446227f524f6b561160bfbfdba8874b4709a/pyside6_addons-6.10.2-cp39-abi3-manylinux_2_34_x86_64.whl", hash = "sha256:030a851163b51dbf0063be59e9ddb6a9e760bde89a28e461ccc81a224d286eaf", size = 170718434, upload-time = "2026-02-02T08:40:55.989Z" },
-    { url = "https://files.pythonhosted.org/packages/df/e5/18ba86ba86d1231c486d36f9accfe862ed6eb52ca0b698aeaf6e837a87ca/pyside6_addons-6.10.2-cp39-abi3-manylinux_2_39_aarch64.whl", hash = "sha256:fcee0373e3fd7b98f014094e5e37b4a39e4de7c5a47c13f654a7d557d4a426ad", size = 166423836, upload-time = "2026-02-02T08:42:44.918Z" },
-    { url = "https://files.pythonhosted.org/packages/99/13/503bec9201881968c372cb634069535e80aec2489f3907d676e151a1023f/pyside6_addons-6.10.2-cp39-abi3-win_amd64.whl", hash = "sha256:c20150068525a17494f3b6576c5d61c417cf9a5870659e29f5ebd83cd20a78ea", size = 164712775, upload-time = "2026-02-02T08:43:23.729Z" },
-    { url = "https://files.pythonhosted.org/packages/b6/39/44d6710b4dd18d745077b5fc6ded4ba6f32987a6e49c5834529e50f02155/pyside6_addons-6.10.2-cp39-abi3-win_arm64.whl", hash = "sha256:3d18db739b46946ba7b722d8ad4cc2097135033aa6ea57076e64d591e6a345f3", size = 34041396, upload-time = "2026-02-02T08:43:31.246Z" },
-]
-
-[[package]]
-name = "pyside6-essentials"
-version = "6.10.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "shiboken6" },
-]
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/1d/2e/5f18a77f5e0bd730bacec93a690d0ef3c96a9711d213653eacecbf241b8d/pyside6_essentials-6.10.2-cp39-abi3-macosx_13_0_universal2.whl", hash = "sha256:1dee2cb9803ff135f881dadeb5c0edcef793d1ec4f8a9140a1348cecb71074e1", size = 105913067, upload-time = "2026-02-02T08:45:37.508Z" },
-    { url = "https://files.pythonhosted.org/packages/99/20/3a6ca95052e1744b5a3eba164e2dd451d358a3dcaf78179de4b45c8e3f47/pyside6_essentials-6.10.2-cp39-abi3-manylinux_2_34_x86_64.whl", hash = "sha256:660aea45bfa36f1e06f799b934c2a7df963bd31abc5083e8bb8a5bfaef45686b", size = 77027153, upload-time = "2026-02-02T08:45:53.09Z" },
-    { url = "https://files.pythonhosted.org/packages/93/a6/6073e4ddc2a5c7b3941606e4bc8bbaadcf0737f57450620b0793041c8d22/pyside6_essentials-6.10.2-cp39-abi3-manylinux_2_39_aarch64.whl", hash = "sha256:c2b028e4c6f8047a02c31f373408e23b4eedfd405f56c6aba8d0525c29472835", size = 76114242, upload-time = "2026-02-02T08:46:07.184Z" },
-    { url = "https://files.pythonhosted.org/packages/22/a8/616bbbd009efd3e17bf9a2db09d90c6764c010565cd2bdea2a240bfd18f7/pyside6_essentials-6.10.2-cp39-abi3-win_amd64.whl", hash = "sha256:0741018c2b6395038cad4c41775cfae3f13a409e87995ac9f7d89e5b1fb6b22a", size = 74546490, upload-time = "2026-02-02T08:46:26.395Z" },
-    { url = "https://files.pythonhosted.org/packages/b9/f9/c9757a984c4ffb6d12fab69e966d95dfc862a5d44e12b7900f3a03780b76/pyside6_essentials-6.10.2-cp39-abi3-win_arm64.whl", hash = "sha256:db5f4913648bb6afddb8b347edae151ee2378f12bceb03c8b2515a530a4b38d9", size = 55258626, upload-time = "2026-02-02T08:46:36.788Z" },
-]
+sdist = { url = "https://files.pythonhosted.org/packages/da/61/978c5fbca34f10a90df362502fbb5a005637909e7b5a0e9212349ea9d010/pygobject-3.56.3.tar.gz", hash = "sha256:12760e4a0e3d04b6eb95e06f7a27e362c826d567ea613373a92c003b6c70d2d6", size = 1411853, upload-time = "2026-05-08T20:46:39.904Z" }
 
 [[package]]
 name = "requests"
@@ -206,27 +194,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/34/64/8860370b167a9721e8956ae116825caff829224fbca0ca6e7bf8ddef8430/requests-2.33.0.tar.gz", hash = "sha256:c7ebc5e8b0f21837386ad0e1c8fe8b829fa5f544d8df3b2253bff14ef29d7652", size = 134232, upload-time = "2026-03-25T15:10:41.586Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/56/5d/c814546c2333ceea4ba42262d8c4d55763003e767fa169adc693bd524478/requests-2.33.0-py3-none-any.whl", hash = "sha256:3324635456fa185245e24865e810cecec7b4caf933d7eb133dcde67d48cee69b", size = 65017, upload-time = "2026-03-25T15:10:40.382Z" },
-]
-
-[[package]]
-name = "shiboken6"
-version = "6.10.2"
-source = { registry = "https://pypi.org/simple" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/fb/38/3912eb08a3b865b5fcdb4bdce8076cacc211986cee587f5cb62e637791af/shiboken6-6.10.2-cp39-abi3-macosx_13_0_universal2.whl", hash = "sha256:3bd4e94e9a3c8c1fa8362fd752d399ef39265d5264e4e37bae61cdaa2a00c8c7", size = 479829, upload-time = "2026-02-02T08:50:22.495Z" },
-    { url = "https://files.pythonhosted.org/packages/52/88/292e0576489c46624ab419ee284ac5a59ae10e2eb34a58b6abca51dfd290/shiboken6-6.10.2-cp39-abi3-manylinux_2_34_x86_64.whl", hash = "sha256:ace0790032d9cb0adda644b94ee28d59410180d9773643bb6cf8438c361987ad", size = 273052, upload-time = "2026-02-02T08:50:24.539Z" },
-    { url = "https://files.pythonhosted.org/packages/06/c2/03d44d34e8264e1f25671677fece95b414c70fd85dcc2be8d5e821ee2628/shiboken6-6.10.2-cp39-abi3-manylinux_2_39_aarch64.whl", hash = "sha256:f74d3ed1f92658077d0630c39e694eb043aeb1d830a5d275176c45d07147427f", size = 269868, upload-time = "2026-02-02T08:50:25.662Z" },
-    { url = "https://files.pythonhosted.org/packages/71/5d/5ca52c0ef86b3d01572131b6709bd531a080995f7e680720e9424328ce1d/shiboken6-6.10.2-cp39-abi3-win_amd64.whl", hash = "sha256:10f3c8c5e1b8bee779346f21c10dbc14cff068f0b0b4e62420c82a6bf36ac2e7", size = 1222052, upload-time = "2026-02-02T08:50:27.502Z" },
-    { url = "https://files.pythonhosted.org/packages/46/52/421fd378313c89b67ee7d584bf4e9ec088fa1804891b8d74e02b16703457/shiboken6-6.10.2-cp39-abi3-win_arm64.whl", hash = "sha256:20c671645d70835af212ee05df60361d734c5305edb2746e9875c6a31283f963", size = 1784089, upload-time = "2026-02-02T08:50:29.069Z" },
-]
-
-[[package]]
-name = "system-pyside6"
-version = "0.1.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/87/b7/c1eacace88fd5976a743dd3f476aaca6ce7865ddd7da5cc02e0274d81aa2/system_pyside6-0.1.1.tar.gz", hash = "sha256:d19401efd58584ef11398d86ab86b8e61bbe49002cbee4e8c1c494abfc65ba24", size = 17595, upload-time = "2026-01-05T01:14:06.925Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/67/5d/b360f74274378795f725f50f04bcfa7ec0a34ea70266e5fcf30cc8b8170b/system_pyside6-0.1.1-py3-none-any.whl", hash = "sha256:d1855bc9721dce97ee233715f34a5b2b45d9581d9d56f40c20e28ddcaf57cd82", size = 5802, upload-time = "2026-01-05T01:14:05.837Z" },
 ]
 
 [[package]]

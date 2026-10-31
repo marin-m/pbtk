@@ -1,0 +1,427 @@
+using Gtk 4.0;
+using Adw 1;
+using Gio 2.0;
+
+template $MainWindow: Adw.ApplicationWindow {
+  content: Adw.NavigationView main_nav_view {
+    Adw.NavigationPage main_page {
+      child: Adw.ToolbarView {
+        content: Adw.PreferencesPage {
+          description: "This GUI will get you to reverse engineer (and optionally network fuzz) apps using the Protobuf serialization format in minutes.";
+
+          Adw.PreferencesGroup {
+            title: "Follow these three steps in order to get started.";
+
+            Adw.ActionRow {
+              action-name: "navigation.push";
+              action-target: "\"extractors_page\"";
+              activatable: true;
+              title: " Step 1: Extract .proto structures from apps";
+
+              [suffix]
+              Image {
+                css-classes: [
+                  "dim-label",
+                ];
+
+                icon-name: "go-next-symbolic";
+              }
+            }
+
+            Adw.ActionRow {
+              action-name: "win.pick-proto-file";
+              activatable: true;
+              title: "Step 2: Link .protos to endpoints";
+
+              [suffix]
+              Image {
+                css-classes: [
+                  "dim-label",
+                ];
+
+                icon-name: "go-next-symbolic";
+              }
+            }
+
+            Adw.ActionRow {
+              action-name: "navigation.push";
+              action-target: "\"endpoint_selection_page\"";
+              activatable: true;
+              title: "Step 3: Fuzz and test endpoints live";
+
+              [suffix]
+              Image {
+                css-classes: [
+                  "dim-label",
+                ];
+
+                icon-name: "go-next-symbolic";
+              }
+            }
+          }
+
+          Adw.PreferencesGroup open_dir_section {
+            title: "All your extracted .proto files and JSON endpoint information is stored on disk.";
+
+            Adw.ActionRow {
+              activatable-widget: open_dir_button;
+              title: _("Using your regular file browser, you can move files in and out this place.");
+
+              Button open_dir_button {
+                action-name: "win.open-proto-dir";
+                label: _("Open this directory...");
+              }
+            }
+          }
+        };
+
+        [top]
+        Adw.HeaderBar {
+          [end]
+          MenuButton {
+            icon-name: "open-menu-symbolic";
+
+            menu-model: menu {
+              item {
+                action: "win.show-about";
+                label: _("_About...");
+              }
+            };
+          }
+        }
+
+        [bottom]
+        ActionBar {
+          visible: false;
+
+          Button {
+            action-name: "navigation.push";
+            action-target: "\"extracting_page\"";
+            label: "(Debug: go to extracted view)";
+            visible: false;
+          }
+
+          Button {
+            action-name: "navigation.push";
+            action-target: "\"new_endpoint_page\"";
+            label: "(Debug: go to endpoint creation)";
+            visible: false;
+          }
+        }
+      };
+
+      tag: "main_page";
+      title: _("Welcome to PBTK!");
+    }
+
+    Adw.NavigationPage extractors_page {
+      child: Adw.ToolbarView {
+        content: Adw.PreferencesPage {
+          Adw.PreferencesGroup extractors_list {
+            title: "Select an extractor";
+          }
+        };
+
+        [top]
+        Adw.HeaderBar {}
+      };
+
+      tag: "extractors_page";
+      title: "Extract structures...";
+    }
+
+    Adw.NavigationPage extracting_page {
+      child: Adw.ToolbarView {
+        content: Adw.StatusPage extracting_status_page {
+          child: Box {
+            orientation: vertical;
+            spacing: 20;
+
+            ProgressBar extracting_progress_bar {}
+
+            Box extraction_next_steps {
+              halign: center;
+              spacing: 5;
+              visible: false;
+
+              Button main_screen_button {
+                action-name: "win.go-back-to-main";
+
+                css-classes: [
+                  "pill",
+                ];
+
+                label: "Main screen";
+              }
+
+              Button extract_more_button {
+                action-name: "navigation.pop";
+
+                css-classes: [
+                  "pill",
+                ];
+
+                label: "Extract more";
+              }
+
+              Button open_extracted_button {
+                action-name: "win.open-proto-dir";
+
+                css-classes: [
+                  "suggested-action",
+                  "pill",
+                ];
+
+                label: "Open extracted files";
+              }
+            }
+
+            TextView extraction_text_view {
+              buffer: TextBuffer extraction_text_buffer {};
+
+              editable: false;
+              height-request: 230;
+              monospace: true;
+              visible: false;
+              wrap-mode: word_char;
+            }
+          };
+
+          description: "Current progress...";
+
+          paintable: Adw.SpinnerPaintable extraction_spinner {
+            widget: extracting_status_page;
+          };
+
+          title: "Extracting...";
+        };
+
+        [top]
+        Adw.HeaderBar {
+          show-title: false;
+        }
+      };
+
+      tag: "extracting_page";
+      title: "Extraction progress";
+    }
+
+    Adw.NavigationPage new_endpoint_page {
+      child: Adw.ToolbarView {
+        content: Adw.PreferencesPage {
+          Adw.PreferencesGroup {
+            description: "Please type a HTTP(S) URL that will receive, as a parameter, a message generated using the Proto file definition you provided:";
+            title: "Endpoint URL selection";
+
+            Adw.EntryRow endpoint_url {
+              input-purpose: url;
+              title: "URL";
+            }
+          }
+
+          Adw.PreferencesGroup endpoint_msg_section {
+            description: "Pick a message loaded from \"%s\":";
+            focus-on-click: false;
+            title: "Request - Message selection";
+
+            Adw.ComboRow endpoint_msg_list {
+              enable-search: true;
+              expression: expr item as <$ProtoMessageDeclaration>.name;
+
+              factory: BuilderListItemFactory {
+                template ListItem {
+                  child: Label {
+                    xalign: 0;
+                    ellipsize: end;
+                    label: bind template.item as <$ProtoMessageDeclaration>.name;
+                  };
+                }
+              };
+
+              model: Gio.ListStore endpoint_req_msgs {
+                item-type: typeof<$ProtoMessageDeclaration>;
+              };
+
+              search-match-mode: substring;
+              title: "Message:";
+            }
+          }
+
+          Adw.PreferencesGroup {
+            description: "Please define how the Proto payload should be serialized into the requests:";
+            title: "Request - Transport type selection";
+
+            Adw.ComboRow transport_type_list {
+              expression: expr item as <$TransportDefinition>.description;
+
+              factory: BuilderListItemFactory {
+                template ListItem {
+                  child: Label {
+                    xalign: 0;
+                    ellipsize: end;
+                    label: bind template.item as <$TransportDefinition>.description;
+                  };
+                }
+              };
+
+              model: Gio.ListStore transport_type_objs {
+                item-type: typeof<$TransportDefinition>;
+              };
+
+              title: "Type:";
+            }
+          }
+
+          Adw.PreferencesGroup sample_data_section {
+            description: "Please type one sample of data per line (in the form of %s)";
+            separate-rows: true;
+            title: "Request - Sample data";
+
+            Adw.PreferencesRow {
+              ScrolledWindow {
+                min-content-height: 140;
+
+                TextView {
+                  bottom-margin: 15;
+
+                  buffer: TextBuffer sample_data_buffer {};
+
+                  left-margin: 15;
+                  monospace: true;
+                  right-margin: 15;
+                  top-margin: 15;
+                }
+              }
+            }
+
+            Adw.EntryRow pb_param_subform {
+              text: "pb";
+              title: "Please specify the key of parameter containing Protobuf data in request:";
+              visible: false;
+            }
+          }
+
+          Adw.PreferencesGroup {
+            title: "Response - Parse as Protobuf";
+
+            Adw.SwitchRow endpoint_parse_resp {
+              title: "Parse the HTTP(S) response as Protobuf";
+            }
+
+            Adw.ActionRow endpoint_resp_msg_file {
+              activatable-widget: pick_resp_msg_file_button;
+              subtitle: "/file/to/original/path.proto";
+              title: "Find the message to parse in:";
+              visible: false;
+
+              [suffix]
+              Button pick_resp_msg_file_button {
+                action-name: "win.pick-resp-msg";
+
+                child: Adw.ButtonContent {
+                  icon-name: "document-open-symbolic";
+                  label: "Select...";
+                };
+              }
+            }
+
+            Adw.ComboRow endpoint_resp_msg_list {
+              enable-search: true;
+              expression: expr item as <$ProtoMessageDeclaration>.name;
+
+              factory: BuilderListItemFactory {
+                template ListItem {
+                  child: Label {
+                    xalign: 0;
+                    ellipsize: end;
+                    label: bind template.item as <$ProtoMessageDeclaration>.name;
+                  };
+                }
+              };
+
+              model: Gio.ListStore endpoint_resp_msgs {
+                item-type: typeof<$ProtoMessageDeclaration>;
+              };
+
+              search-match-mode: substring;
+              title: "Please select a message to parse";
+              visible: false;
+            }
+          }
+        };
+
+        [top]
+        Adw.HeaderBar {}
+
+        [bottom]
+        ActionBar {
+          [end]
+          Button {
+            action-name: "win.create-endpoint";
+
+            css-classes: [
+              "pill",
+              "suggested-action",
+            ];
+
+            label: "Add endpoint";
+          }
+        }
+      };
+
+      tag: "new_endpoint_page";
+      title: "Define a new HTTPS endpoint";
+    }
+
+    Adw.NavigationPage endpoint_selection_page {
+      child: Adw.ToolbarView {
+        content: ListView {
+          factory: BuilderListItemFactory {
+            template ListItem {
+              child: TreeExpander {
+                list-row: bind template.item as <Gtk.TreeListRow>;
+
+                child: Label {
+                  use-markup: true;
+                  margin-bottom: 7;
+                  margin-top: 7;
+                  margin-start: 7;
+                  margin-end: 7;
+                  label: bind template.item as <TreeListRow>.item as <$EndpointListRow>.label;
+                };
+              };
+            }
+          };
+
+          model: NoSelection endpoints_selection {};
+
+          single-click-activate: true;
+          activate => $endpoint_row_selected();
+        };
+
+        [top]
+        Adw.HeaderBar {}
+      };
+
+      tag: "endpoint_selection_page";
+      title: "Select an endpoint to test...";
+      showing => $update_endpoints_list();
+    }
+  };
+
+  default-height: 520;
+  default-width: 720;
+  icon-name: "re.fossplant.pbtk";
+}
+
+Adw.AlertDialog url_input_dialog {
+  close-response: "cancel";
+  default-response: "ok";
+
+  extra-child: Entry input_url_entry {
+    buffer: EntryBuffer input_url_buffer {};
+  };
+
+  heading: "Please enter an URL";
+  prefer-wide-layout: true;
+}

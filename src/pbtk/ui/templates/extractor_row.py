@@ -1,0 +1,272 @@
+#!/usr/bin/env
+from pbtk.datamodel.extractor import (
+    Extractor,
+    ExtractorProgress,
+    ExtractorErrorMessage,
+    ExtractorInfoMessage,
+    ExtractorOutputs,
+    ExtractorInputs,
+    ExtractorInputArgument,
+)
+from pbtk.utils.common import extractor_save, assert_installed, BASE_PATH
+from pbtk.ui.workers.extractor_thread import ExtractorWorker
+from urllib.parse import urlparse
+
+from logging import debug, info, error
+
+import gi
+
+gi.require_version('Gtk', '4.0')
+gi.require_version('Adw', '1')
+
+from gi.repository import Gtk, Gio, GLib, Adw
+from os.path import join
+from pathlib import Path
+
+
+class ExtractorRow(Adw.ActionRow):
+    extractor: Extractor
+    window: Adw.ApplicationWindow
+
+    def __init__(self, data: Extractor, window: Adw.ApplicationWindow):
+
+        super().__init__()
+
+        self.window = window
+        self.extractor = data
+
+        self.set_title(data.name)
+        self.set_subtitle(data.description)
+
+        select_button = Gtk.Image.new_from_icon_name('go-next-symbolic')
+
+        self.set_activatable(True)
+        self.connect('activated', self.on_clicked)
+        self.add_suffix(select_button)
+
+    def on_clicked(self, target: Gtk.Button, *args):
+
+        try:
+            assert_installed(**(self.extractor.depends or {}))
+        except ImportError as err:
+            dialog = Adw.AlertDialog.new(err.msg)
+            dialog.add_response('ok', 'Ok')
+            dialog.choose(self.window, None, None)
+
+        else:
+            if not self.extractor.pick_url:
+                # https://lazka.github.io/pgi-docs/Gtk-4.0/classes/FileDialog.html#Gtk.FileDialog.open_multiple
+
+                def file_picked(
+                    dialog: Gtk.FileDialog, result: Gio.AsyncResult
+                ):
+                    try:
+                        files: Gio.ListModel = dialog.open_multiple_finish(
+                            result
+                        )
+
+                    except GLib.GError as err:
+                        if err.message != 'Dismissed by user':
+                            dialog = Adw.AlertDialog.new(
+                                'Could not open file', err.message
+                            )
+                            dialog.add_response('ok', 'Ok')
+                            dialog.set_default_response('ok')
+                            dialog.set_close_response('ok')
+                            dialog.choose(self, None, None)
+                        return
+
+                    inputs = ExtractorInputs()
+
+                    for pos in range(files.get_n_items()):
+                        file_item: Gio.File = files.get_item(pos)
+                        file_path: str = file_item.get_path()
+                        out_folder_name: str = Path(file_path).stem
+
+                        inputs.inputs.append(
+                            ExtractorInputArgument(file_path, out_folder_name)
+                        )
+
+                    # Show progress dialog
+                    self.window.main_nav_view.push_by_tag('extracting_page')
+
+                    self.window.extracting_status_page.set_paintable(
+                        self.window.extraction_spinner
+                    )
+                    self.window.extracting_status_page.set_title(
+                        'Extracting...'
+                    )
+                    self.window.extracting_status_page.set_description('')
+
+                    self.window.extracting_progress_bar.set_fraction(0.0)
+
+                    self.window.extraction_text_view.set_visible(False)
+                    self.window.extraction_text_buffer.set_text('')
+
+                    self.window.extraction_next_steps.set_visible(False)
+
+                    worker = ExtractorWorker(self.extractor, inputs)
+                    worker.progress.connect(self.on_progress)
+                    worker.information.connect(self.on_information)
+                    worker.error.connect(self.on_error)
+                    worker.finished.connect(self.on_finished)
+                    worker.start()
+
+                    # ⚠️ ⚠️ TODO: 🪧 Cancel the extraction process when QUITTING THE VIEW
+                    #  OR THE WINDOW?
+
+                file_picker = Gtk.FileDialog()
+                file_picker.open_multiple(self.window, callback=file_picked)
+
+            else:
+
+                def on_choose(
+                    dialog: Adw.AlertDialog, result: Gio.AsyncResult
+                ):
+                    result = dialog.choose_finish(result)
+
+                    input_url = self.window.input_url_buffer.get_text()
+                    if result == 'ok' and input_url:
+                        debug('INPUT URL: ' + input_url)
+
+                        inputs = ExtractorInputs()
+
+                        url = urlparse(input_url)
+                        inputs.inputs.append(
+                            ExtractorInputArgument(url.geturl(), url.netloc)
+                        )
+
+                        # Show progress dialog
+                        self.window.main_nav_view.push_by_tag(
+                            'extracting_page'
+                        )
+
+                        self.window.extracting_status_page.set_paintable(
+                            self.window.extraction_spinner
+                        )
+                        self.window.extracting_status_page.set_title(
+                            'Spawning Google Chrome...'
+                        )
+                        self.window.extracting_status_page.set_description('')
+
+                        self.window.extracting_progress_bar.set_fraction(0.0)
+
+                        self.window.extraction_text_view.set_visible(False)
+                        self.window.extraction_text_buffer.set_text('')
+
+                        self.window.extraction_next_steps.set_visible(False)
+
+                        worker = ExtractorWorker(self.extractor, inputs)
+                        worker.progress.connect(self.on_progress)
+                        worker.information.connect(self.on_information)
+                        worker.error.connect(self.on_error)
+                        worker.finished.connect(self.on_finished)
+                        worker.start()
+
+                        # ⚠️ ⚠️ TODO: 🪧 Cancel the extraction process when QUITTING THE VIEW
+                        #  OR THE WINDOW?
+
+                self.window.input_url_buffer.set_text('', -1)
+
+                self.window.url_input_dialog.choose(
+                    self.window, None, on_choose
+                )
+                self.window.input_url_entry.grab_focus_without_selecting()
+
+        # => 🪧 WIP: File picker branch
+        #  => Use Gtk.FileDialog
+
+        # => 🪧 TODO: URL prompt branch
+        #  (cf. prompt_extractor @ gui.py § L61)
+
+    def on_progress(
+        self, worker: ExtractorWorker, progress: ExtractorProgress
+    ):
+        debug(
+            'Extraction progress: %g %% - %s',
+            progress.progress or 0.0,
+            progress.info,
+        )
+
+        self.window.extracting_status_page.set_description(progress.info)
+        self.window.extracting_progress_bar.set_fraction(
+            progress.progress or 0.0
+        )
+
+    def on_information(
+        self, worker: ExtractorWorker, information: ExtractorInfoMessage
+    ):
+        debug('Extraction status: %s', information.info)
+
+        # ⚠️ TODO display a pop-up?
+
+        dialog = Adw.AlertDialog.new('Information', information.info)
+        dialog.add_response('ok', 'Ok')
+        dialog.choose(self.window, None, None)
+
+        self.window.extraction_text_view.set_visible(True)
+        self.window.extraction_text_buffer.insert(
+            self.window.extraction_text_buffer.get_end_iter(),
+            information.info + '\n\n' + '=' * 24 + '\n\n',
+        )
+
+    def on_error(
+        self, worker: ExtractorWorker, information: ExtractorErrorMessage
+    ):
+        error('Extraction error: %s', information.info)
+
+        # ⚠️ TODO display the text-view?
+
+        self.window.extraction_text_view.set_visible(True)
+        self.window.extraction_text_buffer.insert(
+            self.window.extraction_text_buffer.get_end_iter(),
+            information.info + '\n\n' + '=' * 24 + '\n\n',
+        )
+
+    def on_finished(self, worker: ExtractorWorker, outputs: ExtractorOutputs):
+        num_files_out = 0
+        any_endpoints = False
+
+        for folder_item in outputs.folders:
+            nb_written, wrote_endpoints = extractor_save(
+                BASE_PATH, folder_item.name, folder_item.files
+            )
+
+            num_files_out += nb_written
+            if wrote_endpoints:
+                any_endpoints = True
+
+            for file_item in folder_item.files:
+                info(
+                    'Successfully extracted: %s',
+                    join(folder_item.name, file_item.name),
+                )
+
+                self.window.extraction_text_view.set_visible(True)
+                self.window.extraction_text_buffer.insert(
+                    self.window.extraction_text_buffer.get_end_iter(),
+                    'Successfully extracted: %s\n'
+                    % join(folder_item.name, file_item.name),
+                )
+
+        # dialog = Adw.AlertDialog.new(
+        #     'Information', 'Task done, %d files were saved' % num_files_out
+        # )
+        # dialog.add_response('ok', 'Ok')
+        # dialog.choose(self.window, None, None)
+
+        self.window.present()
+        self.window.extracting_status_page.set_paintable(None)
+        self.window.extracting_status_page.set_title('Extraction done')
+        if any_endpoints:
+            self.window.extracting_status_page.set_description(
+                '%d .proto files and endpoints have been extracted'
+                % num_files_out
+            )
+        else:
+            self.window.extracting_status_page.set_description(
+                '%d .proto files have been extracted' % num_files_out
+            )
+        self.window.extracting_progress_bar.set_fraction(1.0)
+
+        self.window.extraction_next_steps.set_visible(True)

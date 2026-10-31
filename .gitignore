@@ -1,6 +1,7 @@
 __pycache__/
 *.py[cod]
 *.log
+*.autosave
 pbtk.egg-info
 build/
 *.kate-swp

@@ -2,7 +2,7 @@
 <component type="desktop-application">
   <id>re.fossplant.pbtk</id>
   <metadata_license>CC0-1.0</metadata_license>
-  <project_license>GPL-3.0+</project_license>
+  <project_license>GPL-3.0-or-later</project_license>
   <name>pbtk</name>
   <branding>
     <color type="primary" scheme_preference="light">#F5EEFF</color>
@@ -47,7 +47,7 @@
   </recommends>
   <url type="bugtracker">https://github.com/marin-m/pbtk/issues</url>
   <url type="homepage">https://github.com/marin-m/pbtk</url>
-  <url type="contact">https://matrix.to/#/#pbtk:matrix.org</url>
+  <url type="help">https://matrix.to/#/#pbtk:matrix.org</url>
   <url type="faq">https://github.com/marin-m/pbtk#readme</url>
   <!--url type="translate">https://github.com/marin-m/SongRec/tree/main/translations#readme</url-->
   <url type="vcs-browser">https://github.com/marin-m/pbtk</url>
@@ -57,9 +57,18 @@ https://hughsie.github.io/oars/index.html
 -->
   <content_rating type="oars-1.1" />
   <releases>
+    <release version="1.2.0" date="2026-10-24">
+      <description>
+        <ul>
+          <li>WIP: Port UI from Qt 6 to GTK 4, redesign object model</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.1.3" date="2026-08-21">
       <description>
-        <p>Fix errors related with the RepeatedScalarContainer type with recent Protobuf runtimes (PR #46 thanks to @drobotk)</p>
+        <ul>
+          <li>Fix errors related with the RepeatedScalarContainer type with recent Protobuf runtimes (PR #46 thanks to @drobotk)</li>
+        </ul>
       </description>
     </release>
     <release version="1.1.2" date="2026-04-16">

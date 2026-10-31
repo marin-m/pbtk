@@ -1,0 +1,160 @@
+using Gtk 4.0;
+using Adw 1;
+using Gio 2.0;
+
+template $FuzzerWindow: Adw.Window {
+  content: Adw.ToolbarView {
+    content: Grid {
+      column-homogeneous: true;
+      row-homogeneous: true;
+
+      Box {
+        orientation: vertical;
+
+        Adw.InlineViewSwitcher fuzzer_view_switcher {
+          stack: fuzzer_view_stack;
+        }
+
+        Adw.ViewStack fuzzer_view_stack {
+          Adw.ViewStackPage proto_page {
+            child: ScrolledWindow {
+              child: ColumnView {
+                model: NoSelection proto_model_selection {};
+
+                reorderable: false;
+
+                ColumnViewColumn {
+                  id: "name";
+                  resizable: true;
+                  title: "Name";
+                }
+
+                ColumnViewColumn {
+                  id: "type";
+                  resizable: true;
+                  title: "Type";
+                }
+
+                ColumnViewColumn {
+                  expand: true;
+                  id: "value";
+                  title: "Value";
+                }
+              };
+            };
+
+            name: "proto_page";
+            title: "Protobuf";
+          }
+
+          Adw.ViewStackPage extra_data_page {
+            child: Box {
+              orientation: vertical;
+
+              ScrolledWindow {
+                child: ColumnView {
+                  model: NoSelection extra_data_model_selection {};
+
+                  reorderable: false;
+
+                  ColumnViewColumn {
+                    id: "name";
+                    resizable: true;
+                    title: "Name";
+                  }
+
+                  ColumnViewColumn {
+                    expand: true;
+                    id: "value";
+                    title: "Value";
+                  }
+                };
+
+                vexpand: true;
+              }
+
+              ActionBar {
+                [end]
+                Button extra_data_add {
+                  label: "Add...";
+                }
+              }
+            };
+
+            name: "extra_data_page";
+            title: "GET";
+          }
+        }
+
+        layout {
+          column: "1";
+          column-span: "1";
+          row: "0";
+          row-span: "1";
+        }
+      }
+
+      Box {
+        css-name: "button_box";
+        margin-bottom: 7;
+        margin-end: 7;
+        margin-start: 7;
+        margin-top: 7;
+        orientation: vertical;
+        spacing: 7;
+
+        Button {
+          label: "Select another endpoint";
+        }
+
+        Button {
+          label: "Delete current endpoint";
+        }
+
+        Label {
+          label: "Set current values to:";
+        }
+
+        DropDown values_combo_box {
+          enable-search: true;
+
+          model: Gio.ListStore {};
+        }
+
+        layout {
+          column: "1";
+          column-span: "1";
+          row: "1";
+          row-span: "1";
+        }
+      }
+
+      TextView {
+        layout {
+          column: "0";
+          column-span: "1";
+          row: "1";
+          row-span: "1";
+        }
+      }
+
+      $WebKitWebView {
+        layout {
+          column: "0";
+          column-span: "1";
+          row: "0";
+          row-span: "1";
+        }
+      }
+    };
+
+    [top]
+    Adw.HeaderBar {}
+  };
+
+  default-height: 480;
+  default-width: 720;
+  destroy-with-parent: true;
+  hide-on-close: true;
+  title: "Fuzzer";
+}

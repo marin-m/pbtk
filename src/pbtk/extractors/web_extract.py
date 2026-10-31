@@ -2,6 +2,7 @@
 from urllib.parse import quote, quote_plus, unquote_plus, parse_qsl, urlencode
 from logging import getLogger, DEBUG, debug, info, error
 from tempfile import TemporaryDirectory
+from collections.abc import Generator
 from collections import OrderedDict
 from re import search, sub, findall
 from urllib.request import urlopen
@@ -17,6 +18,13 @@ from time import sleep
 from os.path import dirname, realpath
 
 __import__('sys').path.append(dirname(realpath(__file__)) + '/../..')
+from pbtk.datamodel.extractor import (
+    ExtractorThreadMessage,
+    ExtractorOutputFile,
+    ExtractorInfoMessage,
+    ExtractorErrorMessage,
+    ExtractorProgress,
+)
 from pbtk.utils.transports import GMapsAPIPublic, GMapsAPIPrivate
 from pbtk.utils.common import register_extractor, extractor_main
 
@@ -56,14 +64,15 @@ browser = (
 
 @register_extractor(
     name='pburl_extract',
-    desc=(
+    readable_name='PBURL extractor',
+    description=(
         'Extract and capture Protobuf-URL endpoints from a Chrome instance (http://*)'
         + ' - needs update to work as of 2026'
     ),
     pick_url=True,
     depends={'modules': ['websocket']},
 )
-def pburl_extract(url):
+def pburl_extract(url) -> Generator[ExtractorThreadMessage]:
     global \
         URL, \
         req_id, \
@@ -72,7 +81,8 @@ def pburl_extract(url):
         awaiting_srcs, \
         endpoints, \
         sid_to_vars, \
-        proto_to_urls
+        proto_to_urls, \
+        teardown_reason
     URL = url
 
     req_id = 1
@@ -82,6 +92,7 @@ def pburl_extract(url):
     endpoints = []
     sid_to_vars = {}
     proto_to_urls = OrderedDict()
+    teardown_reason = None
 
     port = randint(1024, 32767)
     temp_profile = True
@@ -97,12 +108,8 @@ def pburl_extract(url):
                 '--no-default-browser-check',
             ]
 
-        yield (
-            '_progress',
-            (
-                'Trying to launch browser...\n(requires Chrome or Chromium)',
-                None,
-            ),
+        yield ExtractorProgress(
+            'Trying to launch browser...\n(requires Chrome or Chromium)', None
         )
 
         if which(browser) and access(realpath(which(browser)), X_OK):
@@ -112,14 +119,11 @@ def pburl_extract(url):
         else:
             chrome = None
             cmd[0] = '$(which google-chrome || which chromium-browser)'
-            yield (
-                '_info',
-                (
-                    "Can't launch Chrome or a Chromium-based "
-                    + 'browser, please launch yourself: "'
-                    + join(cmd)
-                    + '", interact with it, and close it'
-                ),
+            yield ExtractorInfoMessage(
+                "Can't launch Chrome or a Chromium-based "
+                + 'browser, please launch yourself: "'
+                + join(cmd)
+                + '", interact with it, and close it'
             )
 
         try:
@@ -137,14 +141,14 @@ def pburl_extract(url):
                     break
                 except OSError:
                     sleep(0.1)
+                    if chrome and chrome.poll() is not None:
+                        yield ExtractorErrorMessage('Cannot launch Chrome')
+                        return
 
-            yield (
-                '_progress',
-                (
-                    'Connecting to browser debugging controller...\n(Your activity '
-                    + 'from the first tab will be captured, until you close it)',
-                    None,
-                ),
+            yield ExtractorProgress(
+                'Connecting to browser debugging controller...\n(Your activity '
+                + 'from the first tab will be captured, until you close it)',
+                None,
             )
 
             from websocket import WebSocketApp
@@ -158,6 +162,9 @@ def pburl_extract(url):
             ).run_forever()
 
             debug('[i] CDP connection succeeded')
+
+            if teardown_reason:
+                yield ExtractorErrorMessage(teardown_reason)
 
         finally:
             # Make sure that Chromium is killed when quitting by error
@@ -187,14 +194,16 @@ def pburl_extract(url):
 
         # Save generated .proto to ~/.pbtk
         if len(pbname) == 1:
-            yield (
+            yield ExtractorOutputFile(
                 pbname + '.proto',
                 proto.replace('message Top', 'message ' + pbname).replace(
                     'Top', '.' + pbname
                 ),
             )
         else:
-            yield pbname + '.proto', proto.replace('Top', pbname)
+            yield ExtractorOutputFile(
+                pbname + '.proto', proto.replace('Top', pbname)
+            )
         proto_to_urls[pbname] = proto_to_urls[proto]
         del proto_to_urls[proto]
 
@@ -205,7 +214,7 @@ def pburl_extract(url):
 
     # Save endpoint to ~/.pbtk
     for sample in endpoints:
-        yield (
+        yield ExtractorOutputFile(
             next(k for k, v in proto_to_urls.items() if sample['url'] in v)
             + '.sample',
             sample,
@@ -236,6 +245,8 @@ def send(ws, call, params=None, data=None):
 def on_message(ws, msg):
     try:
         global seen_scripts
+        global teardown_reason
+
         msg = loads(msg)
 
         # debug('[i] Received Websocket message: %r' % msg)
@@ -474,8 +485,13 @@ def on_message(ws, msg):
                 if not awaiting_srcs:
                     send(ws, 'Debugger.resume')
                 return
-            error('[Error] %r: %r' % (call, err))
-            exit()
+
+            # ❌ TODO: We need a cleaner way to dispatch this
+            # error to the extractor thread (⚠️ CHANGE THE
+            # ASYNC MODEL/WEBSOCKET LIB?)
+
+            teardown_reason = 'Encountered during "%r": %r' % (call, err)
+            ws.close()
 
         else:
             req_id, msg = msg['id'], msg['result']
