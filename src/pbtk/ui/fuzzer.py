@@ -110,4 +110,17 @@ class FuzzerWindow(Adw.Window):
 
         self.present()
 
-        pass  # ⚠️ 🪧TODO... (importing code from pbtk._ui_legacy.gui.launch_fuzzer)
+        pass  # ⚠️ 🪧 WIP... (importing code from pbtk._ui_legacy.gui.launch_fuzzer)
+
+        # Get initial data into the Protobuf tree view
+
+        # ⚠️ ➡️ TODO
+
+        # Do the same for transport-specific data
+
+        # ⚠️ ➡️ TODO
+
+        # Fill the request samples combo box if we're loading a new
+        # endpoint.
+
+        # ⚠️ ➡️ TODO
