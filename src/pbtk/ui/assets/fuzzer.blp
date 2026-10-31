@@ -18,8 +18,28 @@ template $FuzzerWindow: Adw.Window {
         Adw.ViewStack fuzzer_view_stack {
           Adw.ViewStackPage proto_page {
             child: ScrolledWindow {
-              child: ListView {
-                vexpand: true;
+              child: ColumnView {
+                model: NoSelection proto_model_selection {};
+
+                reorderable: false;
+
+                ColumnViewColumn {
+                  id: "name";
+                  resizable: true;
+                  title: "Name";
+                }
+
+                ColumnViewColumn {
+                  id: "type";
+                  resizable: true;
+                  title: "Type";
+                }
+
+                ColumnViewColumn {
+                  expand: true;
+                  id: "value";
+                  title: "Value";
+                }
               };
             };
 
@@ -32,9 +52,25 @@ template $FuzzerWindow: Adw.Window {
               orientation: vertical;
 
               ScrolledWindow {
-                vexpand: true;
+                child: ColumnView {
+                  model: NoSelection extra_data_model_selection {};
 
-                ListView {}
+                  reorderable: false;
+
+                  ColumnViewColumn {
+                    id: "name";
+                    resizable: true;
+                    title: "Name";
+                  }
+
+                  ColumnViewColumn {
+                    expand: true;
+                    id: "value";
+                    title: "Value";
+                  }
+                };
+
+                vexpand: true;
               }
 
               ActionBar {

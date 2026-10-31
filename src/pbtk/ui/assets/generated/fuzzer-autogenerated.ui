@@ -28,8 +28,32 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                         <property name="child">
                           <object class="GtkScrolledWindow">
                             <property name="child">
-                              <object class="GtkListView">
-                                <property name="vexpand">true</property>
+                              <object class="GtkColumnView">
+                                <property name="model">
+                                  <object class="GtkNoSelection" id="proto_model_selection"></object>
+                                </property>
+                                <property name="reorderable">false</property>
+                                <child>
+                                  <object class="GtkColumnViewColumn">
+                                    <property name="id">name</property>
+                                    <property name="resizable">true</property>
+                                    <property name="title">Name</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkColumnViewColumn">
+                                    <property name="id">type</property>
+                                    <property name="resizable">true</property>
+                                    <property name="title">Type</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkColumnViewColumn">
+                                    <property name="expand">true</property>
+                                    <property name="id">value</property>
+                                    <property name="title">Value</property>
+                                  </object>
+                                </child>
                               </object>
                             </property>
                           </object>
@@ -45,10 +69,29 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                             <property name="orientation">1</property>
                             <child>
                               <object class="GtkScrolledWindow">
+                                <property name="child">
+                                  <object class="GtkColumnView">
+                                    <property name="model">
+                                      <object class="GtkNoSelection" id="extra_data_model_selection"></object>
+                                    </property>
+                                    <property name="reorderable">false</property>
+                                    <child>
+                                      <object class="GtkColumnViewColumn">
+                                        <property name="id">name</property>
+                                        <property name="resizable">true</property>
+                                        <property name="title">Name</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkColumnViewColumn">
+                                        <property name="expand">true</property>
+                                        <property name="id">value</property>
+                                        <property name="title">Value</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </property>
                                 <property name="vexpand">true</property>
-                                <child>
-                                  <object class="GtkListView"></object>
-                                </child>
                               </object>
                             </child>
                             <child>
