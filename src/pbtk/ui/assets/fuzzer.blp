@@ -27,12 +27,25 @@ template $FuzzerWindow: Adw.Window {
             title: "Protobuf";
           }
 
-          Adw.ViewStackPage get_page {
-            child: ScrolledWindow {
-              ListView {}
+          Adw.ViewStackPage extra_data_page {
+            child: Box {
+              orientation: vertical;
+
+              ScrolledWindow {
+                vexpand: true;
+
+                ListView {}
+              }
+
+              ActionBar {
+                [end]
+                Button extra_data_add {
+                  label: "Add...";
+                }
+              }
             };
 
-            name: "get_page";
+            name: "extra_data_page";
             title: "GET";
           }
         }

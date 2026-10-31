@@ -39,15 +39,30 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                       </object>
                     </child>
                     <child>
-                      <object class="AdwViewStackPage" id="get_page">
+                      <object class="AdwViewStackPage" id="extra_data_page">
                         <property name="child">
-                          <object class="GtkScrolledWindow">
+                          <object class="GtkBox">
+                            <property name="orientation">1</property>
                             <child>
-                              <object class="GtkListView"></object>
+                              <object class="GtkScrolledWindow">
+                                <property name="vexpand">true</property>
+                                <child>
+                                  <object class="GtkListView"></object>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkActionBar">
+                                <child type="end">
+                                  <object class="GtkButton" id="extra_data_add">
+                                    <property name="label">Add...</property>
+                                  </object>
+                                </child>
+                              </object>
                             </child>
                           </object>
                         </property>
-                        <property name="name">get_page</property>
+                        <property name="name">extra_data_page</property>
                         <property name="title">GET</property>
                       </object>
                     </child>
