@@ -34,6 +34,8 @@ class FuzzerWindow(Adw.Window):
     base_url: str
     pb_param: str | None = None
 
+    protocol_specific_params: dict
+
     current_req_proto: Path
     current_req_proto_msgs: list[ProtoMessageDeclaration]
     pb_request: Message
@@ -59,7 +61,9 @@ class FuzzerWindow(Adw.Window):
         sample = ''
         if endpoint['request'].get('samples'):
             sample = endpoint['request']['samples'][sample_id]
-        self.get_params = self.transport.load_sample(sample, self.pb_request)
+        self.protocol_specific_params = self.transport.load_sample(
+            sample, self.pb_request
+        )
 
         # Load Protobuf request message
 

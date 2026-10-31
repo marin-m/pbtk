@@ -7,18 +7,16 @@ from typing import Optional
 # ⚠️ XX WIP...
 
 
-class Endpoint:
-    pass  # ⚠️ Load data from JSON...
-
-
 class EndpointListRow(GObject.Object):
     __gtype_name__ = 'EndpointListRow'
 
     label = GObject.Property(type=str)
-    children: Optional[Gio.ListStore] = GObject.Property(
-        type=Gio.ListStore
-    )  # of EndpointListRow
-    endpoint: Optional[Endpoint] = GObject.Property(type=object)
+
+    children: Gio.ListStore | None = GObject.Property(
+        type=Gio.ListStore  # of EndpointListRow
+    )
+
+    endpoint: dict | None = GObject.Property(type=object)
 
     def __init__(self, label, endpoint=None, has_children: bool = True):
         super().__init__()
