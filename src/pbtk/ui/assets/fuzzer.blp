@@ -24,9 +24,17 @@ template $FuzzerWindow: Adw.Window {
                 reorderable: false;
 
                 ColumnViewColumn {
-                  factory: SignalListItemFactory {
-                    bind => $bind_proto_name_field();
-                    setup => $setup_proto_name_field();
+                  factory: BuilderListItemFactory {
+                    template ColumnViewCell {
+                      child: TreeExpander {
+                        list-row: bind template.item as <Gtk.TreeListRow>;
+
+                        child: $ProtoRowFieldName {
+                          // ⚠️ TODO: bind signals (+ add checkbox, rename-on-click, etc.)
+                          item: bind template.item as <TreeListRow>.item as <$ProtobufItem>;
+                        };
+                      };
+                    }
                   };
 
                   id: "name";
