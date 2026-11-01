@@ -149,3 +149,32 @@ class FuzzerWindow(Adw.Window):
         # endpoint.
 
         # ⚠️ ➡️ TODO
+
+    @Gtk.Template.Callback()
+    def setup_proto_name_field(
+        self,
+        factory: Gtk.SignalListItemFactory,
+        cell: Gtk.ColumnViewCell,
+    ):
+        expander = Gtk.TreeExpander()
+        cell.bind_property('item', expander, 'list-row')
+
+        label = Gtk.Label()
+        expander.set_child(label)
+
+        cell.set_child(expander)
+
+    @Gtk.Template.Callback()
+    def bind_proto_name_field(
+        self,
+        factory: Gtk.SignalListItemFactory,
+        cell: Gtk.ColumnViewCell,
+    ):
+        tree_list_row: Gtk.TreeListRow = cell.get_item()
+        item: ProtobufItem = tree_list_row.get_item()
+
+        expander: Gtk.TreeExpander = cell.get_child()
+        label: Gtk.Label = expander.get_child()
+
+        label.set_label(item.field_name)
+        # ⚠️ TODO: bind signals (+ add checkbox, rename-on-click, etc.)

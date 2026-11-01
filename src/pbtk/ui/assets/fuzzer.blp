@@ -24,12 +24,26 @@ template $FuzzerWindow: Adw.Window {
                 reorderable: false;
 
                 ColumnViewColumn {
+                  factory: SignalListItemFactory {
+                    bind => $bind_proto_name_field();
+                    setup => $setup_proto_name_field();
+                  };
+
                   id: "name";
                   resizable: true;
                   title: "Name";
                 }
 
                 ColumnViewColumn {
+                  factory: BuilderListItemFactory {
+                    template ColumnViewCell {
+                      child: Label {
+                        xalign: 0;
+                        label: bind template.item as <TreeListRow>.item as <$ProtobufItem>.type_txt;
+                      };
+                    }
+                  };
+
                   id: "type";
                   resizable: true;
                   title: "Type";

@@ -35,6 +35,12 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                                 <property name="reorderable">false</property>
                                 <child>
                                   <object class="GtkColumnViewColumn">
+                                    <property name="factory">
+                                      <object class="GtkSignalListItemFactory">
+                                        <signal name="bind" handler="bind_proto_name_field"/>
+                                        <signal name="setup" handler="setup_proto_name_field"/>
+                                      </object>
+                                    </property>
                                     <property name="id">name</property>
                                     <property name="resizable">true</property>
                                     <property name="title">Name</property>
@@ -42,6 +48,27 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                                 </child>
                                 <child>
                                   <object class="GtkColumnViewColumn">
+                                    <property name="factory">
+                                      <object class="GtkBuilderListItemFactory">
+                                        <property name="bytes"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkColumnViewCell">
+    <property name="child">
+      <object class="GtkLabel">
+        <property name="xalign">0</property>
+        <binding name="label">
+          <lookup name="type_txt" type="ProtobufItem">
+            <lookup name="item" type="GtkTreeListRow">
+              <lookup name="item" type="GtkColumnViewCell">GtkColumnViewCell</lookup>
+            </lookup>
+          </lookup>
+        </binding>
+      </object>
+    </property>
+  </template>
+</interface>]]></property>
+                                      </object>
+                                    </property>
                                     <property name="id">type</property>
                                     <property name="resizable">true</property>
                                     <property name="title">Type</property>
