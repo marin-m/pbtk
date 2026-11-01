@@ -537,7 +537,7 @@ class PBTKGUI(QApplication):
         if base_path is None:
             base_path = []
         for ds, val in msg.ListFields():
-            path = [*base_path + ds.full_name]
+            path = [*base_path, ds.full_name]
 
             if ds.label == ds.LABEL_REPEATED:
                 for val_index, val_value in enumerate(val):
