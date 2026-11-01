@@ -100,8 +100,8 @@ class MainWindow(Adw.ApplicationWindow):
         self.app = app
 
         self.fuzzer = FuzzerWindow()
-        self.fuzzer.set_modal(True)
-        self.fuzzer.set_transient_for(self)
+        # self.fuzzer.set_modal(True)
+        # self.fuzzer.set_transient_for(self)
 
         # Pre-draw about dialog using AppStream metadata
 
