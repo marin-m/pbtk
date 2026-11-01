@@ -24,7 +24,7 @@ license = "GPL-3.0-or-later"
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
 dependencies = [
-    "protobuf<7.34",
+    "protobuf==3.10.0",
     "pygobject>=3.56.3",
     "requests",
     "websocket-client",
