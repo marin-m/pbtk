@@ -6,6 +6,7 @@ import gi
 from google.protobuf.message import Message
 
 from pbtk.datamodel.transport import Transport, TransportDefinition
+from pbtk.datamodel.field import ProtobufItem
 from pbtk.utils.common import (
     BASE_PATH,
     ProtoMessageDeclaration,
@@ -17,7 +18,7 @@ gi.require_version('WebKit', '6.0')
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 
-from gi.repository import Adw, Gtk
+from gi.repository import Adw, Gio, GObject, Gtk
 from gi.repository.WebKit import WebView
 
 
@@ -43,6 +44,23 @@ class FuzzerWindow(Adw.Window):
     current_resp_proto: Path = None
     current_resp_proto_msgs: list[ProtoMessageDeclaration] = None
     pb_response: Message = None
+
+    proto_model_selection: Gtk.NoSelection = Gtk.Template.Child()
+    proto_items = GObject.Property(type=Gio.ListStore)  # of ProtobufItem
+
+    def __init__(self):
+        super().__init__()
+
+        self.proto_items = Gio.ListStore.new(ProtobufItem)
+
+        self.proto_model_selection.set_model(
+            Gtk.TreeListModel.new(
+                self.proto_items,
+                passthrough=False,
+                autoexpand=False,
+                create_func=lambda item: item.get_children(),
+            )
+        )
 
     def load(self, endpoint: dict, sample_id: int = 0):
 
@@ -114,7 +132,14 @@ class FuzzerWindow(Adw.Window):
 
         # Get initial data into the Protobuf tree view
 
-        # ⚠️ ➡️ TODO
+        self.proto_items.remove_all()
+
+        for desc in self.pb_request.DESCRIPTOR.fields:
+            # ℹ️ `ds` is of type FieldDescriptor
+            self.proto_items.append(ProtobufItem(desc, [desc.full_name]))
+        # self.parse_fields(self.pb_request)
+
+        # ⚠️ ➡️ WIP
 
         # Do the same for transport-specific data
 
