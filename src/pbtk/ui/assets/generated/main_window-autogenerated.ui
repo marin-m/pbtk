@@ -450,10 +450,12 @@ suggested-action</property>
             <property name="child">
               <object class="AdwToolbarView">
                 <property name="content">
-                  <object class="GtkListView">
-                    <property name="factory">
-                      <object class="GtkBuilderListItemFactory">
-                        <property name="bytes"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+                  <object class="GtkScrolledWindow">
+                    <property name="child">
+                      <object class="GtkListView">
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="bytes"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <template class="GtkListItem">
     <property name="child">
@@ -479,13 +481,15 @@ suggested-action</property>
     </property>
   </template>
 </interface>]]></property>
+                          </object>
+                        </property>
+                        <property name="model">
+                          <object class="GtkNoSelection" id="endpoints_selection"></object>
+                        </property>
+                        <property name="single-click-activate">true</property>
+                        <signal name="activate" handler="endpoint_row_selected"/>
                       </object>
                     </property>
-                    <property name="model">
-                      <object class="GtkNoSelection" id="endpoints_selection"></object>
-                    </property>
-                    <property name="single-click-activate">true</property>
-                    <signal name="activate" handler="endpoint_row_selected"/>
                   </object>
                 </property>
                 <child type="top">

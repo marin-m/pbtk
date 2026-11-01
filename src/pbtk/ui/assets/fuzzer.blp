@@ -30,8 +30,7 @@ template $FuzzerWindow: Adw.Window {
                         list-row: bind template.item as <Gtk.TreeListRow>;
 
                         child: $ProtoRowFieldName {
-                          // ⚠️ TODO: bind signals (+ add checkbox, rename-on-click, etc.)
-                          item: bind template.item as <TreeListRow>.item as <$ProtobufItem>;
+                          item: bind template.item as <TreeListRow>.item;
                         };
                       };
                     }
