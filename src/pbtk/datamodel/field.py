@@ -25,6 +25,7 @@ TYPE_NAME_LUT: dict[int, str] = {
     18: 'sint64',
 }
 
+
 class ProtobufItem(GObject.Object):
     __gtype_name__ = 'ProtobufItem'
 
@@ -33,7 +34,9 @@ class ProtobufItem(GObject.Object):
     desc: FieldDescriptor
     path: list[str]
 
-    field_name = GObject.Property(type=str)  # ⚠️ TODO this should be editable eventually...
+    field_name = GObject.Property(
+        type=str
+    )  # ⚠️ TODO this should be editable eventually...
     type_txt = GObject.Property(type=str)
 
     def __init__(self, desc: FieldDescriptor, path: list[str]):
