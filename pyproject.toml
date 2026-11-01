@@ -24,7 +24,7 @@ license = "GPL-3.0-or-later"
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
 dependencies = [
-    "protobuf<7.34",
+    "protobuf==3.20.3",
     "pyside6>=6.10.2",
     "requests",
     "system-pyside6>=0.1.1",
