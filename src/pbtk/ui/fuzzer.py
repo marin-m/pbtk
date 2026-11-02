@@ -25,14 +25,22 @@ from gi.repository.WebKit import WebView
 class ProtoRowFieldName(Gtk.Box):
     __gtype_name__ = 'ProtoRowFieldName'
 
+    checkbox = GObject.Property(type=Gtk.CheckButton)
     label = GObject.Property(type=Gtk.Label)
     _item: ProtobufItem = None
 
     def __init__(self):
         super().__init__(orientation=Gtk.Orientation.HORIZONTAL, spacing=3)
 
+        self.checkbox = Gtk.CheckButton.new()
+        self.checkbox.set_visible(False)
+        self.append(self.checkbox)
+
         self.label = Gtk.Label.new('')
         self.append(self.label)
+
+        # ⚠️ TODO there should be click/hover handlers
+        #    applied over the row nearby
 
     @GObject.Property(type=ProtobufItem)
     def item(self):
