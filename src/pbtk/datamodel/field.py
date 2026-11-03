@@ -60,6 +60,12 @@ class ProtobufItem(GObject.Object):
 
     def get_children(self):
 
+        """
+            The list of children is loaded lazily only
+            when the current node is visible in the
+            GTK+ tree view.
+        """
+
         if not self.is_message:
             return None
 
