@@ -7,6 +7,19 @@ from os import environ
 
 environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
 
+# Monkey-patch map object creation (suppressing the map_entry option
+# from generated classes),
+from google.protobuf import descriptor
+
+descriptor._ParseOptions = lambda msg, data: msg.FromString(
+    data.replace(b'8\001', b'')
+)
+
+# Monkey-patch enum value checking,
+from google.protobuf.internal import type_checkers
+
+type_checkers.SupportsOpenEnums = lambda x: True
+
 from traceback import format_exception
 from argparse import ArgumentParser
 from logging import debug, error

@@ -94,6 +94,24 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                                 <child>
                                   <object class="GtkColumnViewColumn">
                                     <property name="expand">true</property>
+                                    <property name="factory">
+                                      <object class="GtkBuilderListItemFactory">
+                                        <property name="bytes"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkColumnViewCell">
+    <property name="child">
+      <object class="ProtoRowFieldValue">
+        <binding name="item">
+          <lookup name="item" type="GtkTreeListRow">
+            <lookup name="item" type="GtkColumnViewCell">GtkColumnViewCell</lookup>
+          </lookup>
+        </binding>
+      </object>
+    </property>
+  </template>
+</interface>]]></property>
+                                      </object>
+                                    </property>
                                     <property name="id">value</property>
                                     <property name="title">Value</property>
                                   </object>
@@ -230,8 +248,8 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
         </child>
       </object>
     </property>
-    <property name="default-height">480</property>
-    <property name="default-width">720</property>
+    <property name="default-height">600</property>
+    <property name="default-width">800</property>
     <property name="destroy-with-parent">true</property>
     <property name="hide-on-close">true</property>
     <property name="title">Fuzzer</property>

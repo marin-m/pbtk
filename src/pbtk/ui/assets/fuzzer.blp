@@ -58,6 +58,15 @@ template $FuzzerWindow: Adw.Window {
 
                 ColumnViewColumn {
                   expand: true;
+
+                  factory: BuilderListItemFactory {
+                    template ColumnViewCell {
+                      child: $ProtoRowFieldValue {
+                        item: bind template.item as <TreeListRow>.item;
+                      };
+                    }
+                  };
+
                   id: "value";
                   title: "Value";
                 }
@@ -173,8 +182,8 @@ template $FuzzerWindow: Adw.Window {
     Adw.HeaderBar {}
   };
 
-  default-height: 480;
-  default-width: 720;
+  default-height: 600;
+  default-width: 800;
   destroy-with-parent: true;
   hide-on-close: true;
   title: "Fuzzer";

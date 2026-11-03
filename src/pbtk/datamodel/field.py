@@ -34,6 +34,10 @@ class ProtobufItem(GObject.Object):
     desc: FieldDescriptor
     path: list[str]
 
+    is_message: bool
+    is_required: bool
+    is_repeated: bool
+
     field_name = GObject.Property(
         type=str
     )  # ⚠️ TODO this should be editable eventually...
@@ -45,6 +49,10 @@ class ProtobufItem(GObject.Object):
         self.desc = desc
         self.path = path
 
+        self.is_message = desc.cpp_type == desc.CPPTYPE_MESSAGE
+        self.is_required = desc.label == desc.LABEL_REQUIRED
+        self.is_repeated = desc.label == desc.LABEL_REPEATED
+
         self.field_name = desc.full_name.rsplit('.', 1).pop()
         self.type_txt = TYPE_NAME_LUT[desc.type]
 
@@ -52,7 +60,10 @@ class ProtobufItem(GObject.Object):
 
     def get_children(self):
 
-        if not self.children and self.desc.message_type:
+        if not self.is_message:
+            return None
+
+        if not self.children:
             self.children = Gio.ListStore.new(ProtobufItem)
             for child in self.desc.message_type.fields:
                 self.children.append(

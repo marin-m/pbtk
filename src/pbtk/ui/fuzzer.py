@@ -1,8 +1,23 @@
 #!/usr/bin/env python3
 
 from pathlib import Path
+from sys import float_info
 
-import gi
+# Monkey-patch map object creation (suppressing the map_entry option
+# from generated classes),
+from google.protobuf import descriptor
+
+descriptor._ParseOptions = lambda msg, data: msg.FromString(
+    data.replace(b'8\001', b'')
+)
+
+# Monkey-patch enum value checking,
+from google.protobuf.internal import type_checkers
+
+type_checkers.SupportsOpenEnums = lambda x: True
+
+# And then do Protobuf imports
+from google.protobuf.internal.type_checkers import _VALUE_CHECKERS
 from google.protobuf.message import Message
 
 from pbtk.datamodel.transport import Transport, TransportDefinition
@@ -13,6 +28,8 @@ from pbtk.utils.common import (
     load_proto_msgs,
     transports,
 )
+
+import gi
 
 gi.require_version('WebKit', '6.0')
 gi.require_version('Gtk', '4.0')
@@ -30,10 +47,11 @@ class ProtoRowFieldName(Gtk.Box):
     _item: ProtobufItem = None
 
     def __init__(self):
-        super().__init__(orientation=Gtk.Orientation.HORIZONTAL, spacing=3)
+        super().__init__(orientation=Gtk.Orientation.HORIZONTAL)
+
+        self.set_spacing(4)
 
         self.checkbox = Gtk.CheckButton.new()
-        self.checkbox.set_visible(False)
         self.append(self.checkbox)
 
         self.label = Gtk.Label.new('')
@@ -50,6 +68,72 @@ class ProtoRowFieldName(Gtk.Box):
     def item(self, item: ProtobufItem):
         self._item = item
         self.label.set_label(item.field_name)
+        self.checkbox.set_visible(not item.is_required)
+
+
+class ProtoRowFieldValue(Gtk.Box):
+    __gtype_name__ = 'ProtoRowFieldValue'
+
+    child = GObject.Property(type=Gtk.Widget)
+    _item: ProtobufItem = None
+
+    def __init__(self):
+        super().__init__(orientation=Gtk.Orientation.HORIZONTAL)
+
+        # ⚠️ TODO there should be click/hover handlers
+        #    applied over the row nearby
+
+    @GObject.Property(type=ProtobufItem)
+    def item(self):
+        return self._item
+
+    @item.setter
+    def item(self, item: ProtobufItem):
+        self._item = item
+
+        desc = self.item.desc
+
+        if self.child:
+            self.remove(self.child)
+            self.child = None
+
+        if self.item.is_message:
+            pass
+
+        elif desc.type == desc.TYPE_BOOL:
+            self.child = Gtk.CheckButton.new()
+
+        elif desc.type == desc.CPPTYPE_STRING:
+            self.child = Gtk.Entry.new()
+
+        elif desc.cpp_type == desc.CPPTYPE_FLOAT:
+            self.child = Gtk.SpinButton.new_with_range(-3.4e38, 3.4e38, 1.0)
+            self.child.set_digits(7)
+
+        elif desc.cpp_type == desc.CPPTYPE_DOUBLE:
+            self.child = Gtk.SpinButton.new_with_range(
+                float_info.min, float_info.max, 1.0
+            )
+            self.child.set_digits(17)
+
+        else:
+            cpp_type = (
+                desc.cpp_type
+                if desc.cpp_type != desc.CPPTYPE_ENUM
+                else desc.CPPTYPE_INT32
+            )
+            self.child = Gtk.SpinButton.new_with_range(
+                _VALUE_CHECKERS[cpp_type]._MIN,
+                _VALUE_CHECKERS[cpp_type]._MAX,
+                1,
+            )
+
+        if isinstance(self.child, Gtk.SpinButton):
+            self.child.set_value(0.0)
+            self.child.set_update_policy(Gtk.SpinButtonUpdatePolicy.IF_VALID)
+
+        if self.child:
+            self.append(self.child)
 
 
 @Gtk.Template(
