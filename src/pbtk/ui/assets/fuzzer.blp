@@ -4,11 +4,31 @@ using Gio 2.0;
 
 template $FuzzerWindow: Adw.Window {
   content: Adw.ToolbarView {
-    content: Grid {
-      column-homogeneous: true;
-      row-homogeneous: true;
+    content: Paned {
+      end-child: fuzzer_edit_pane;
+      position: 400;
+      position-set: true;
+      start-child: fuzzer_preview_pane;
+      wide-handle: true;
 
-      Box {
+      Paned fuzzer_preview_pane {
+        end-child: fuzzer_preview_raw;
+        orientation: vertical;
+        position: 300;
+        position-set: true;
+        start-child: fuzzer_preview_html;
+        wide-handle: true;
+
+        $WebKitWebView fuzzer_preview_html {}
+
+        ScrolledWindow fuzzer_preview_raw {
+          TextView fuzzer_preview_text {
+            buffer: TextBuffer fuzzer_preview_buffer {};
+          }
+        }
+      }
+
+      Box fuzzer_edit_pane {
         orientation: vertical;
 
         Adw.InlineViewSwitcher fuzzer_view_switcher {
@@ -116,70 +136,38 @@ template $FuzzerWindow: Adw.Window {
           }
         }
 
-        layout {
-          column: "1";
-          column-span: "1";
-          row: "0";
-          row-span: "1";
-        }
-      }
+        Box fuzzer_samples_selector {
+          css-name: "button_box";
+          margin-bottom: 7;
+          margin-end: 7;
+          margin-start: 7;
+          margin-top: 7;
+          orientation: vertical;
+          spacing: 7;
 
-      Box {
-        css-name: "button_box";
-        margin-bottom: 7;
-        margin-end: 7;
-        margin-start: 7;
-        margin-top: 7;
-        orientation: vertical;
-        spacing: 7;
+          Label {
+            label: "Set current values to:";
+          }
 
-        Button {
-          label: "Select another endpoint";
-        }
+          DropDown fuzzer_samples_combo_box {
+            enable-search: true;
 
-        Button {
-          label: "Delete current endpoint";
-        }
-
-        Label {
-          label: "Set current values to:";
-        }
-
-        DropDown values_combo_box {
-          enable-search: true;
-
-          model: Gio.ListStore {};
-        }
-
-        layout {
-          column: "1";
-          column-span: "1";
-          row: "1";
-          row-span: "1";
-        }
-      }
-
-      TextView {
-        layout {
-          column: "0";
-          column-span: "1";
-          row: "1";
-          row-span: "1";
-        }
-      }
-
-      $WebKitWebView {
-        layout {
-          column: "0";
-          column-span: "1";
-          row: "0";
-          row-span: "1";
+            model: Gio.ListStore fuzzer_samples_list {};
+          }
         }
       }
     };
 
     [top]
     Adw.HeaderBar {}
+
+    [bottom]
+    ActionBar {
+      [end]
+      Button {
+        label: "Delete current endpoint";
+      }
+    }
   };
 
   default-height: 600;

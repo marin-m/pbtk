@@ -10,11 +10,38 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
     <property name="content">
       <object class="AdwToolbarView">
         <property name="content">
-          <object class="GtkGrid">
-            <property name="column-homogeneous">true</property>
-            <property name="row-homogeneous">true</property>
+          <object class="GtkPaned">
+            <property name="end-child">fuzzer_edit_pane</property>
+            <property name="position">400</property>
+            <property name="position-set">true</property>
+            <property name="start-child">fuzzer_preview_pane</property>
+            <property name="wide-handle">true</property>
             <child>
-              <object class="GtkBox">
+              <object class="GtkPaned" id="fuzzer_preview_pane">
+                <property name="end-child">fuzzer_preview_raw</property>
+                <property name="orientation">1</property>
+                <property name="position">300</property>
+                <property name="position-set">true</property>
+                <property name="start-child">fuzzer_preview_html</property>
+                <property name="wide-handle">true</property>
+                <child>
+                  <object class="WebKitWebView" id="fuzzer_preview_html"></object>
+                </child>
+                <child>
+                  <object class="GtkScrolledWindow" id="fuzzer_preview_raw">
+                    <child>
+                      <object class="GtkTextView" id="fuzzer_preview_text">
+                        <property name="buffer">
+                          <object class="GtkTextBuffer" id="fuzzer_preview_buffer"></object>
+                        </property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox" id="fuzzer_edit_pane">
                 <property name="orientation">1</property>
                 <child>
                   <object class="AdwInlineViewSwitcher" id="fuzzer_view_switcher">
@@ -173,78 +200,45 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                     </child>
                   </object>
                 </child>
-                <layout>
-                  <property name="column">1</property>
-                  <property name="column-span">1</property>
-                  <property name="row">0</property>
-                  <property name="row-span">1</property>
-                </layout>
-              </object>
-            </child>
-            <child>
-              <object class="GtkBox">
-                <property name="css-name">button_box</property>
-                <property name="margin-bottom">7</property>
-                <property name="margin-end">7</property>
-                <property name="margin-start">7</property>
-                <property name="margin-top">7</property>
-                <property name="orientation">1</property>
-                <property name="spacing">7</property>
                 <child>
-                  <object class="GtkButton">
-                    <property name="label">Select another endpoint</property>
+                  <object class="GtkBox" id="fuzzer_samples_selector">
+                    <property name="css-name">button_box</property>
+                    <property name="margin-bottom">7</property>
+                    <property name="margin-end">7</property>
+                    <property name="margin-start">7</property>
+                    <property name="margin-top">7</property>
+                    <property name="orientation">1</property>
+                    <property name="spacing">7</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label">Set current values to:</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkDropDown" id="fuzzer_samples_combo_box">
+                        <property name="enable-search">true</property>
+                        <property name="model">
+                          <object class="GListStore" id="fuzzer_samples_list"></object>
+                        </property>
+                      </object>
+                    </child>
                   </object>
                 </child>
-                <child>
-                  <object class="GtkButton">
-                    <property name="label">Delete current endpoint</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel">
-                    <property name="label">Set current values to:</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkDropDown" id="values_combo_box">
-                    <property name="enable-search">true</property>
-                    <property name="model">
-                      <object class="GListStore"></object>
-                    </property>
-                  </object>
-                </child>
-                <layout>
-                  <property name="column">1</property>
-                  <property name="column-span">1</property>
-                  <property name="row">1</property>
-                  <property name="row-span">1</property>
-                </layout>
-              </object>
-            </child>
-            <child>
-              <object class="GtkTextView">
-                <layout>
-                  <property name="column">0</property>
-                  <property name="column-span">1</property>
-                  <property name="row">1</property>
-                  <property name="row-span">1</property>
-                </layout>
-              </object>
-            </child>
-            <child>
-              <object class="WebKitWebView">
-                <layout>
-                  <property name="column">0</property>
-                  <property name="column-span">1</property>
-                  <property name="row">0</property>
-                  <property name="row-span">1</property>
-                </layout>
               </object>
             </child>
           </object>
         </property>
         <child type="top">
           <object class="AdwHeaderBar"></object>
+        </child>
+        <child type="bottom">
+          <object class="GtkActionBar">
+            <child type="end">
+              <object class="GtkButton">
+                <property name="label">Delete current endpoint</property>
+              </object>
+            </child>
+          </object>
         </child>
       </object>
     </property>
