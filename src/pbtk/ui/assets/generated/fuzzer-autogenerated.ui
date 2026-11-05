@@ -69,7 +69,9 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
   <template class="GtkColumnViewCell">
     <property name="child">
       <object class="GtkTreeExpander">
-        <property name="list-row" bind-source="GtkColumnViewCell" bind-property="item" bind-flags="sync-create"/>
+        <binding name="list-row">
+          <lookup name="item" type="GtkColumnViewCell">GtkColumnViewCell</lookup>
+        </binding>
         <property name="child">
           <object class="ProtoRowFieldName">
             <binding name="item">
@@ -217,9 +219,41 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                     <child>
                       <object class="GtkDropDown" id="fuzzer_samples_combo_box">
                         <property name="enable-search">true</property>
-                        <property name="model">
-                          <object class="GListStore" id="fuzzer_samples_list"></object>
+                        <property name="expression">
+                          <lookup name="readable_sample_data" type="RecordedSampleRow"></lookup>
                         </property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="bytes"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkLabel">
+        <property name="ellipsize">3</property>
+        <property name="has-tooltip">true</property>
+        <property name="xalign">0</property>
+        <binding name="tooltip-text">
+          <lookup name="readable_sample_data" type="RecordedSampleRow">
+            <lookup name="item" type="GtkListItem">GtkListItem</lookup>
+          </lookup>
+        </binding>
+        <binding name="label">
+          <lookup name="readable_sample_data" type="RecordedSampleRow">
+            <lookup name="item" type="GtkListItem">GtkListItem</lookup>
+          </lookup>
+        </binding>
+      </object>
+    </property>
+  </template>
+</interface>]]></property>
+                          </object>
+                        </property>
+                        <property name="model">
+                          <object class="GListStore" id="fuzzer_samples_list">
+                            <property name="item-type">RecordedSampleRow</property>
+                          </object>
+                        </property>
+                        <property name="search-match-mode">1</property>
                       </object>
                     </child>
                   </object>

@@ -21,6 +21,7 @@ from google.protobuf.internal.type_checkers import _VALUE_CHECKERS
 from google.protobuf.message import Message
 
 from pbtk.datamodel.transport import Transport, TransportDefinition
+from pbtk.datamodel.endpoint import RecordedSampleRow
 from pbtk.datamodel.field import ProtobufItem
 from pbtk.utils.common import (
     BASE_PATH,
@@ -33,9 +34,10 @@ import gi
 
 gi.require_version('WebKit', '6.0')
 gi.require_version('Gtk', '4.0')
+gi.require_version('Pango', '1.0')
 gi.require_version('Adw', '1')
 
-from gi.repository import Adw, Gio, GObject, Gtk
+from gi.repository import Adw, Gio, GObject, Pango, Gtk
 from gi.repository.WebKit import WebView
 
 
@@ -162,6 +164,9 @@ class FuzzerWindow(Adw.Window):
     proto_model_selection: Gtk.NoSelection = Gtk.Template.Child()
     proto_items = GObject.Property(type=Gio.ListStore)  # of ProtobufItem
 
+    fuzzer_samples_combo_box: Gtk.DropDown = Gtk.Template.Child()
+    fuzzer_samples_list: Gio.ListStore = Gtk.Template.Child()
+
     def __init__(self):
         super().__init__()
 
@@ -228,7 +233,26 @@ class FuzzerWindow(Adw.Window):
                 None,
             ).definition()
 
-        # Load sample
+        # Load list of samples
+
+        with self.fuzzer_samples_list.freeze_notify():
+            self.fuzzer_samples_list.remove_all()
+
+            for raw_sample_data in endpoint['request'].get('samples', []):
+                readable_sample_data = (
+                    raw_sample_data[self.pb_param]
+                    if self.pb_param
+                    else str(raw_sample_data)
+                )
+
+                sample_item = RecordedSampleRow(
+                    raw_sample_data, readable_sample_data
+                )
+
+                self.fuzzer_samples_list.append(sample_item)
+
+        # Load currently selected sample into
+        # self.pb_request + self.protocol_specific_params
 
         sample = ''
         if endpoint['request'].get('samples'):
@@ -256,10 +280,5 @@ class FuzzerWindow(Adw.Window):
         # ⚠️ ➡️ WIP
 
         # Do the same for transport-specific data
-
-        # ⚠️ ➡️ TODO
-
-        # Fill the request samples combo box if we're loading a new
-        # endpoint.
 
         # ⚠️ ➡️ TODO

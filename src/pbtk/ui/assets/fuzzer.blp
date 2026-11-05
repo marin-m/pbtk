@@ -151,8 +151,25 @@ template $FuzzerWindow: Adw.Window {
 
           DropDown fuzzer_samples_combo_box {
             enable-search: true;
+            expression: expr item as <$RecordedSampleRow>.readable_sample_data;
 
-            model: Gio.ListStore fuzzer_samples_list {};
+            factory: BuilderListItemFactory {
+              template ListItem {
+                child: Label {
+                  ellipsize: end;
+                  has-tooltip: true;
+                  xalign: 0;
+                  tooltip-text: bind template.item as <$RecordedSampleRow>.readable_sample_data;
+                  label: bind template.item as <$RecordedSampleRow>.readable_sample_data;
+                };
+              }
+            };
+
+            model: Gio.ListStore fuzzer_samples_list {
+              item-type: typeof<$RecordedSampleRow>;
+            };
+
+            search-match-mode: substring;
           }
         }
       }

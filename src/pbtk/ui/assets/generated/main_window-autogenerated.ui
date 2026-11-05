@@ -460,7 +460,9 @@ suggested-action</property>
   <template class="GtkListItem">
     <property name="child">
       <object class="GtkTreeExpander">
-        <property name="list-row" bind-source="GtkListItem" bind-property="item" bind-flags="sync-create"/>
+        <binding name="list-row">
+          <lookup name="item" type="GtkListItem">GtkListItem</lookup>
+        </binding>
         <property name="child">
           <object class="GtkLabel">
             <property name="use-markup">true</property>
