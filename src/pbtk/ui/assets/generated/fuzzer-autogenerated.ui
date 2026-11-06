@@ -79,6 +79,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                 <lookup name="item" type="GtkColumnViewCell">GtkColumnViewCell</lookup>
               </lookup>
             </binding>
+            <property name="list-row" bind-source="GtkColumnViewCell" bind-property="item" bind-flags="sync-create"/>
           </object>
         </property>
       </object>
@@ -90,6 +91,34 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                                     <property name="id">name</property>
                                     <property name="resizable">true</property>
                                     <property name="title">Name</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkColumnViewColumn">
+                                    <property name="factory">
+                                      <object class="GtkBuilderListItemFactory">
+                                        <property name="bytes"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkColumnViewCell">
+    <property name="child">
+      <object class="GtkLabel">
+        <property name="xalign">0</property>
+        <binding name="label">
+          <lookup name="proto_id" type="ProtobufItem">
+            <lookup name="item" type="GtkTreeListRow">
+              <lookup name="item" type="GtkColumnViewCell">GtkColumnViewCell</lookup>
+            </lookup>
+          </lookup>
+        </binding>
+      </object>
+    </property>
+  </template>
+</interface>]]></property>
+                                      </object>
+                                    </property>
+                                    <property name="id">id</property>
+                                    <property name="resizable">true</property>
+                                    <property name="title">Id</property>
                                   </object>
                                 </child>
                                 <child>
@@ -270,6 +299,11 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
             <child type="end">
               <object class="GtkButton">
                 <property name="label">Delete current endpoint</property>
+              </object>
+            </child>
+            <child type="end">
+              <object class="GtkButton">
+                <property name="label">Open proto definition</property>
               </object>
             </child>
           </object>

@@ -51,6 +51,7 @@ template $FuzzerWindow: Adw.Window {
 
                         child: $ProtoRowFieldName {
                           item: bind template.item as <TreeListRow>.item;
+                          list-row: bind template.item;
                         };
                       };
                     }
@@ -59,6 +60,21 @@ template $FuzzerWindow: Adw.Window {
                   id: "name";
                   resizable: true;
                   title: "Name";
+                }
+
+                ColumnViewColumn {
+                  factory: BuilderListItemFactory {
+                    template ColumnViewCell {
+                      child: Label {
+                        xalign: 0;
+                        label: bind template.item as <TreeListRow>.item as <$ProtobufItem>.proto_id;
+                      };
+                    }
+                  };
+
+                  id: "id";
+                  resizable: true;
+                  title: "Id";
                 }
 
                 ColumnViewColumn {
@@ -183,6 +199,11 @@ template $FuzzerWindow: Adw.Window {
       [end]
       Button {
         label: "Delete current endpoint";
+      }
+
+      [end]
+      Button {
+        label: "Open proto definition";
       }
     }
   };

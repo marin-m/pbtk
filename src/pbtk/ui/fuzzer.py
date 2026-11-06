@@ -46,7 +46,9 @@ class ProtoRowFieldName(Gtk.Box):
 
     checkbox = GObject.Property(type=Gtk.CheckButton)
     label = GObject.Property(type=Gtk.Label)
+
     _item: ProtobufItem = None
+    _list_row: Gtk.TreeListRow = None
 
     def __init__(self):
         super().__init__(orientation=Gtk.Orientation.HORIZONTAL)
@@ -62,15 +64,34 @@ class ProtoRowFieldName(Gtk.Box):
         # ⚠️ TODO there should be click/hover handlers
         #    applied over the row nearby
 
+    @GObject.Property(type=Gtk.TreeListRow)
+    def list_row(self):
+        return self._list_row
+
+    @list_row.setter
+    def list_row(self, list_row: Gtk.TreeListRow):
+        # ⚠️ Unbind property whenever it changes?
+        self._list_row = list_row
+
     @GObject.Property(type=ProtobufItem)
     def item(self):
         return self._item
 
     @item.setter
     def item(self, item: ProtobufItem):
+        # ⚠️ Unbind property whenever it changes?
         self._item = item
-        self.label.set_label(item.field_name)
+
+        self.label.set_label(
+            item.field_name + ('+' if item.is_repeated else '')
+        )
         self.checkbox.set_visible(not item.is_required)
+
+        item.bind_property(
+            'is_set', self.checkbox, 'active', GObject.BindingFlags.SYNC_CREATE
+        )
+
+        item.bind_property('expanded', self.list_row, 'expanded')
 
 
 class ProtoRowFieldValue(Gtk.Box):
@@ -105,7 +126,7 @@ class ProtoRowFieldValue(Gtk.Box):
         elif desc.type == desc.TYPE_BOOL:
             self.child = Gtk.CheckButton.new()
 
-        elif desc.type == desc.CPPTYPE_STRING:
+        elif desc.cpp_type == desc.CPPTYPE_STRING:
             self.child = Gtk.Entry.new()
 
         elif desc.cpp_type == desc.CPPTYPE_FLOAT:
@@ -131,8 +152,39 @@ class ProtoRowFieldValue(Gtk.Box):
             )
 
         if isinstance(self.child, Gtk.SpinButton):
-            self.child.set_value(0.0)
             self.child.set_update_policy(Gtk.SpinButtonUpdatePolicy.IF_VALID)
+            self.item.bind_property(
+                'value',
+                self.child,
+                'value',
+                GObject.BindingFlags.BIDIRECTIONAL
+                | GObject.BindingFlags.SYNC_CREATE,
+                lambda _binding, value: value,
+                lambda _binding, value: value,
+            )
+
+        elif isinstance(self.child, Gtk.Entry):
+            self.item.bind_property(
+                'value',
+                self.child.get_buffer(),
+                'text',
+                GObject.BindingFlags.BIDIRECTIONAL
+                | GObject.BindingFlags.SYNC_CREATE,
+                lambda _binding, value: value,
+                lambda _binding, value: value,
+            )
+
+        elif isinstance(self.child, Gtk.CheckButton):
+            self.child.set_active(desc.default_value or False)
+            self.item.bind_property(
+                'value',
+                self.child,
+                'active',
+                GObject.BindingFlags.BIDIRECTIONAL
+                | GObject.BindingFlags.SYNC_CREATE,
+                lambda _binding, value: value,
+                lambda _binding, value: value,
+            )
 
         if self.child:
             self.append(self.child)
@@ -273,12 +325,52 @@ class FuzzerWindow(Adw.Window):
         self.proto_items.remove_all()
 
         for desc in self.pb_request.DESCRIPTOR.fields:
-            # ℹ️ `ds` is of type FieldDescriptor
             self.proto_items.append(ProtobufItem(desc, [desc.full_name]))
-        # self.parse_fields(self.pb_request)
+
+        self.use_sample_values(self.pb_request, self.proto_items)
 
         # ⚠️ ➡️ WIP
 
         # Do the same for transport-specific data
 
         # ⚠️ ➡️ TODO
+
+    """
+        Parsing and rendering a Protobuf message parsed from
+        sample data to our tree model
+    """
+
+    def use_sample_values(
+        self, msg: Message, tree_fields: Gio.ListStore[ProtobufItem]
+    ):
+
+        for field_desc, field_val in msg.ListFields():
+            for node_index, node in reversed(list(enumerate(tree_fields))):
+                if node.desc.number == field_desc.number:
+                    break
+            else:
+                raise ValueError(
+                    'Item not found in Protobuf message: %r' % field_val
+                )
+
+            node.is_set = True
+
+            if field_desc.label == field_desc.LABEL_REPEATED:
+                for instance in field_val:
+                    if field_desc.cpp_type == field_desc.CPPTYPE_MESSAGE:
+                        node.expanded = True
+                        self.use_sample_values(instance, node.get_children())
+
+                    else:
+                        node.value = instance
+
+                    duplicate = ProtobufItem(node.desc, node.path)
+                    tree_fields.insert(node_index + 1, duplicate)
+
+            else:
+                if field_desc.cpp_type == field_desc.CPPTYPE_MESSAGE:
+                    node.expanded = True
+                    self.use_sample_values(field_val, node.get_children())
+
+                else:
+                    node.value = field_val

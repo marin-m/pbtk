@@ -41,7 +41,12 @@ class ProtobufItem(GObject.Object):
     field_name = GObject.Property(
         type=str
     )  # ⚠️ TODO this should be editable eventually...
+    proto_id = GObject.Property(type=int)
     type_txt = GObject.Property(type=str)
+
+    value = GObject.Property(type=object)
+    is_set = GObject.Property(type=bool, default=False)
+    expanded = GObject.Property(type=bool, default=False)
 
     def __init__(self, desc: FieldDescriptor, path: list[str]):
         super().__init__()
@@ -54,9 +59,23 @@ class ProtobufItem(GObject.Object):
         self.is_repeated = desc.label == desc.LABEL_REPEATED
 
         self.field_name = desc.full_name.rsplit('.', 1).pop()
+        self.proto_id = desc.number
         self.type_txt = TYPE_NAME_LUT[desc.type]
 
-        pass  # ⚠️ XX WIP
+        if desc.type == desc.CPPTYPE_STRING:
+            self.value = desc.default_value or False
+
+        elif desc.cpp_type == desc.CPPTYPE_STRING:
+            # ⚠️ ⚠️ FIXME: GTK+ is unlikely to accept bytes here
+            self.value = desc.default_value or (
+                '' if desc.type != desc.TYPE_BYTES else b''
+            )
+
+        elif desc.cpp_type in (desc.CPPTYPE_DOUBLE, desc.CPPTYPE_FLOAT):
+            self.value = desc.default_value or 0.0
+
+        elif not self.is_message:
+            self.value = desc.default_value or 0
 
     def get_children(self):
         """
