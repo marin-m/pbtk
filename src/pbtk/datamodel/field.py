@@ -62,7 +62,7 @@ class ProtobufItem(GObject.Object):
         self.proto_id = desc.number
         self.type_txt = TYPE_NAME_LUT[desc.type]
 
-        if desc.type == desc.CPPTYPE_STRING:
+        if desc.type == desc.TYPE_BOOL:
             self.value = desc.default_value or False
 
         elif desc.cpp_type == desc.CPPTYPE_STRING:

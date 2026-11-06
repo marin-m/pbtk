@@ -196,6 +196,8 @@ class ProtoRowFieldValue(Gtk.Box):
 class FuzzerWindow(Adw.Window):
     __gtype_name__ = 'FuzzerWindow'
 
+    action_group = GObject.Property(type=Gio.ActionGroup)
+
     endpoint: dict
     transport_meta: TransportDefinition
     transport: Transport
@@ -232,6 +234,34 @@ class FuzzerWindow(Adw.Window):
                 create_func=lambda item: item.get_children(),
             )
         )
+
+        self.connect_actions()
+
+    def connect_actions(self):
+
+        self.action_group = Gio.SimpleActionGroup.new()
+
+        self.insert_action_group('win', self.action_group)
+
+        def open_proto_definition(*args):
+            proto_path = Gio.File.new_for_path(
+                str(self.current_req_proto)
+            )
+            Gtk.FileLauncher.new(proto_path).launch(self, None, None)
+
+        self.add_simple_action('open-proto-definition', open_proto_definition)
+
+    def add_simple_action(self, name, callback, param_type=None):
+
+        action = Gio.SimpleAction.new(name, param_type)
+        action.connect('activate', callback)
+        self.add_action(action)
+
+    def add_simple_action(self, name, callback, param_type=None):
+
+        action = Gio.SimpleAction.new(name, param_type)
+        action.connect('activate', callback)
+        self.action_group.add_action(action)
 
     def load(self, endpoint: dict, sample_id: int = 0):
 

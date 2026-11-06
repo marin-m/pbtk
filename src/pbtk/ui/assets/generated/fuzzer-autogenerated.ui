@@ -303,6 +303,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
             </child>
             <child type="end">
               <object class="GtkButton">
+                <property name="action-name">win.open-proto-definition</property>
                 <property name="label">Open proto definition</property>
               </object>
             </child>
