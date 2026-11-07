@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
+from google.protobuf.message import Message
 from abc import ABC, abstractmethod
 
-from gi.repository import GObject
-from google.protobuf.message import Message
-from requests import Response
+import gi
+
+gi.require_version('Soup', '3.0')
+
+from gi.repository import GObject, Soup
 
 # ⚠️ SEE https://docs.python.org/fr/3/library/abc.html#abc.abstractproperty
 # to replace decorator arguments
@@ -74,11 +77,11 @@ class Transport(ABC):
         ...
 
     @abstractmethod
-    def perform_request(
+    def create_request(
         self, pb_data: Message, tab_data: dict | None
-    ) -> Response:
+    ) -> Soup.Message:
         """
-        Perform a request using the provided URL and Protobuf
+        Create a request object using the provided URL and Protobuf
         object, and optionally other transport-specific side data.
         """
 

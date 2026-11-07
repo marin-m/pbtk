@@ -36,8 +36,9 @@ gi.require_version('WebKit', '6.0')
 gi.require_version('Gtk', '4.0')
 gi.require_version('Pango', '1.0')
 gi.require_version('Adw', '1')
+gi.require_version('Soup', '3.0')
 
-from gi.repository import Adw, Gio, GObject, Pango, Gtk
+from gi.repository import Adw, Gio, GObject, Pango, Soup, Gtk
 from gi.repository.WebKit import WebView
 
 
@@ -47,11 +48,15 @@ class ProtoRowFieldName(Gtk.Box):
     checkbox = GObject.Property(type=Gtk.CheckButton)
     label = GObject.Property(type=Gtk.Label)
 
+    http_session: Soup.Session
+
     _item: ProtobufItem = None
     _list_row: Gtk.TreeListRow = None
 
     def __init__(self):
         super().__init__(orientation=Gtk.Orientation.HORIZONTAL)
+
+        self.http_session = Soup.Session.new()
 
         self.set_spacing(4)
 

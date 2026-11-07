@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
+from urllib.parse import parse_qsl, quote_plus, urlencode, urlparse
 from base64 import urlsafe_b64decode, urlsafe_b64encode
+from google.protobuf.message import Message
 from collections import OrderedDict
 from functools import reduce
-from json import loads
 from re import match, sub
-from urllib.parse import parse_qsl, quote_plus, urlencode, urlparse
+from json import loads
 
-from google.protobuf.message import Message
-from requests import Response, get, post
 
 from pbtk.datamodel.transport import Transport
 from pbtk.utils.common import register_transport
@@ -17,9 +16,16 @@ from pbtk.utils.pburl_decoder import (
     proto_url_encode,
 )
 
+import gi
+
+gi.require_version('Soup', '3.0')
+
+from gi.repository import Soup
+
 USER_AGENT = {
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36'
 }
+
 
 # ⚠️ ===> TURN DECORATOR ARGUMENTS INTO ABC BASE CLASS
 #    ABSTRACT PROPERTIES?
@@ -46,7 +52,10 @@ class RawPOST(Transport):
         self.headers['Content-Type'] = 'application/x-protobuf'
         return self.headers
 
-    def perform_request(self, pb_data: Message, tab_data: dict) -> Response:
+    def create_request(
+        self, pb_data: Message, tab_data: dict | None
+    ) -> Soup.Message:
+        # ⚠️ WIP: adapt
         return post(
             self.url, pb_data.SerializeToString(), headers=self.headers
         )
@@ -81,7 +90,10 @@ class Base64GET(Transport):
         pb_msg.ParseFromString(base64)
         return sample
 
-    def perform_request(self, pb_data: Message, tab_data: dict) -> Response:
+    def create_request(
+        self, pb_data: Message, tab_data: dict | None
+    ) -> Soup.Message:
+        # ⚠️ WIP: adapt
         base64 = urlsafe_b64encode(pb_data.SerializeToString()).decode('utf8')
         params = OrderedDict({self.pb_param: base64.strip('=')})
         params.update(tab_data)
@@ -128,7 +140,10 @@ class GMapsAPIPrivate(Transport):
         proto_url_decode(sample.pop(self.pb_param), pb_msg)
         return sample
 
-    def perform_request(self, pb_data: Message, tab_data: dict) -> Response:
+    def create_request(
+        self, pb_data: Message, tab_data: dict | None
+    ) -> Soup.Message:
+        # ⚠️ WIP: adapt
         params = OrderedDict({self.pb_param: proto_url_encode(pb_data)})
         params.update(tab_data)
         url = sub(
@@ -185,7 +200,10 @@ class GMapsAPIPublic(Transport):
         proto_url_decode(pb_data, pb_msg, '&')
         return get_data
 
-    def perform_request(self, pb_data: Message, tab_data: dict) -> Response:
+    def create_request(
+        self, pb_data: Message, tab_data: dict | None
+    ) -> Soup.Message:
+        # ⚠️ WIP: adapt
         params = OrderedDict({proto_url_encode(pb_data, '&'): ''})
         params.update(tab_data)
         params['token'] = self.hash_token(
