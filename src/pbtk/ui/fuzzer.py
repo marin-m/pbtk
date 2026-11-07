@@ -525,8 +525,7 @@ class FuzzerWindow(Adw.Window):
                     break
 
             if not dec:
-                # ⚠️ We shouldn't use an external subprocess like this
-                dec = run(['hexdump', '-C'], input=data, stdout=PIPE).stdout
+                dec = self.hex_dump(data)
 
             data = dec[:100000]
 
@@ -545,6 +544,10 @@ class FuzzerWindow(Adw.Window):
         self.fuzzer_preview_html.load_uri(
             'data:%s;base64,%s' % (out_mime, b64encode(data).decode('utf-8'))
         )
+
+    def hex_dump(self, data: bytes):
+        # ⚠️ We shouldn't use an external subprocess like this
+        return run(['hexdump', '-C'], input=data, stdout=PIPE).stdout
 
     def parse_protobuf(self, data, pbresp):
         if pbresp:
