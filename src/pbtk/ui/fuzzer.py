@@ -181,7 +181,11 @@ class ProtoRowFieldValue(Gtk.Box):
                 'text',
                 GObject.BindingFlags.BIDIRECTIONAL
                 | GObject.BindingFlags.SYNC_CREATE,
-                lambda _binding, value: value,
+                lambda _binding, value: (
+                    value.decode('utf-8')
+                    if isinstance(value, bytes)
+                    else value
+                ),
                 lambda _binding, value: value,
             )
 

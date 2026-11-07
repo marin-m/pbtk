@@ -66,7 +66,7 @@ class ProtobufItem(GObject.Object):
             self.value = desc.default_value or False
 
         elif desc.cpp_type == desc.CPPTYPE_STRING:
-            # ⚠️ ⚠️ FIXME: GTK+ is unlikely to accept bytes here
+            # ⚠️ ⚠️ GTK+ is unlikely to accept bytes here
             self.value = desc.default_value or (
                 '' if desc.type != desc.TYPE_BYTES else b''
             )
