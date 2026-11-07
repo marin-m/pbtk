@@ -244,9 +244,7 @@ class FuzzerWindow(Adw.Window):
         self.insert_action_group('win', self.action_group)
 
         def open_proto_definition(*args):
-            proto_path = Gio.File.new_for_path(
-                str(self.current_req_proto)
-            )
+            proto_path = Gio.File.new_for_path(str(self.current_req_proto))
             Gtk.FileLauncher.new(proto_path).launch(self, None, None)
 
         self.add_simple_action('open-proto-definition', open_proto_definition)
@@ -364,6 +362,40 @@ class FuzzerWindow(Adw.Window):
         # Do the same for transport-specific data
 
         # ⚠️ ➡️ TODO
+
+        """
+            XX WIP: TRANSPOSE ➡️ ⚠️
+
+            self.fuzzer.frame.setUrl(QUrl('about:blank'))
+            self.update_fuzzer()
+
+            def update_fuzzer(self):
+                resp = self.transport.perform_request(self.pb_request, self.get_params)
+                # ^ ⚠️ USE GLIB/SOUP FOR NETWORKING?
+                # OR A THREAD?
+                # ℹ️ 🪧 SOUP SOUNDS REASONABLE AS ONLY THE GUI USES THIS
+
+                # ^ ⚠️ THE OBJECT MODEL FOR GET_PARAMS SHOULD BE TRANSPOSED TOO
+
+                data, text, url, mime = (
+                    resp.content,
+                    resp.text,
+                    resp.url,
+                    resp.headers['Content-Type'].split(';')[0],
+                )
+
+                meta = '%s %d %08x\n%s' % (
+                    mime,
+                    len(data),
+                    crc32(data) & 0xFFFFFFFF,
+                    resp.url,
+                )
+                self.fuzzer.urlField.setText(meta)
+
+                self.fuzzer.frame.update_frame(
+                    data, text, url, mime, getattr(self, 'pb_resp', None)
+                )
+        """
 
     """
         Parsing and rendering a Protobuf message parsed from
