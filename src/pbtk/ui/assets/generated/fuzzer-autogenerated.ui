@@ -34,6 +34,9 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                         <property name="buffer">
                           <object class="GtkTextBuffer" id="fuzzer_preview_buffer"></object>
                         </property>
+                        <property name="editable">false</property>
+                        <property name="monospace">true</property>
+                        <property name="wrap-mode">3</property>
                       </object>
                     </child>
                   </object>

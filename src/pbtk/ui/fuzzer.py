@@ -1,7 +1,16 @@
 #!/usr/bin/env python3
 
-from pathlib import Path
+from xml.dom.minidom import parseString
+from subprocess import run, PIPE
+from json import dumps, loads
+from base64 import b64encode
+from zipfile import ZipFile
+from zlib import decompress
+from binascii import crc32
 from sys import float_info
+from struct import unpack
+from pathlib import Path
+from io import BytesIO
 
 # Monkey-patch map object creation (suppressing the map_entry option
 # from generated classes),
@@ -27,6 +36,7 @@ from pbtk.utils.common import (
     BASE_PATH,
     ProtoMessageDeclaration,
     load_proto_msgs,
+    protoc,
     transports,
 )
 
@@ -38,7 +48,7 @@ gi.require_version('Pango', '1.0')
 gi.require_version('Adw', '1')
 gi.require_version('Soup', '3.0')
 
-from gi.repository import Adw, Gio, GObject, Pango, Soup, Gtk
+from gi.repository import Adw, Gio, GObject, Pango, GLib, WebKit, Soup, Gtk
 from gi.repository.WebKit import WebView
 
 
@@ -48,15 +58,11 @@ class ProtoRowFieldName(Gtk.Box):
     checkbox = GObject.Property(type=Gtk.CheckButton)
     label = GObject.Property(type=Gtk.Label)
 
-    http_session: Soup.Session
-
     _item: ProtobufItem = None
     _list_row: Gtk.TreeListRow = None
 
     def __init__(self):
         super().__init__(orientation=Gtk.Orientation.HORIZONTAL)
-
-        self.http_session = Soup.Session.new()
 
         self.set_spacing(4)
 
@@ -203,6 +209,9 @@ class FuzzerWindow(Adw.Window):
 
     action_group = GObject.Property(type=Gio.ActionGroup)
 
+    http_session: Soup.Session
+    http_cancellable: Gio.Cancellable = None
+
     endpoint: dict
     transport_meta: TransportDefinition
     transport: Transport
@@ -220,6 +229,9 @@ class FuzzerWindow(Adw.Window):
     current_resp_proto_msgs: list[ProtoMessageDeclaration] = None
     pb_response: Message = None
 
+    fuzzer_preview_html: WebKit.WebView = Gtk.Template.Child()
+    fuzzer_preview_buffer: Gtk.TextBuffer = Gtk.Template.Child()
+
     extra_data_page: Adw.ViewStackPage = Gtk.Template.Child()
 
     proto_model_selection: Gtk.NoSelection = Gtk.Template.Child()
@@ -230,6 +242,8 @@ class FuzzerWindow(Adw.Window):
 
     def __init__(self):
         super().__init__()
+
+        self.http_session = Soup.Session.new()
 
         self.proto_items = Gio.ListStore.new(ProtobufItem)
 
@@ -255,12 +269,6 @@ class FuzzerWindow(Adw.Window):
             Gtk.FileLauncher.new(proto_path).launch(self, None, None)
 
         self.add_simple_action('open-proto-definition', open_proto_definition)
-
-    def add_simple_action(self, name, callback, param_type=None):
-
-        action = Gio.SimpleAction.new(name, param_type)
-        action.connect('activate', callback)
-        self.add_action(action)
 
     def add_simple_action(self, name, callback, param_type=None):
 
@@ -372,39 +380,181 @@ class FuzzerWindow(Adw.Window):
 
         # ⚠️ ➡️ TODO
 
+        self.fuzzer_preview_html.load_uri('about:blank')
+        self.fuzzer_preview_buffer.set_text('')
+
+        self.update_fuzzer()
+
+    def update_fuzzer(self):
+        request: Soup.Message = self.transport.create_request(
+            self.pb_request, self.protocol_specific_params
+        )
+
+        # ^ ⚠️ THE OBJECT MODEL FOR protocol_specific_params
+        #    SHOULD BE TRANSPOSED TOO
+
+        def on_recv(http_session: Soup.Session, result: Gio.AsyncResult):
+            response: bytes = self.http_session.send_and_read_finish(
+                result
+            ).get_data()
+
+            response_headers: dict[str, str] = {}
+
+            def process_header(key, value):
+                response_headers[key] = value
+
+            request.get_response_headers().foreach(process_header)
+
+            response_url: str = request.get_uri().to_string()
+
+            content_type: str = (
+                request.get_response_headers().get_content_type()[0]
+            )
+
+            # ⚠️ WIP adaptation:
+
+            meta = '%s %d %08x\n%s' % (
+                content_type,
+                len(response),
+                crc32(response) & 0xFFFFFFFF,
+                response_url,
+            )
+            self.fuzzer_preview_buffer.set_text(meta, -1)
+
+            self.update_frame(
+                response, response_url, content_type, self.pb_response
+            )
+
+        if self.http_cancellable:
+            self.http_cancellable.cancel()
+        self.http_cancellable = Gio.Cancellable.new()
+        self.http_session.send_and_read_async(
+            request, GLib.PRIORITY_DEFAULT, self.http_cancellable, on_recv
+        )
+
+    def update_frame(
+        self, data: bytes, url: str, mime: str, pbresp: Message | None = None
+    ):
+
+        out_mime = 'text/plain; charset=utf-8'
+
+        try:
+            text = data.decode('utf-8')
+        except UnicodeDecodeError:
+            text = data.decode('ibm850')
+
+        # self.fuzzer_preview_html.load_html(response, response_url)
+
+        if 'image' in mime:
+            out_mime = mime
+
+        elif 'html' in mime:
+            if '/embed' in url:
+                text = text.replace(
+                    '<head>', '<head><script>opener=1</script>'
+                )
+            out_mime = 'text/html; charset=utf-8'
+            data = text
+
+        elif 'json' in mime:
+            if text.startswith(")]}'\n"):
+                text = text[5:]
+            if text.endswith('/*""*/'):
+                text = text[:-6]
+
+            text = (
+                text.replace('[,', '[null,')
+                .replace(',]', ',null]')
+                .replace(',,', ',null,')
+                .replace(',,', ',null,')
+            )
+
+            try:
+                data = dumps(loads(text), indent=4)
+            except Exception:
+                pass
+
+        elif 'protobuf' in mime:
+            data = self.parse_protobuf(data, pbresp)
+
+        elif 'kmz' in mime:
+            with ZipFile(BytesIO(data)) as fd:
+                if fd.namelist() == ['doc.kml']:
+                    data = parseString(fd.read('doc.kml')).toprettyxml(
+                        indent='    '
+                    )
+                else:
+                    data = '\n'.join(fd.namelist())
+
+        elif data.startswith(b'XHR1'):
+            data = BytesIO(data[4:])
+            out = b''
+
+            while True:
+                header = data.read(6)
+                if not header:
+                    break
+                size, index = unpack('>IBx', header)
+
+                dec = bytes([i ^ 0x9B for i in data.read(size - 2)])
+                if dec.startswith(b'\x78\x9c'):
+                    dec = decompress(dec)
+
+                out += b'%d %s\n' % (index, b'-' * 15)
+                out += self.parse_protobuf(dec, pbresp)
+
+            data = out
+
+        elif 'text/' in mime:
+            pass
+
+        else:
+            for key in (0x9B, 0x5F):
+                dec = bytes([i ^ key for i in data])
+
+                try:
+                    dec = decompress(dec, -15)
+                except Exception:
+                    try:
+                        dec = decompress(dec)
+                    except Exception:
+                        pass
+
+                dec = self.parse_protobuf(dec, pbresp)
+                if dec:
+                    break
+
+            if not dec:
+                # ⚠️ We shouldn't use an external subprocess like this
+                dec = run(['hexdump', '-C'], input=data, stdout=PIPE).stdout
+
+            data = dec[:100000]
+
+        if isinstance(data, str):
+            data = data.encode('utf8')
+
         """
-            XX WIP: TRANSPOSE ➡️ ⚠️
-
-            self.fuzzer.frame.setUrl(QUrl('about:blank'))
-            self.update_fuzzer()
-
-            def update_fuzzer(self):
-                resp = self.transport.perform_request(self.pb_request, self.get_params)
-                # ^ ⚠️ USE GLIB/SOUP FOR NETWORKING?
-                # OR A THREAD?
-                # ℹ️ 🪧 SOUP SOUNDS REASONABLE AS ONLY THE GUI USES THIS
-
-                # ^ ⚠️ THE OBJECT MODEL FOR GET_PARAMS SHOULD BE TRANSPOSED TOO
-
-                data, text, url, mime = (
-                    resp.content,
-                    resp.text,
-                    resp.url,
-                    resp.headers['Content-Type'].split(';')[0],
-                )
-
-                meta = '%s %d %08x\n%s' % (
-                    mime,
-                    len(data),
-                    crc32(data) & 0xFFFFFFFF,
-                    resp.url,
-                )
-                self.fuzzer.urlField.setText(meta)
-
-                self.fuzzer.frame.update_frame(
-                    data, text, url, mime, getattr(self, 'pb_resp', None)
-                )
+        # This should be the correct way to go
+        # with but it doesn't seem to load
+        # correctly raw images:
+        self.fuzzer_preview_html.load_bytes(
+            GLib.Bytes.new(data), None, out_mime, url
+        )
         """
+
+        self.fuzzer_preview_html.load_uri(
+            'data:%s;base64,%s' % (out_mime, b64encode(data).decode('utf-8'))
+        )
+
+    def parse_protobuf(self, data, pbresp):
+        if pbresp:
+            try:
+                return str(pbresp.FromString(data)).encode('utf8')
+            except Exception:
+                pass
+        return run(
+            [protoc, '--decode_raw'], input=data, stdout=PIPE, stderr=PIPE
+        ).stdout
 
     """
         Parsing and rendering a Protobuf message parsed from

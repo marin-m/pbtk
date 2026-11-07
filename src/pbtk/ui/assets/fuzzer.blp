@@ -24,6 +24,10 @@ template $FuzzerWindow: Adw.Window {
         ScrolledWindow fuzzer_preview_raw {
           TextView fuzzer_preview_text {
             buffer: TextBuffer fuzzer_preview_buffer {};
+
+            editable: false;
+            monospace: true;
+            wrap-mode: word_char;
           }
         }
       }
