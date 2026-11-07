@@ -1,31 +1,16 @@
 #!/usr/bin/env python3
-from PySide6.QtWidgets import (
-    QTreeWidgetItem,
-    QLineEdit,
-    QCheckBox,
-    QAbstractSpinBox,
-    QInputDialog,
-    QMessageBox,
-)
-from PySide6.QtCore import QUrl, Qt, Signal, QByteArray, QRegularExpression
-from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtGui import QRegularExpressionValidator
 
 from xml.dom.minidom import parseString
-from collections import defaultdict
 from subprocess import run, PIPE
-from functools import partial
-from json import loads, dumps
+from json import dumps, loads
+from base64 import b64encode
 from zipfile import ZipFile
 from zlib import decompress
+from binascii import crc32
+from sys import float_info
 from struct import unpack
+from pathlib import Path
 from io import BytesIO
-from re import match
-
-# Monkey-patch enum value checking,
-from google.protobuf.internal import type_checkers
-
-type_checkers.SupportsOpenEnums = lambda x: True
 
 # Monkey-patch map object creation (suppressing the map_entry option
 # from generated classes),
@@ -35,22 +20,471 @@ descriptor._ParseOptions = lambda msg, data: msg.FromString(
     data.replace(b'8\001', b'')
 )
 
+# Monkey-patch enum value checking,
+from google.protobuf.internal import type_checkers
+
+type_checkers.SupportsOpenEnums = lambda x: True
+
 # And then do Protobuf imports
 from google.protobuf.internal.type_checkers import _VALUE_CHECKERS
+from google.protobuf.message import Message
 
-from pbtk.utils.common import load_proto_msgs, protoc
+from pbtk.datamodel.transport import Transport, TransportDefinition
+from pbtk.datamodel.field import ProtobufItem, ExtraDataItem
+from pbtk.datamodel.endpoint import RecordedSampleRow
+from pbtk.utils.common import (
+    BASE_PATH,
+    ProtoMessageDeclaration,
+    load_proto_msgs,
+    protoc,
+    transports,
+)
 
-"""
-    We extend QWebEngineView with a method that parses responses and
-    displays response data in the relevant way.
-"""
+import gi
+
+gi.require_version('WebKit', '6.0')
+gi.require_version('Gtk', '4.0')
+gi.require_version('Pango', '1.0')
+gi.require_version('Adw', '1')
+gi.require_version('Soup', '3.0')
+
+from gi.repository import Adw, Gio, GObject, Pango, GLib, WebKit, Soup, Gtk
+from gi.repository.WebKit import WebView
 
 
-class MyFrame(QWebEngineView):
-    def update_frame(self, data, text, url, mime, pbresp=None):
-        self.setEnabled(False)  # prevent from taking focus
+class ProtoRowFieldName(Gtk.Box):
+    __gtype_name__ = 'ProtoRowFieldName'
+
+    checkbox = GObject.Property(type=Gtk.CheckButton)
+    label = GObject.Property(type=Gtk.Label)
+
+    _item: ProtobufItem = None
+    _list_row: Gtk.TreeListRow = None
+
+    def __init__(self):
+        super().__init__(orientation=Gtk.Orientation.HORIZONTAL)
+
+        self.set_spacing(4)
+
+        self.checkbox = Gtk.CheckButton.new()
+        self.append(self.checkbox)
+
+        self.label = Gtk.Label.new('')
+        self.append(self.label)
+
+        # ⚠️ TODO there should be click/hover handlers
+        #    applied over the row nearby
+
+    @GObject.Property(type=Gtk.TreeListRow)
+    def list_row(self):
+        return self._list_row
+
+    @list_row.setter
+    def list_row(self, list_row: Gtk.TreeListRow):
+        # ⚠️ Unbind property whenever it changes?
+        self._list_row = list_row
+
+    @GObject.Property(type=ProtobufItem)
+    def item(self):
+        return self._item
+
+    @item.setter
+    def item(self, item: ProtobufItem):
+        # ⚠️ Unbind property whenever it changes?
+        self._item = item
+
+        self.label.set_label(
+            item.field_name + ('+' if item.is_repeated else '')
+        )
+        self.checkbox.set_visible(not item.is_required)
+
+        item.bind_property(
+            'is_set', self.checkbox, 'active', GObject.BindingFlags.SYNC_CREATE
+        )
+
+        item.bind_property('expanded', self.list_row, 'expanded')
+
+
+class ProtoRowFieldValue(Gtk.Box):
+    __gtype_name__ = 'ProtoRowFieldValue'
+
+    child = GObject.Property(type=Gtk.Widget)
+    _item: ProtobufItem = None
+
+    def __init__(self):
+        super().__init__(orientation=Gtk.Orientation.HORIZONTAL)
+
+        # ⚠️ TODO there should be click/hover handlers
+        #    applied over the row nearby
+
+    @GObject.Property(type=ProtobufItem)
+    def item(self):
+        return self._item
+
+    @item.setter
+    def item(self, item: ProtobufItem):
+        self._item = item
+
+        desc = self.item.desc
+
+        if self.child:
+            self.remove(self.child)
+            self.child = None
+
+        if self.item.is_message:
+            pass
+
+        elif desc.type == desc.TYPE_BOOL:
+            self.child = Gtk.CheckButton.new()
+
+        elif desc.cpp_type == desc.CPPTYPE_STRING:
+            self.child = Gtk.Entry.new()
+
+        elif desc.cpp_type == desc.CPPTYPE_FLOAT:
+            self.child = Gtk.SpinButton.new_with_range(-3.4e38, 3.4e38, 1.0)
+            self.child.set_digits(7)
+
+        elif desc.cpp_type == desc.CPPTYPE_DOUBLE:
+            self.child = Gtk.SpinButton.new_with_range(
+                float_info.min, float_info.max, 1.0
+            )
+            self.child.set_digits(17)
+
+        else:
+            cpp_type = (
+                desc.cpp_type
+                if desc.cpp_type != desc.CPPTYPE_ENUM
+                else desc.CPPTYPE_INT32
+            )
+            self.child = Gtk.SpinButton.new_with_range(
+                _VALUE_CHECKERS[cpp_type]._MIN,
+                _VALUE_CHECKERS[cpp_type]._MAX,
+                1,
+            )
+
+        if isinstance(self.child, Gtk.SpinButton):
+            self.child.set_update_policy(Gtk.SpinButtonUpdatePolicy.IF_VALID)
+            self.item.bind_property(
+                'value',
+                self.child,
+                'value',
+                GObject.BindingFlags.BIDIRECTIONAL
+                | GObject.BindingFlags.SYNC_CREATE,
+                lambda _binding, value: value,
+                lambda _binding, value: value,
+            )
+
+        elif isinstance(self.child, Gtk.Entry):
+            self.item.bind_property(
+                'value',
+                self.child.get_buffer(),
+                'text',
+                GObject.BindingFlags.BIDIRECTIONAL
+                | GObject.BindingFlags.SYNC_CREATE,
+                lambda _binding, value: (
+                    value.decode('utf-8')
+                    if isinstance(value, bytes)
+                    else value
+                ),
+                lambda _binding, value: value,
+            )
+
+        elif isinstance(self.child, Gtk.CheckButton):
+            self.child.set_active(desc.default_value or False)
+            self.item.bind_property(
+                'value',
+                self.child,
+                'active',
+                GObject.BindingFlags.BIDIRECTIONAL
+                | GObject.BindingFlags.SYNC_CREATE,
+                lambda _binding, value: value,
+                lambda _binding, value: value,
+            )
+
+        if self.child:
+            self.append(self.child)
+
+
+class ExtraDataRowFieldValue(Gtk.Box):
+    __gtype_name__ = 'ExtraDataRowFieldValue'
+
+    child = GObject.Property(type=Gtk.Entry)
+    _item: ExtraDataItem = None
+
+    def __init__(self):
+        super().__init__(orientation=Gtk.Orientation.HORIZONTAL)
+
+        self.child = Gtk.Entry.new()
+        self.append(self.child)
+
+        # ⚠️ TODO there should be click/hover handlers
+        #    applied over the row nearby
+
+    @GObject.Property(type=ExtraDataItem)
+    def item(self):
+        return self._item
+
+    @item.setter
+    def item(self, item: ExtraDataItem):
+        self._item = item
+
+        if self.item:
+            self.item.bind_property(
+                'value',
+                self.child.get_buffer(),
+                'text',
+                GObject.BindingFlags.BIDIRECTIONAL
+                | GObject.BindingFlags.SYNC_CREATE,
+            )
+
+
+@Gtk.Template(
+    resource_path='/re/fossplant/pbtk/templates/fuzzer-autogenerated.ui'
+)
+class FuzzerWindow(Adw.Window):
+    __gtype_name__ = 'FuzzerWindow'
+
+    action_group = GObject.Property(type=Gio.ActionGroup)
+
+    http_session: Soup.Session
+    http_cancellable: Gio.Cancellable = None
+
+    endpoint: dict
+    transport_meta: TransportDefinition
+    transport: Transport
+
+    base_url: str
+    pb_param: str | None = None
+
+    current_req_proto: Path
+    current_req_proto_msgs: list[ProtoMessageDeclaration]
+    pb_request: Message
+
+    current_resp_proto: Path = None
+    current_resp_proto_msgs: list[ProtoMessageDeclaration] = None
+    pb_response: Message = None
+
+    fuzzer_preview_html: WebKit.WebView = Gtk.Template.Child()
+    fuzzer_preview_buffer: Gtk.TextBuffer = Gtk.Template.Child()
+
+    extra_data_page: Adw.ViewStackPage = Gtk.Template.Child()
+
+    proto_model_selection: Gtk.NoSelection = Gtk.Template.Child()
+    proto_items = GObject.Property(type=Gio.ListStore)  # of ProtobufItem
+
+    extra_data_items: Gio.ListStore[ExtraDataItem] = Gtk.Template.Child()
+
+    fuzzer_samples_combo_box: Gtk.DropDown = Gtk.Template.Child()
+    fuzzer_samples_list: Gio.ListStore = Gtk.Template.Child()
+
+    def __init__(self):
+        super().__init__()
+
+        self.http_session = Soup.Session.new()
+
+        self.proto_items = Gio.ListStore.new(ProtobufItem)
+
+        self.proto_model_selection.set_model(
+            Gtk.TreeListModel.new(
+                self.proto_items,
+                passthrough=False,
+                autoexpand=False,
+                create_func=lambda item: item.get_children(),
+            )
+        )
+
+        self.connect_actions()
+
+    def connect_actions(self):
+
+        self.action_group = Gio.SimpleActionGroup.new()
+
+        self.insert_action_group('win', self.action_group)
+
+        def open_proto_definition(*args):
+            proto_path = Gio.File.new_for_path(str(self.current_req_proto))
+            Gtk.FileLauncher.new(proto_path).launch(self, None, None)
+
+        self.add_simple_action('open-proto-definition', open_proto_definition)
+
+    def add_simple_action(self, name, callback, param_type=None):
+
+        action = Gio.SimpleAction.new(name, param_type)
+        action.connect('activate', callback)
+        self.action_group.add_action(action)
+
+    def load(self, endpoint: dict, sample_id: int = 0):
+
+        self.endpoint = endpoint
+
+        self.base_url = endpoint['request']['url']
+        self.pb_param = endpoint['request'].get('pb_param')
+
+        self.transport_meta = transports[endpoint['request']['transport']]
+        self.transport = self.transport_meta.transport_class(
+            self.pb_param, self.base_url
+        )
+
+        self.extra_data_page.set_title(self.transport.ui_tab)
+
+        # Load Protobuf request message
+
+        self.current_req_proto = (
+            BASE_PATH / 'protos' / endpoint['request']['proto_path']
+        )
+
+        self.current_req_proto_msgs = list(
+            load_proto_msgs(self.current_req_proto)
+        )
+        self.pb_request = next(
+            (
+                item
+                for item in self.current_req_proto_msgs
+                if item.name == endpoint['request']['proto_msg']
+            ),
+            None,
+        ).definition()
+
+        # Load Protobuf response message, if any
+
+        if (
+            endpoint.get('response')
+            and endpoint['response']['format'] == 'raw_pb'
+        ):
+            self.current_resp_proto = (
+                BASE_PATH / 'protos' / endpoint['response']['proto_path']
+            )
+
+            self.current_resp_proto_msgs = list(
+                load_proto_msgs(self.current_resp_proto)
+            )
+            self.pb_response = next(
+                (
+                    item
+                    for item in self.current_resp_proto_msgs
+                    if item.name == endpoint['response']['proto_msg']
+                ),
+                None,
+            ).definition()
+
+        # Load list of samples
+
+        with self.fuzzer_samples_list.freeze_notify():
+            self.fuzzer_samples_list.remove_all()
+
+            for raw_sample_data in endpoint['request'].get('samples', []):
+                readable_sample_data = (
+                    raw_sample_data[self.pb_param]
+                    if self.pb_param
+                    else str(raw_sample_data)
+                )
+
+                sample_item = RecordedSampleRow(
+                    raw_sample_data, readable_sample_data
+                )
+
+                self.fuzzer_samples_list.append(sample_item)
+
+        # Load currently selected sample into
+        # self.pb_request + protocol_specific_params
+
+        sample = ''
+        if endpoint['request'].get('samples'):
+            sample = endpoint['request']['samples'][sample_id]
+
+        protocol_specific_params: dict[str, str] = self.transport.load_sample(
+            sample, self.pb_request
+        )
+
+        # Present fuzzer window
+
+        self.present()
+
+        # ⚠️ 🪧 WIP... (importing code from pbtk._ui_legacy.gui.launch_fuzzer)
+
+        # Get initial data into the Protobuf tree view
+
+        self.proto_items.remove_all()
+
+        for desc in self.pb_request.DESCRIPTOR.fields:
+            self.proto_items.append(ProtobufItem(desc, [desc.full_name]))
+
+        self.use_sample_values(self.pb_request, self.proto_items)
+
+        # Do the same for transport-specific data
+
+        self.extra_data_items.remove_all()
+
+        for key, value in protocol_specific_params.items():
+            self.extra_data_items.append(ExtraDataItem(key, value))
+
+        # Load initial view
+
+        self.fuzzer_preview_html.load_uri('about:blank')
+        self.fuzzer_preview_buffer.set_text('')
+
+        self.update_fuzzer()
+
+    def update_fuzzer(self):
+        request: Soup.Message = self.transport.create_request(
+            self.pb_request,
+            {item.key: item.value for item in self.extra_data_items},
+        )
+
+        # ^ ⚠️ THE OBJECT MODEL FOR protocol_specific_params
+        #    SHOULD BE TRANSPOSED TOO
+
+        def on_recv(http_session: Soup.Session, result: Gio.AsyncResult):
+            response: bytes = self.http_session.send_and_read_finish(
+                result
+            ).get_data()
+
+            response_headers: dict[str, str] = {}
+
+            def process_header(key, value):
+                response_headers[key] = value
+
+            request.get_response_headers().foreach(process_header)
+
+            response_url: str = request.get_uri().to_string()
+
+            content_type: str = (
+                request.get_response_headers().get_content_type()[0]
+            )
+
+            # ⚠️ WIP adaptation:
+
+            meta = '%s %d %08x\n%s' % (
+                content_type,
+                len(response),
+                crc32(response) & 0xFFFFFFFF,
+                response_url,
+            )
+            self.fuzzer_preview_buffer.set_text(meta, -1)
+
+            self.update_frame(
+                response, response_url, content_type, self.pb_response
+            )
+
+        if self.http_cancellable:
+            self.http_cancellable.cancel()
+        self.http_cancellable = Gio.Cancellable.new()
+        self.http_session.send_and_read_async(
+            request, GLib.PRIORITY_DEFAULT, self.http_cancellable, on_recv
+        )
+
+    def update_frame(
+        self, data: bytes, url: str, mime: str, pbresp: Message | None = None
+    ):
 
         out_mime = 'text/plain; charset=utf-8'
+
+        try:
+            text = data.decode('utf-8')
+        except UnicodeDecodeError:
+            text = data.decode('ibm850')
+
+        # self.fuzzer_preview_html.load_html(response, response_url)
 
         if 'image' in mime:
             out_mime = mime
@@ -132,15 +566,62 @@ class MyFrame(QWebEngineView):
                     break
 
             if not dec:
-                dec = run(['hexdump', '-C'], input=data, stdout=PIPE).stdout
+                dec = self.hex_dump(data)
 
             data = dec[:100000]
 
         if isinstance(data, str):
             data = data.encode('utf8')
-        self.setContent(QByteArray(data), out_mime, QUrl(url))
 
-        self.setEnabled(True)
+        """
+        # This should be the correct way to go
+        # with but it doesn't seem to load
+        # correctly raw images:
+        self.fuzzer_preview_html.load_bytes(
+            GLib.Bytes.new(data), None, out_mime, url
+        )
+        """
+
+        self.fuzzer_preview_html.load_uri(
+            'data:%s;base64,%s' % (out_mime, b64encode(data).decode('utf-8'))
+        )
+
+    def hex_dump(self, data: bytes) -> str:
+        subst_chars = ''.join(
+            j if j.isprintable() else '.'
+            for j in bytes(range(256)).decode('ibm850')
+        )
+
+        raw_buffer = BytesIO(data)
+        text_buffer = ''
+        while True:
+            pos = raw_buffer.tell()
+            byte_slice = raw_buffer.read(16)
+            if not byte_slice:
+                break
+
+            # Write position
+            text_buffer += '%08x  ' % pos
+
+            # Write hex data
+            for col, char in enumerate(byte_slice):
+                if col == 8:
+                    text_buffer += ' '
+                text_buffer += '%02x ' % char
+            for extra_col in range(col + 1, 16):
+                if extra_col == 8:
+                    text_buffer += ' '
+                text_buffer += '   '
+
+            # Write raw data
+            text_buffer += ' |'
+            for col, char in enumerate(byte_slice):
+                text_buffer += subst_chars[char]
+            for extra_col in range(col + 1, 16):
+                text_buffer += ' '
+            text_buffer += '|\n'
+
+        return text_buffer
 
     def parse_protobuf(self, data, pbresp):
         if pbresp:
@@ -152,583 +633,44 @@ class MyFrame(QWebEngineView):
             [protoc, '--decode_raw'], input=data, stdout=PIPE, stderr=PIPE
         ).stdout
 
-
-"""
-    We subclass QAbstractSpinBox as QSpinBox does not provide int64
-    precision.
-"""
-
-
-class QwordSpinBox(QAbstractSpinBox):
-    valueChanged = Signal(object)
-
-    def __init__(self, min_, max_, float_=False):
-        super().__init__()
-
-        self._minimum = min_
-        self._maximum = max_
-        self.int_ = float if float_ else int
-
-        rx = QRegularExpression(
-            r'-?\d{0,20}(?:\.\d{0,20})?' if float_ else r'-?\d{0,20}'
-        )
-        validator = QRegularExpressionValidator(self)
-        validator.setRegularExpression(rx)
-
-        self._lineEdit = QLineEdit(self)
-        self._lineEdit.setText(str(self.int_(0)))
-        self._lineEdit.setValidator(validator)
-        self._lineEdit.textEdited.connect(partial(self.setValue, change=False))
-        self.editingFinished.connect(
-            lambda: self.setValue(self.value(), update=False) or True
-        )
-        self.setLineEdit(self._lineEdit)
-
-    def value(self):
-        try:
-            return self.int_(self._lineEdit.text())
-        except ValueError:
-            return 0
-
-    def setValue(self, value, change=True, update=True):
-        try:
-            value = self.int_(value)
-            value2 = max(self._minimum, min(self._maximum, value))
-            if update or not self._lineEdit.text().strip('-'):
-                self.valueChanged.emit(value2)
-            if value != value2 or change:
-                self._lineEdit.setText(str(value2))
-        except ValueError:
-            pass
-
-    def stepBy(self, steps):
-        self.setValue(self.value() + steps)
-
-    def stepEnabled(self):
-        if self.value() > self._minimum and self.value() < self._maximum:
-            return (
-                QAbstractSpinBox.StepEnabledFlag.StepUpEnabled
-                | QAbstractSpinBox.StepEnabledFlag.StepDownEnabled
-            )
-        elif self.value() <= self._minimum:
-            return QAbstractSpinBox.StepEnabledFlag.StepUpEnabled
-        elif self.value() >= self._maximum:
-            return QAbstractSpinBox.StepEnabledFlag.StepDownEnabled
-
-
-"""
-    The ProtobufItem class inherits QTreeWidgetItem and is used to
-    constitute the "Protobuf" tab in the editor.
-"""
-
-# This variable is used to bookkeep position of repeated fields, for when one of their siblings is removed.
-item_indices = defaultdict(list)
-
-
-class ProtobufItem(QTreeWidgetItem):
-    def __init__(self, item, ds, app, path):
-        type_txt = {
-            1: 'double',
-            2: 'float',
-            3: 'int64',
-            4: 'uint64',
-            5: 'int32',
-            6: 'fixed64',
-            7: 'fixed32',
-            8: 'bool',
-            9: 'string',
-            10: 'group',
-            11: '',
-            12: 'bytes',
-            13: 'uint32',
-            14: 'enum',
-            15: 'sfixed32',
-            16: 'sfixed64',
-            17: 'sint32',
-            18: 'sint64',
-        }[ds.type]
-
-        self.ds = ds
-        self.required = ds.label == ds.LABEL_REQUIRED
-        self.repeated = ds.label == ds.LABEL_REPEATED
-        self.void = True
-        self.dupped = False
-        self.dupe_obj, self.orig_obj = None, None
-        self.value = None
-        self.self_pb = None
-        self.parent_pb = None
-        self.app = app
-        self.path = path
-        self.is_msg = ds.cpp_type == ds.CPPTYPE_MESSAGE
-        self.setting_default = False
-
-        self.full_name = self.app.ds_full_names.setdefault(
-            id(ds), ds.full_name
-        )
-
-        super().__init__(
-            item,
-            [
-                self.full_name.split('.')[-1] + '+' * self.repeated + '  ',
-                type_txt + '  ',
-            ],
-        )
-
-        if not self.required:
-            self.setCheckState(0, Qt.Unchecked)
-            self.last_check_state = Qt.Unchecked
-
-        self.app.ds_items[id(ds)][tuple(path)] = self  # Hierarchy array
-
-        if self.is_msg:
-            self.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
-            self.expanded = self.lazy_initialize
-            return
-
-        elif ds.type == ds.TYPE_BOOL:
-            self.widget = QCheckBox()
-            self.widget.stateChanged.connect(self.value_changed)
-            default = False
-
-        elif ds.cpp_type == ds.CPPTYPE_STRING:
-            self.widget = QLineEdit()
-            self.widget.setFrame(False)
-            self.widget.setStyleSheet('padding: 1px 0')
-            self.widget.textEdited.connect(self.value_changed)
-            default = '' if ds.type != ds.TYPE_BYTES else b''
-
-        else:
-            if ds.cpp_type in (ds.CPPTYPE_DOUBLE, ds.CPPTYPE_FLOAT):
-                self.widget = QwordSpinBox(-(2**64), 2**64, True)
-                default = 0.0
-            else:
-                cpp_type = (
-                    ds.cpp_type
-                    if ds.cpp_type != ds.CPPTYPE_ENUM
-                    else ds.CPPTYPE_INT32
-                )
-                self.widget = QwordSpinBox(
-                    _VALUE_CHECKERS[cpp_type]._MIN,
-                    _VALUE_CHECKERS[cpp_type]._MAX,
-                )
-                default = 0
-
-            self.widget.setFrame(False)
-            self.widget.setFixedWidth(120)
-            self.widget.valueChanged.connect(self.value_changed)
-
-        if ds.type == ds.TYPE_ENUM:
-            tooltip = '\n'.join(
-                '%d : %s' % (i.number, i.name) for i in ds.enum_type.values
-            )
-            for col in range(self.columnCount()):
-                self.setToolTip(col, tooltip)
-
-        self.edit = self._edit
-        self.widget.setMouseTracking(True)
-        self.widget.enterEvent = self.edit
-
-        if item:
-            self.app.fuzzer.pbTree.setItemWidget(self, 2, self.widget)
-
-        self.setDefault(ds.default_value or default, unvoid=False)
-
-        if (
-            self.required
-            and not self.parent()
-            and not self.app.pb_request.HasField(self.ds.name)
-        ):
-            self.update(self.value)
-
-    # Create children items only when expanded, to avoid problems with
-    # huge multi-referencing protos.
-
-    def lazy_initialize(self):
-        for ds in self.ds.message_type.fields:
-            ProtobufItem(self, ds, self.app, [*self.path, ds.full_name])
-        del self.expanded
-
     """
-        The following code that handles the interaction and different
-        states of a tree item may be a bit entangled, sorry for this.
+        Parsing and rendering a Protobuf message parsed from
+        sample data to our tree model
     """
 
-    def unvoid(self, recur=True):
-        if self.void or self.is_msg:
-            if not self.required:
-                self.setCheckState(0, Qt.Checked)
-                self.last_check_state = Qt.Checked
-
-            if recur and self.parent():
-                self.parent().unvoid(True)
-
-            self.void = False
-
-    def setDefault(
-        self, val=None, parent=None, msg=None, index=None, unvoid=True
+    def use_sample_values(
+        self, msg: Message, tree_fields: Gio.ListStore[ProtobufItem]
     ):
-        self.setting_default = True
 
-        if parent:
-            self.parent_pb = parent
-            self.self_pb = msg
-            self.index = index
-            if index is not None:
-                assert index == len(item_indices[id(self.self_pb)])
-                item_indices[id(self.self_pb)].append(self)
-
-        if val or (unvoid and val is not None):
-            if isinstance(val, bool):
-                self.widget.setChecked(val)
-            elif isinstance(val, str):
-                self.widget.setText(val)
-            elif isinstance(val, bytes):
-                self.widget.setText(
-                    val.decode('latin1')
-                    .encode('unicode_escape')
-                    .decode('latin1')
+        for field_desc, field_val in msg.ListFields():
+            for node_index, node in reversed(list(enumerate(tree_fields))):
+                if node.desc.number == field_desc.number:
+                    break
+            else:
+                raise ValueError(
+                    'Item not found in Protobuf message: %r' % field_val
                 )
-            else:
-                self.widget.setValue(val)
 
-        if unvoid:
-            self.unvoid(False)
+            if field_desc.label == field_desc.LABEL_REPEATED:
+                for instance in field_val:
+                    node.is_set = True
 
-        self.value = val
-        self.setting_default = False
+                    if field_desc.cpp_type == field_desc.CPPTYPE_MESSAGE:
+                        node.expanded = True
+                        self.use_sample_values(instance, node.get_children())
 
-    def value_changed(self, val):
-        if not self.setting_default:
-            if self.ds.type == self.ds.TYPE_BYTES:
-                try:
-                    val = (
-                        val.encode('latin1')
-                        .decode('unicode_escape')
-                        .encode('latin1')
-                    )
-                except Exception:
-                    return
-            elif self.ds.type == self.ds.TYPE_BOOL:
-                val = bool(val)
+                    else:
+                        node.value = instance
 
-            self.update(val)
-            self.app.update_fuzzer()
-
-    def get_parent_pb(self):
-        if self.parent_pb is None:
-            if self.parent():
-                self.parent_pb = self.parent().get_self_pb()
-            else:
-                self.parent_pb = self.app.pb_request
-
-        return self.parent_pb
-
-    def get_self_pb(self):
-        if self.self_pb is None:
-            self.self_pb = getattr(self.get_parent_pb(), self.ds.name)
-
-            if self.repeated:
-                self.index = len(self.self_pb)
-
-                item_indices[id(self.self_pb)].append(self)
-
-                if self.is_msg:
-                    self.self_pb.add()
-
-            if self.is_msg:
-                for i in range(self.childCount()):
-                    if self.child(i).required:
-                        self.child(i).parent_pb = None
-                        self.child(i).self_pb = None
-                        self.child(i).update(self.child(i).value)
-
-                if hasattr(self.self_pb, 'SetInParent'):
-                    self.self_pb.SetInParent()
-
-                if not self.required:
-                    self.setCheckState(0, Qt.Checked)
-                    self.last_check_state = Qt.Checked
-
-        # Return value is for get_parent_pb recursion
-        if self.is_msg:
-            if not self.repeated:
-                return self.self_pb
-            else:
-                return self.self_pb[self.index]
-
-    def update(self, val):
-        if val is not None:
-            self.unvoid()
-            self.duplicate()
-            self.value = val
-
-        self.get_self_pb()  # Ensure created
-
-        if not self.repeated:
-            if val is not None:
-                setattr(self.parent_pb, self.ds.name, val)
+                    node = ProtobufItem(node.desc, node.path)
+                    tree_fields.insert(node_index + 1, node)
 
             else:
-                self.parent_pb.ClearField(self.ds.name)
-                self.self_pb = None
-                self.void = True
+                node.is_set = True
 
-        else:
-            if val is not None:
-                if len(self.self_pb) > self.index:  # We exist already
-                    self.self_pb[self.index] = val
-
-                else:  # We were just created by get_self_pb
-                    self.self_pb.append(val)
-
-            else:  # We must have existed already right?
-                del self.self_pb[self.index]
-                del item_indices[id(self.self_pb)][self.index]
-
-                for i in range(
-                    self.index, len(item_indices[id(self.self_pb)])
-                ):
-                    item_indices[id(self.self_pb)][i].index -= 1
-
-                self.self_pb = (
-                    None  # So that if we're repeated we're recreated further
-                )
-                self.void = True
-
-    def duplicate(self, setting_default=False):
-        if not self.dupped:
-            self.dupped = True
-
-            if self.parent() and not setting_default:
-                self.parent().duplicate()
-
-            if self.repeated:
-                new_obj = ProtobufItem(None, self.ds, self.app, self.path)
-
-                if self.parent():
-                    index = self.parent().indexOfChild(self)
-                    self.parent().insertChild(index + 1, new_obj)
+                if field_desc.cpp_type == field_desc.CPPTYPE_MESSAGE:
+                    node.expanded = True
+                    self.use_sample_values(field_val, node.get_children())
 
                 else:
-                    index = self.treeWidget().indexOfTopLevelItem(self)
-                    self.treeWidget().insertTopLevelItem(index + 1, new_obj)
-
-                if hasattr(new_obj, 'widget'):
-                    self.app.fuzzer.pbTree.setItemWidget(
-                        new_obj, 2, new_obj.widget
-                    )
-
-                self.dupe_obj = new_obj
-                new_obj.orig_obj = self
-                return new_obj
-
-    # A message is checked -> all parents are checked
-    # A message is unchecked -> all children are unchecked
-
-    def update_check(self, recursive=False, col=None):
-        if not self.required and self.last_check_state != self.checkState(0):
-            self.last_check_state = self.checkState(0)
-
-            if not self.is_msg:
-                if self.last_check_state == Qt.Checked:
-                    self.update(self.value)
-                else:
-                    self.update(None)
-
-            elif not self.self_pb:  # We have just checked the message !
-                assert self.last_check_state == Qt.Checked
-                self.get_self_pb()  # Recreates parent
-
-                for i in range(self.childCount()):
-                    if self.child(i).required:
-                        self.child(i).parent_pb = None
-                        self.child(i).self_pb = None
-                        self.child(i).update(self.child(i).value)
-
-            else:  # We have just unchecked the message !
-                assert self.last_check_state != Qt.Checked
-                for i in range(self.childCount()):
-                    if not self.child(i).required:
-                        self.child(i).setCheckState(0, Qt.Unchecked)
-                        self.child(i).update_check(True)
-                        self.child(i).parent_pb = None
-                        self.child(i).self_pb = None
-
-                self.get_self_pb().Clear()
-                self.update(None)
-
-            if not recursive:
-                self.app.update_fuzzer()
-
-        elif col == 0:
-            self.prompt_rename()
-
-    """
-        Wheck field name is clicked, offer to rename the field
-        
-        In order to rewrite field name in the .proto without discarding
-        comments or other information, we'll ask protoc to generate file
-        source information [1], that we'll parse and that will give us
-        text offset for it.
-        
-        [1] https://github.com/google/protobuf/blob/7f3e23/src/google/protobuf/descriptor.proto#L715
-    """
-
-    def prompt_rename(self):
-        text, good = QInputDialog.getText(
-            self.app.view,
-            ' ',
-            'Rename this field:',
-            text=self.text(0).strip('+ '),
-        )
-        if text:
-            if not match('^[a-zA-Z0-9_]+$', text):
-                QMessageBox.warning(
-                    self.app.view,
-                    ' ',
-                    'This is not a valid alphanumeric name.',
-                )
-                self.prompt_rename()
-            else:
-                try:
-                    if self.do_rename(text):
-                        return
-                except Exception:
-                    pass
-                QMessageBox.warning(
-                    self.app.view,
-                    ' ',
-                    'Field was not found in .proto, did you edit it elsewhere?',
-                )
-
-    def do_rename(self, new_name):
-        file_set, proto_path = next(
-            load_proto_msgs(self.app.current_req_proto, True), None
-        )
-        file_set = file_set.file
-
-        """
-        First, recursively iterate over descriptor fields until we have
-        a numeric path that leads to it in the structure, as explained
-        in [1] above
-        """
-
-        for file_ in file_set:
-            field_path = self.find_path_for_field(
-                file_.message_type, [4], file_.package
-            )
-
-            if field_path:
-                for location in file_.source_code_info.location:
-                    if location.path == field_path:
-                        start_line, start_col, end_col = location.span[:3]
-
-                        # Once we have file position information, do
-                        # write the new field name in .proto
-
-                        file_path = str(proto_path / file_.name)
-                        with open(file_path) as fd:
-                            lines = fd.readlines()
-                        assert lines[start_line][
-                            start_col:end_col
-                        ] == self.text(0).strip('+ ')
-
-                        lines[start_line] = (
-                            lines[start_line][:start_col]
-                            + new_name
-                            + lines[start_line][end_col:]
-                        )
-                        with open(file_path, 'w') as fd:
-                            fd.writelines(lines)
-
-                        # Update the name on GUI items corresponding to
-                        # this field and its duplicates (if repeated)
-
-                        obj = self
-                        while obj.orig_obj:
-                            obj = obj.orig_obj
-                        while obj:
-                            obj.full_name = (
-                                obj.full_name.rsplit('.', 1)[0]
-                                + '.'
-                                + new_name
-                            )
-                            self.app.ds_full_names[id(obj.ds)] = obj.full_name
-                            obj.setText(
-                                0, new_name + '+' * self.repeated + '  '
-                            )
-                            obj = obj.dupe_obj
-                        return True
-
-    def find_path_for_field(self, msgs, path, cur_name):
-        if cur_name:
-            cur_name += '.'
-
-        for i, msg in enumerate(msgs):
-            if self.full_name.startswith(cur_name + msg.name + '.'):
-                for j, field in enumerate(msg.field):
-                    if (
-                        cur_name + msg.name + '.' + field.name
-                        == self.full_name
-                    ):
-                        return [*path, i, 2, j, 1]
-
-                return self.find_path_for_field(
-                    msg.nested_type, [*path, i, 3], cur_name + msg.name
-                )
-
-    def _edit(self, ev=None):
-        if not self.widget.hasFocus():
-            self.widget.setFocus(Qt.MouseFocusReason)
-            if hasattr(self.widget, 'selectAll'):
-                self.widget.selectAll()
-
-
-"""
-    The ProtocolDataItem class inherits QTreeWidgetItem and is used to
-    constitute the second tab in the editor.
-"""
-
-
-class ProtocolDataItem(QTreeWidgetItem):
-    def __init__(self, item, name, val, app):
-        super().__init__(item, [name + '  '])
-        self.name = name
-        self.app = app
-        self.required = '{%s}' % name in self.app.base_url
-
-        if not self.required:
-            self.setCheckState(0, Qt.Checked)
-            self.last_check_state = Qt.Checked
-
-        self.widget = QLineEdit()
-        self.widget.setFrame(False)
-        self.widget.setStyleSheet('padding: 1px 0')
-        self.widget.textEdited.connect(self.value_changed)
-        self.app.fuzzer.getTree.setItemWidget(self, 1, self.widget)
-
-        self.widget.setText(val)
-        self.value = val
-
-        self.widget.setMouseTracking(True)
-        self.widget.enterEvent = self.edit
-
-    def value_changed(self, val):
-        self.app.get_params[self.name] = val
-        self.value = val
-
-        self.app.update_fuzzer()
-
-    def update_check(self, col):
-        if not self.required and self.last_check_state != self.checkState(0):
-            self.last_check_state = self.checkState(0)
-            if self.last_check_state != Qt.Checked:
-                del self.app.get_params[self.name]
-            else:
-                self.app.get_params[self.name] = self.value
-            self.app.update_fuzzer()
-
-    def edit(self, ev=None):
-        if not self.widget.hasFocus():
-            self.widget.setFocus(Qt.MouseFocusReason)
-            self.widget.selectAll()
+                    node.value = field_val

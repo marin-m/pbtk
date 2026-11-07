@@ -1,22 +1,37 @@
 #!/usr/bin/env python3
-from collections import OrderedDict, defaultdict
-from os.path import exists, dirname, realpath
-from google.protobuf.message import Message
-from importlib import import_module, reload
-from tempfile import TemporaryDirectory
-from inspect import getmembers, isclass
-from sys import platform, path as PATH
-from os import environ, makedirs, sep
-from importlib.util import find_spec
 from argparse import ArgumentParser
-from urllib.parse import urlparse
-from platform import architecture
-from subprocess import run, PIPE
-from logging import debug, info
+from collections import OrderedDict, defaultdict
+from collections.abc import Iterable, Sequence
+from importlib import import_module, reload
+from importlib.util import find_spec
+from inspect import getmembers, isclass
 from json import dump, load
-from re import findall, sub
+from logging import debug, error, info
+from os import environ, makedirs, sep
+from os.path import dirname, exists, realpath
 from pathlib import Path
+from platform import architecture
+from re import findall, sub
 from shutil import which
+from subprocess import PIPE, run
+from sys import path as PATH
+from sys import platform
+from tempfile import TemporaryDirectory
+from typing import Dict
+from urllib.parse import urlparse
+
+from gi.repository import GObject
+from google.protobuf.message import Message
+
+from pbtk.datamodel.extractor import (
+    Extractor,
+    ExtractorErrorMessage,
+    ExtractorInfoMessage,
+    ExtractorOutputFile,
+    ExtractorProgress,
+    ExtractorThreadMessage,
+)
+from pbtk.datamodel.transport import Transport, TransportDefinition
 
 # Constructing paths - local data
 
@@ -58,45 +73,52 @@ environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
 # Decorators for registering pluggable modules, documented at [2]
 # [2] https://github.com/marin-m/pbtk#source-code-structure
 
-extractors = OrderedDict()
+extractors: Dict[str, Extractor] = OrderedDict()
+
 """
 def register_extractor(name = None, # Used to refer to internally
-                       desc = None, # Used to describe extractor in GUI
+                       readable_name = None, # Used to display in the UI
+                       description = None, # Used to describe extractor in UI
                        pick_url = False, # Pick URL rather than file
                        depends = None): # kwargs for assert_installed()
 """
 
 
-def register_extractor(**kwargs):
+def register_extractor(
+    name: str,  # Used to refer to internally
+    readable_name: str,  # Used to display in the UI
+    description: str,  # Used to describe extractor in UI
+    pick_url=False,  # Pick URL rather than file
+    depends=None,
+):  # kwargs for assert_installed()
+
     def register_extractor_decorate(func):
-        extractors[kwargs['name']] = {'func': func, **kwargs}
+        extractor_obj = Extractor()
+        extractor_obj.name = readable_name
+        extractor_obj.description = description
+        extractor_obj.py_func = func
+        extractor_obj.pick_url = pick_url
+        extractor_obj.depends = depends
+
+        extractors[name] = extractor_obj
+
         return func
 
     return register_extractor_decorate
 
 
-transports = OrderedDict()
-"""
-def register_transport(name, # Used to refer to in JSON data files
-                       desc, # Used to describe protocol in GUI
-                       ui_tab = None, # Used to name the protocol data tab in fuzzer GUI (if any)
-                       ui_data_form = None, # Used to describe the nature of protocol data
-                       enforce_int_parameter = False): # Whether keys in protocol data are integer
-"""
+transports: dict[str, TransportDefinition] = OrderedDict()
 
 
-def register_transport(**kwargs):
-    def register_transport_decorate(func):
-        transports[kwargs['name']] = {'func': func, **kwargs}
-        return func
-
-    return register_transport_decorate
+def register_transport(cls: Transport):
+    transports[cls.name] = TransportDefinition(cls)
+    return cls
 
 
 # General utility functions
 
 
-def assert_installed(win=None, modules=[], binaries=[]):
+def assert_installed(modules=[], binaries=[]):
     missing = defaultdict(list)
     for items, what, func in (
         (modules, 'modules', find_spec),
@@ -112,13 +134,7 @@ def assert_installed(win=None, modules=[], binaries=[]):
                 subject = {'modules': 'module', 'binaries': 'binary'}[subject]
             msg.append('%s "%s"' % (subject, '", "'.join(names)))
         msg = 'You are missing the %s for this.' % ' and '.join(msg)
-        if win:
-            from PySide6.QtWidgets import QMessageBox
-
-            QMessageBox.warning(win, ' ', msg)
-        else:
-            raise ImportError(msg)
-    return not missing
+        raise ImportError(msg)
 
 
 def insert_endpoint(base_path, obj):
@@ -184,7 +200,31 @@ def insert_endpoint(base_path, obj):
 # Turn a .proto input into Python classes.
 
 
-def load_proto_msgs(proto_path, ret_source_info=False):
+class ProtoMessageDeclaration(GObject.Object):
+    __gtype_name__ = 'ProtoMessageDeclaration'
+
+    name = GObject.Property(type=str)
+    definition: Message
+
+    def __init__(self, name, definition):
+        super().__init__()
+
+        self.name = name
+        self.definition = definition
+
+
+class ProtoFileDescription:
+    definition: 'FileDescriptorSet'
+    file_path: str
+
+    def __init__(self, definition, file_path):
+        self.definition = definition
+        self.file_path = file_path
+
+
+def load_proto_msgs(
+    proto_path, ret_source_info=False
+) -> Iterable[ProtoMessageDeclaration | ProtoFileDescription]:
     # List imports that we need to specify to protoc for the necessary *_pb2.py to be generated
 
     proto_dir = Path(proto_path).parent
@@ -237,7 +277,9 @@ def load_proto_msgs(proto_path, ret_source_info=False):
             from google.protobuf.descriptor_pb2 import FileDescriptorSet
 
             with open(str(Path(arg_python_out) / 'desc_info'), 'rb') as fd:
-                yield FileDescriptorSet.FromString(fd.read()), arg_proto_path
+                yield ProtoFileDescription(
+                    FileDescriptorSet.FromString(fd.read()), arg_proto_path
+                )
                 return
 
         # Do actual import
@@ -265,55 +307,68 @@ def load_proto_msgs(proto_path, ret_source_info=False):
 def iterate_proto_msg(module, base):
     for name, cls in getmembers(module):
         if isclass(cls) and issubclass(cls, Message):
-            yield base + name, cls
+            yield ProtoMessageDeclaration(base + name, cls)
             yield from iterate_proto_msg(cls, base + name + '.')
 
 
 # Routine for saving data returned by an extractor
 
 
-def extractor_save(base_path, folder, outputs):
+def extractor_save(
+    base_path: str, folder: str, outputs: Sequence[ExtractorThreadMessage]
+):
     nb_written = 0
     name_to_path = {}
     wrote_endpoints = False
 
-    for name, contents in outputs:
-        if '.proto' in name:
-            if folder:
-                path = base_path / 'protos' / folder / name
+    # ⚠️ TODO make the output prettier
+    for thread_msg in outputs:
+        if isinstance(thread_msg, ExtractorOutputFile):
+            if '.proto' in thread_msg.name:
+                if folder:
+                    path = base_path / 'protos' / folder / thread_msg.name
+                else:
+                    path = base_path / thread_msg.name
+
+                makedirs(str(path.parent), exist_ok=True)
+                with open(str(path), 'w') as fd:
+                    fd.write(thread_msg.contents)
+
+                if thread_msg.name not in name_to_path:
+                    nb_written += 1
+                name_to_path[thread_msg.name] = str(path)
+
+            elif thread_msg.name.endswith('.sample'):
+                endpoint = thread_msg.contents
+
+                name = thread_msg.name.replace('.sample', '.proto')
+                endpoint['proto_path'] = name_to_path[name]
+                endpoint['proto_msg'] = name.replace('.proto', '')
+
+                wrote_endpoints = True
+                if folder:
+                    insert_endpoint(
+                        base_path / 'endpoints', {'request': endpoint}
+                    )
+                else:
+                    insert_endpoint(base_path, {'request': endpoint})
+
             else:
-                path = base_path / name
+                raise ValueError
 
-            makedirs(str(path.parent), exist_ok=True)
-            with open(str(path), 'w') as fd:
-                fd.write(contents)
+        elif isinstance(thread_msg, ExtractorInfoMessage):
+            info('[i] %s' % thread_msg.info)
 
-            if name not in name_to_path:
-                nb_written += 1
-            name_to_path[name] = str(path)
+        elif isinstance(thread_msg, ExtractorErrorMessage):
+            error('[!] %s' % thread_msg.info)
 
-        elif name.endswith('.sample'):
-            endpoint = contents
-
-            name = name.replace('.sample', '.proto')
-            endpoint['proto_path'] = name_to_path[name]
-            endpoint['proto_msg'] = name.replace('.proto', '')
-
-            wrote_endpoints = True
-            if folder:
-                insert_endpoint(base_path / 'endpoints', {'request': endpoint})
+        elif isinstance(thread_msg, ExtractorProgress):
+            if thread_msg.progress is None:
+                debug('[i] %s' % thread_msg.info)
             else:
-                insert_endpoint(base_path, {'request': endpoint})
-
-        elif name == '_info':
-            info('[i] %s' % contents)
-
-        elif name == '_progress':
-            label, progress_or_none = contents
-            if progress_or_none is None:
-                debug('[i] %s' % label)
-            else:
-                debug('[i] %s (%s %%)' % (label, progress_or_none))
+                debug(
+                    '[i] %s (%s %%)' % (thread_msg.info, thread_msg.progress)
+                )
 
     return nb_written, wrote_endpoints
 
@@ -321,23 +376,24 @@ def extractor_save(base_path, folder, outputs):
 # CLI entry point when calling an extractor as an individual script
 
 
-def extractor_main(extractor):
-    extractor = extractors[extractor]
+def extractor_main(extractor_name: str):
+    extractor: Extractor = extractors[extractor_name]
 
-    if assert_installed(**extractor.get('depends', {})):
-        parser = ArgumentParser(description=extractor['desc'])
-        if extractor.get('pick_url'):
-            parser.add_argument('input_', metavar='input_url')
-        else:
-            parser.add_argument('input_', metavar='input_file')
-        parser.add_argument('output_dir', type=Path, default='.', nargs='?')
-        args = parser.parse_args()
+    assert_installed(**(extractor.depends or {}))
 
-        nb_written, wrote_endpoints = extractor_save(
-            args.output_dir, '', extractor['func'](args.input_)
+    parser = ArgumentParser(description=extractor.description)
+    if extractor.pick_url:
+        parser.add_argument('input_', metavar='input_url')
+    else:
+        parser.add_argument('input_', metavar='input_file')
+    parser.add_argument('output_dir', type=Path, default='.', nargs='?')
+    args = parser.parse_args()
+
+    nb_written, wrote_endpoints = extractor_save(
+        args.output_dir, '', extractor.py_func(args.input_)
+    )
+    if nb_written:
+        print(
+            '\n[+] Wrote %s .proto files to "%s".\n'
+            % (nb_written, args.output_dir)
         )
-        if nb_written:
-            print(
-                '\n[+] Wrote %s .proto files to "%s".\n'
-                % (nb_written, args.output_dir)
-            )

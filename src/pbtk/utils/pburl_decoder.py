@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-from google.protobuf.descriptor import FieldDescriptor as fd
 from base64 import urlsafe_b64decode, urlsafe_b64encode
+from re import match
 from urllib.parse import quote, unquote
 from warnings import warn
-from re import match
+
+from google.protobuf.descriptor import FieldDescriptor as fd
+from google.protobuf.message import Message
 
 """
     This file contains encoding/decoding routines for the serialization
@@ -16,7 +18,7 @@ from re import match
     instead of "!" and string encoding somewhat differs.
 """
 
-types_dec = {
+types_dec: dict[str, int] = {
     'B': fd.TYPE_BYTES,
     'b': fd.TYPE_BOOL,
     'd': fd.TYPE_DOUBLE,
@@ -38,12 +40,19 @@ types_dec = {
 }
 
 
-def proto_url_decode(pburl, pbdesc, sep='!'):
+def proto_url_check_format(pburl: str, sep: str = '!') -> bool:
+    for field in pburl.strip(sep).split(sep):
+        if not match(r'(\d+)(\w)(.*)', field):
+            return False
+    return True
+
+
+def proto_url_decode(pburl: str, pbdesc: Message, sep: str = '!'):
     if pburl:
         consume(pburl.strip(sep).split(sep), pbdesc, sep)
 
 
-def consume(obj, pb, sep):
+def consume(obj: list[str], pb: Message, sep: str):
     while obj:
         field = obj.pop(0)
         index, type_, val = match(r'(\d+)(\w)(.*)', field).groups()
@@ -98,14 +107,14 @@ def consume(obj, pb, sep):
     Same, with encoding instead of decoding.
 """
 
-types_enc = {v: k for k, v in types_dec.items()}
+types_enc: dict[int, str] = {v: k for k, v in types_dec.items()}
 
 
-def proto_url_encode(pbmsg, sep='!'):
+def proto_url_encode(pbmsg: Message, sep: str = '!') -> str:
     return sep.join(produce([''] * (sep == '!'), pbmsg, sep))
 
 
-def produce(obj, pb, sep):
+def produce(obj: list[str], pb: Message, sep: str):
     for ds, val in pb.ListFields():
         for val in val if ds.label == ds.LABEL_REPEATED else [val]:
             if ds.cpp_type == ds.CPPTYPE_MESSAGE:
@@ -133,7 +142,8 @@ def produce(obj, pb, sep):
 
 if __name__ == '__main__':
     from argparse import ArgumentParser
-    from common import load_proto_msgs
+
+    from pbtk.utils.common import load_proto_msgs
 
     parser = ArgumentParser(
         description='Decode a JsProtoUrl text message, providing a .proto.'
