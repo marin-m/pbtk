@@ -614,10 +614,10 @@ class FuzzerWindow(Adw.Window):
                     'Item not found in Protobuf message: %r' % field_val
                 )
 
-            node.is_set = True
-
             if field_desc.label == field_desc.LABEL_REPEATED:
                 for instance in field_val:
+                    node.is_set = True
+
                     if field_desc.cpp_type == field_desc.CPPTYPE_MESSAGE:
                         node.expanded = True
                         self.use_sample_values(instance, node.get_children())
@@ -625,10 +625,12 @@ class FuzzerWindow(Adw.Window):
                     else:
                         node.value = instance
 
-                    duplicate = ProtobufItem(node.desc, node.path)
-                    tree_fields.insert(node_index + 1, duplicate)
+                    node = ProtobufItem(node.desc, node.path)
+                    tree_fields.insert(node_index + 1, node)
 
             else:
+                node.is_set = True
+
                 if field_desc.cpp_type == field_desc.CPPTYPE_MESSAGE:
                     node.expanded = True
                     self.use_sample_values(field_val, node.get_children())
