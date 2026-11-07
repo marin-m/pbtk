@@ -65,6 +65,9 @@ class MainApplication(Adw.Application):
         icon_theme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default())
         icon_theme.add_resource_path('/re/fossplant/pbtk/')
 
+        theme = Gtk.CssProvider.new()
+        theme.load_from_resource('/re/fossplant/pbtk/style.css')
+
         super().__init__(**kwargs)
 
         self.connect('startup', self.on_startup)
