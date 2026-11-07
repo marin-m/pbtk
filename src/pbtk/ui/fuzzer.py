@@ -545,9 +545,42 @@ class FuzzerWindow(Adw.Window):
             'data:%s;base64,%s' % (out_mime, b64encode(data).decode('utf-8'))
         )
 
-    def hex_dump(self, data: bytes):
-        # ⚠️ We shouldn't use an external subprocess like this
-        return run(['hexdump', '-C'], input=data, stdout=PIPE).stdout
+    def hex_dump(self, data: bytes) -> str:
+        subst_chars = ''.join(
+            j if j.isprintable() else '.'
+            for j in bytes(range(256)).decode('ibm850')
+        )
+
+        raw_buffer = BytesIO(data)
+        text_buffer = ''
+        while True:
+            pos = raw_buffer.tell()
+            byte_slice = raw_buffer.read(16)
+            if not byte_slice:
+                break
+
+            # Write position
+            text_buffer += '%08x  ' % pos
+
+            # Write hex data
+            for col, char in enumerate(byte_slice):
+                if col == 8:
+                    text_buffer += ' '
+                text_buffer += '%02x ' % char
+            for extra_col in range(col + 1, 16):
+                if extra_col == 8:
+                    text_buffer += ' '
+                text_buffer += '   '
+
+            # Write raw data
+            text_buffer += ' |'
+            for col, char in enumerate(byte_slice):
+                text_buffer += subst_chars[char]
+            for extra_col in range(col + 1, 16):
+                text_buffer += ' '
+            text_buffer += '|\n'
+
+        return text_buffer
 
     def parse_protobuf(self, data, pbresp):
         if pbresp:
