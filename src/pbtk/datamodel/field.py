@@ -4,6 +4,19 @@ from gi.repository import GObject, Gio
 from typing import Self
 
 
+class ExtraDataItem(GObject.Object):
+    __gtype_name__ = 'ExtraDataItem'
+
+    key = GObject.Property(type=str)
+    value = GObject.Property(type=str)
+
+    def __init__(self, key: str, value: str):
+        super().__init__()
+
+        self.key = key
+        self.value = value
+
+
 TYPE_NAME_LUT: dict[int, str] = {
     1: 'double',
     2: 'float',

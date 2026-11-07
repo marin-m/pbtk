@@ -59,6 +59,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                           <object class="GtkScrolledWindow">
                             <property name="child">
                               <object class="GtkColumnView">
+                                <property name="css-classes">proto_values</property>
                                 <property name="model">
                                   <object class="GtkNoSelection" id="proto_model_selection"></object>
                                 </property>
@@ -194,12 +195,38 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                               <object class="GtkScrolledWindow">
                                 <property name="child">
                                   <object class="GtkColumnView">
+                                    <property name="css-classes">extra_data_values</property>
                                     <property name="model">
-                                      <object class="GtkNoSelection" id="extra_data_model_selection"></object>
+                                      <object class="GtkNoSelection" id="extra_data_model_selection">
+                                        <property name="model">
+                                          <object class="GListStore" id="extra_data_items">
+                                            <property name="item-type">ExtraDataItem</property>
+                                          </object>
+                                        </property>
+                                      </object>
                                     </property>
                                     <property name="reorderable">false</property>
                                     <child>
                                       <object class="GtkColumnViewColumn">
+                                        <property name="factory">
+                                          <object class="GtkBuilderListItemFactory">
+                                            <property name="bytes"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkColumnViewCell">
+    <property name="child">
+      <object class="GtkLabel">
+        <property name="xalign">0</property>
+        <binding name="label">
+          <lookup name="key" type="ExtraDataItem">
+            <lookup name="item" type="GtkColumnViewCell">GtkColumnViewCell</lookup>
+          </lookup>
+        </binding>
+      </object>
+    </property>
+  </template>
+</interface>]]></property>
+                                          </object>
+                                        </property>
                                         <property name="id">name</property>
                                         <property name="resizable">true</property>
                                         <property name="title">Name</property>
@@ -208,6 +235,20 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                                     <child>
                                       <object class="GtkColumnViewColumn">
                                         <property name="expand">true</property>
+                                        <property name="factory">
+                                          <object class="GtkBuilderListItemFactory">
+                                            <property name="bytes"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkColumnViewCell">
+    <property name="child">
+      <object class="ExtraDataRowFieldValue">
+        <property name="item" bind-source="GtkColumnViewCell" bind-property="item" bind-flags="sync-create"/>
+      </object>
+    </property>
+  </template>
+</interface>]]></property>
+                                          </object>
+                                        </property>
                                         <property name="id">value</property>
                                         <property name="title">Value</property>
                                       </object>

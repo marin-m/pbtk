@@ -1,4 +1,8 @@
-cell {
+.proto_values cell {
     padding: 0;
     font-size: small;
+}
+
+.extra_data_values cell {
+    padding: 2px;
 }

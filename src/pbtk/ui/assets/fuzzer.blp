@@ -43,6 +43,10 @@ template $FuzzerWindow: Adw.Window {
           Adw.ViewStackPage proto_page {
             child: ScrolledWindow {
               child: ColumnView {
+                css-classes: [
+                  "proto_values",
+                ];
+
                 model: NoSelection proto_model_selection {};
 
                 reorderable: false;
@@ -123,11 +127,28 @@ template $FuzzerWindow: Adw.Window {
 
               ScrolledWindow {
                 child: ColumnView {
-                  model: NoSelection extra_data_model_selection {};
+                  css-classes: [
+                    "extra_data_values",
+                  ];
+
+                  model: NoSelection extra_data_model_selection {
+                    model: Gio.ListStore extra_data_items {
+                      item-type: typeof<$ExtraDataItem>;
+                    };
+                  };
 
                   reorderable: false;
 
                   ColumnViewColumn {
+                    factory: BuilderListItemFactory {
+                      template ColumnViewCell {
+                        child: Label {
+                          xalign: 0;
+                          label: bind template.item as <$ExtraDataItem>.key;
+                        };
+                      }
+                    };
+
                     id: "name";
                     resizable: true;
                     title: "Name";
@@ -135,6 +156,15 @@ template $FuzzerWindow: Adw.Window {
 
                   ColumnViewColumn {
                     expand: true;
+
+                    factory: BuilderListItemFactory {
+                      template ColumnViewCell {
+                        child: $ExtraDataRowFieldValue {
+                          item: bind template.item;
+                        };
+                      }
+                    };
+
                     id: "value";
                     title: "Value";
                   }
