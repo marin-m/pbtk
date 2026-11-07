@@ -256,8 +256,6 @@ class FuzzerWindow(Adw.Window):
     base_url: str
     pb_param: str | None = None
 
-    protocol_specific_params: dict
-
     current_req_proto: Path
     current_req_proto_msgs: list[ProtoMessageDeclaration]
     pb_request: Message
@@ -388,13 +386,13 @@ class FuzzerWindow(Adw.Window):
                 self.fuzzer_samples_list.append(sample_item)
 
         # Load currently selected sample into
-        # self.pb_request + self.protocol_specific_params
+        # self.pb_request + protocol_specific_params
 
         sample = ''
         if endpoint['request'].get('samples'):
             sample = endpoint['request']['samples'][sample_id]
 
-        self.protocol_specific_params = self.transport.load_sample(
+        protocol_specific_params: dict[str, str] = self.transport.load_sample(
             sample, self.pb_request
         )
 
@@ -417,7 +415,7 @@ class FuzzerWindow(Adw.Window):
 
         self.extra_data_items.remove_all()
 
-        for key, value in self.protocol_specific_params.items():
+        for key, value in protocol_specific_params.items():
             self.extra_data_items.append(ExtraDataItem(key, value))
 
         # Load initial view
@@ -429,7 +427,8 @@ class FuzzerWindow(Adw.Window):
 
     def update_fuzzer(self):
         request: Soup.Message = self.transport.create_request(
-            self.pb_request, self.protocol_specific_params
+            self.pb_request,
+            {item.key: item.value for item in self.extra_data_items},
         )
 
         # ^ ⚠️ THE OBJECT MODEL FOR protocol_specific_params
