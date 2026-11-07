@@ -220,6 +220,8 @@ class FuzzerWindow(Adw.Window):
     current_resp_proto_msgs: list[ProtoMessageDeclaration] = None
     pb_response: Message = None
 
+    extra_data_page: Adw.ViewStackPage = Gtk.Template.Child()
+
     proto_model_selection: Gtk.NoSelection = Gtk.Template.Child()
     proto_items = GObject.Property(type=Gio.ListStore)  # of ProtobufItem
 
@@ -277,6 +279,8 @@ class FuzzerWindow(Adw.Window):
         self.transport = self.transport_meta.transport_class(
             self.pb_param, self.base_url
         )
+
+        self.extra_data_page.set_title(self.transport.ui_tab)
 
         # Load Protobuf request message
 

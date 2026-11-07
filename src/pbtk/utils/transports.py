@@ -22,9 +22,7 @@ gi.require_version('Soup', '3.0')
 
 from gi.repository import Soup
 
-USER_AGENT = {
-    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36'
-}
+USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36'
 
 
 # ⚠️ ===> TURN DECORATOR ARGUMENTS INTO ABC BASE CLASS
@@ -48,17 +46,23 @@ class RawPOST(Transport):
 
     def load_sample(self, sample: str, pb_msg: Message) -> dict:
         pb_msg.ParseFromString(bytes.fromhex(sample))
-        self.headers = OrderedDict(USER_AGENT)
+        self.headers = OrderedDict({'User-Agent': USER_AGENT})
         self.headers['Content-Type'] = 'application/x-protobuf'
         return self.headers
 
     def create_request(
         self, pb_data: Message, tab_data: dict | None
     ) -> Soup.Message:
-        # ⚠️ WIP: adapt
-        return post(
-            self.url, pb_data.SerializeToString(), headers=self.headers
+        msg = Soup.Message.new_from_encoded_form(
+            'POST', self.url, pb_data.SerializeToString()
         )
+
+        headers: Soup.MessageHeaders = msg.get_request_headers()
+
+        for key, value in self.headers.items():
+            headers.append(key, value)
+
+        return msg
 
 
 def my_quote(x: str) -> str:
@@ -93,7 +97,6 @@ class Base64GET(Transport):
     def create_request(
         self, pb_data: Message, tab_data: dict | None
     ) -> Soup.Message:
-        # ⚠️ WIP: adapt
         base64 = urlsafe_b64encode(pb_data.SerializeToString()).decode('utf8')
         params = OrderedDict({self.pb_param: base64.strip('=')})
         params.update(tab_data)
@@ -106,7 +109,13 @@ class Base64GET(Transport):
             url += '?' + urlencode(
                 params, safe='~()*!.'
             )  # Do not escape '!' for readibility.
-        return get(url, headers=USER_AGENT)
+
+        msg = Soup.Message.new('GET', url)
+
+        headers: Soup.MessageHeaders = msg.get_request_headers()
+        headers.append('User-Agent', USER_AGENT)
+
+        return msg
 
 
 @register_transport
@@ -143,7 +152,6 @@ class GMapsAPIPrivate(Transport):
     def create_request(
         self, pb_data: Message, tab_data: dict | None
     ) -> Soup.Message:
-        # ⚠️ WIP: adapt
         params = OrderedDict({self.pb_param: proto_url_encode(pb_data)})
         params.update(tab_data)
         url = sub(
@@ -155,7 +163,13 @@ class GMapsAPIPrivate(Transport):
             url += '?' + urlencode(
                 params, safe='~()*!.'
             )  # Do not escape '!' for readibility.
-        return get(url, headers=USER_AGENT)
+
+        msg = Soup.Message.new('GET', url)
+
+        headers: Soup.MessageHeaders = msg.get_request_headers()
+        headers.append('User-Agent', USER_AGENT)
+
+        return msg
 
 
 @register_transport
@@ -203,15 +217,18 @@ class GMapsAPIPublic(Transport):
     def create_request(
         self, pb_data: Message, tab_data: dict | None
     ) -> Soup.Message:
-        # ⚠️ WIP: adapt
         params = OrderedDict({proto_url_encode(pb_data, '&'): ''})
         params.update(tab_data)
         params['token'] = self.hash_token(
             urlparse(self.url).path + '?' + self.rebuild_qs(params)
         )
-        return get(
-            self.url + '?' + self.rebuild_qs(params), headers=USER_AGENT
-        )
+
+        msg = Soup.Message.new('GET', self.url + '?' + self.rebuild_qs(params))
+
+        headers: Soup.MessageHeaders = msg.get_request_headers()
+        headers.append('User-Agent', USER_AGENT)
+
+        return msg
 
     def hash_token(self, url: str) -> int:
         if not hasattr(self, 'token'):
