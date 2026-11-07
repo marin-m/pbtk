@@ -85,14 +85,6 @@ class Transport(ABC):
         object, and optionally other transport-specific side data.
         """
 
-        """
-        XX WIP: SWITCH TO LIBSOUP WITH A RESPONSE SIGNAL
-        INSTEAD OF A RETURN VALUE
-
-        See: https://lazka.github.io/pgi-docs/Soup-3.0/functions.html
-        See: https://lazka.github.io/pgi-docs/Soup-3.0/classes/Session.html#Soup.Session.new
-        See: https://lazka.github.io/pgi-docs/Soup-3.0/classes/Message.html#Soup.Message.new_from_encoded_form
-        """
         ...
 
 

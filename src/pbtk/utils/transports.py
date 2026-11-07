@@ -20,7 +20,7 @@ import gi
 
 gi.require_version('Soup', '3.0')
 
-from gi.repository import Soup
+from gi.repository import GLib, Soup
 
 USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36'
 
@@ -53,8 +53,9 @@ class RawPOST(Transport):
     def create_request(
         self, pb_data: Message, tab_data: dict | None
     ) -> Soup.Message:
-        msg = Soup.Message.new_from_encoded_form(
-            'POST', self.url, pb_data.SerializeToString()
+        msg = Soup.Message.new('POST', self.url)
+        msg.set_request_body_from_bytes(
+            None, GLib.Bytes.new(pb_data.SerializeToString())
         )
 
         headers: Soup.MessageHeaders = msg.get_request_headers()
