@@ -41,80 +41,94 @@ template $FuzzerWindow: Adw.Window {
 
         Adw.ViewStack fuzzer_view_stack {
           Adw.ViewStackPage proto_page {
-            child: ScrolledWindow {
-              child: ColumnView {
-                css-classes: [
-                  "proto_values",
-                ];
+            child: Box {
+              orientation: vertical;
 
-                model: NoSelection proto_model_selection {};
+              ScrolledWindow {
+                child: ColumnView {
+                  css-classes: [
+                    "proto_values",
+                  ];
 
-                reorderable: false;
+                  model: SingleSelection proto_model_selection {};
 
-                ColumnViewColumn {
-                  factory: BuilderListItemFactory {
-                    template ColumnViewCell {
-                      child: TreeExpander {
-                        list-row: bind template.item as <Gtk.TreeListRow>;
+                  reorderable: false;
 
-                        child: $ProtoRowFieldName {
-                          item: bind template.item as <TreeListRow>.item;
-                          list-row: bind template.item;
+                  ColumnViewColumn {
+                    factory: BuilderListItemFactory {
+                      template ColumnViewCell {
+                        child: TreeExpander {
+                          list-row: bind template.item as <Gtk.TreeListRow>;
+
+                          child: $ProtoRowFieldName {
+                            item: bind template.item as <TreeListRow>.item;
+                            list-row: bind template.item;
+                          };
                         };
-                      };
-                    }
-                  };
+                      }
+                    };
 
-                  id: "name";
-                  resizable: true;
-                  title: "Name";
+                    id: "name";
+                    resizable: true;
+                    title: "Name";
+                  }
+
+                  ColumnViewColumn {
+                    factory: BuilderListItemFactory {
+                      template ColumnViewCell {
+                        child: Label {
+                          xalign: 0;
+                          label: bind template.item as <TreeListRow>.item as <$ProtobufItem>.proto_id;
+                        };
+                      }
+                    };
+
+                    id: "id";
+                    resizable: true;
+                    title: "Id";
+                  }
+
+                  ColumnViewColumn {
+                    factory: BuilderListItemFactory {
+                      template ColumnViewCell {
+                        child: Label {
+                          xalign: 0;
+                          label: bind template.item as <TreeListRow>.item as <$ProtobufItem>.type_txt;
+                        };
+                      }
+                    };
+
+                    id: "type";
+                    resizable: true;
+                    title: "Type";
+                  }
+
+                  ColumnViewColumn {
+                    expand: true;
+
+                    factory: BuilderListItemFactory {
+                      template ColumnViewCell {
+                        child: $ProtoRowFieldValue {
+                          item: bind template.item as <TreeListRow>.item;
+                        };
+                      }
+                    };
+
+                    id: "value";
+                    title: "Value";
+                  }
+                };
+
+                vexpand: true;
+                vexpand-set: true;
+              }
+
+              ActionBar {
+                [end]
+                Button proto_data_rename {
+                  label: "Rename...";
                 }
-
-                ColumnViewColumn {
-                  factory: BuilderListItemFactory {
-                    template ColumnViewCell {
-                      child: Label {
-                        xalign: 0;
-                        label: bind template.item as <TreeListRow>.item as <$ProtobufItem>.proto_id;
-                      };
-                    }
-                  };
-
-                  id: "id";
-                  resizable: true;
-                  title: "Id";
-                }
-
-                ColumnViewColumn {
-                  factory: BuilderListItemFactory {
-                    template ColumnViewCell {
-                      child: Label {
-                        xalign: 0;
-                        label: bind template.item as <TreeListRow>.item as <$ProtobufItem>.type_txt;
-                      };
-                    }
-                  };
-
-                  id: "type";
-                  resizable: true;
-                  title: "Type";
-                }
-
-                ColumnViewColumn {
-                  expand: true;
-
-                  factory: BuilderListItemFactory {
-                    template ColumnViewCell {
-                      child: $ProtoRowFieldValue {
-                        item: bind template.item as <TreeListRow>.item;
-                      };
-                    }
-                  };
-
-                  id: "value";
-                  title: "Value";
-                }
-              };
+              }
             };
 
             name: "proto_page";
@@ -131,7 +145,7 @@ template $FuzzerWindow: Adw.Window {
                     "extra_data_values",
                   ];
 
-                  model: NoSelection extra_data_model_selection {
+                  model: SingleSelection extra_data_model_selection {
                     model: Gio.ListStore extra_data_items {
                       item-type: typeof<$ExtraDataItem>;
                     };
@@ -171,6 +185,7 @@ template $FuzzerWindow: Adw.Window {
                 };
 
                 vexpand: true;
+                vexpand-set: true;
               }
 
               ActionBar {

@@ -61,9 +61,14 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                               <object class="GtkColumnView">
                                 <property name="css-classes">proto_values</property>
                                 <property name="model">
-                                  <object class="GtkNoSelection" id="proto_model_selection"></object>
+                                  <object class="GtkSingleSelection" id="proto_model_selection"></object>
                                 </property>
                                 <property name="reorderable">false</property>
+                                <property name="row-factory">
+                                  <object class="GtkSignalListItemFactory">
+                                    <signal name="setup" handler="setup_proto_field_row"/>
+                                  </object>
+                                </property>
                                 <child>
                                   <object class="GtkColumnViewColumn">
                                     <property name="factory">
@@ -197,7 +202,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                                   <object class="GtkColumnView">
                                     <property name="css-classes">extra_data_values</property>
                                     <property name="model">
-                                      <object class="GtkNoSelection" id="extra_data_model_selection">
+                                      <object class="GtkSingleSelection" id="extra_data_model_selection">
                                         <property name="model">
                                           <object class="GListStore" id="extra_data_items">
                                             <property name="item-type">ExtraDataItem</property>

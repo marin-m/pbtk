@@ -48,7 +48,17 @@ gi.require_version('Pango', '1.0')
 gi.require_version('Adw', '1')
 gi.require_version('Soup', '3.0')
 
-from gi.repository import Adw, Gio, GObject, Pango, GLib, WebKit, Soup, Gtk
+from gi.repository import (
+    Adw,
+    Gio,
+    GObject,
+    Pango,
+    Gdk,
+    GLib,
+    WebKit,
+    Soup,
+    Gtk,
+)
 from gi.repository.WebKit import WebView
 
 
@@ -294,6 +304,14 @@ class FuzzerWindow(Adw.Window):
         )
 
         self.connect_actions()
+
+    """
+    def connect_context_menu(self, XX):
+        click_handler = Gtk.GestureClick.new()
+        click_handler.set_button(Gdk.BUTTON_SECONDARY)
+        click_handler.connect('pressed', touch_closure)
+        XX.add_controller(click_handler)
+    """
 
     def connect_actions(self):
 
