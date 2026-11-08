@@ -779,18 +779,19 @@ class FuzzerWindow(Adw.Window):
         if isinstance(data, str):
             data = data.encode('utf8')
 
-        """
-        # This should be the correct way to go
-        # with but it doesn't seem to load
+        # This should be the correct way to go
+        # with but it doesn't seem to load
         # correctly raw images:
-        self.fuzzer_preview_html.load_bytes(
-            GLib.Bytes.new(data), None, out_mime, url
-        )
-        """
+        if 'html' in out_mime:
+            self.fuzzer_preview_html.load_bytes(
+                GLib.Bytes.new(data), None, out_mime, url
+            )
 
-        self.fuzzer_preview_html.load_uri(
-            'data:%s;base64,%s' % (out_mime, b64encode(data).decode('utf-8'))
-        )
+        else:
+            self.fuzzer_preview_html.load_uri(
+                'data:%s;base64,%s'
+                % (out_mime, b64encode(data).decode('utf-8'))
+            )
 
     def hex_dump(self, data: bytes) -> str:
         subst_chars = ''.join(

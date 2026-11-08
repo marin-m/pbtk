@@ -5,6 +5,7 @@ from google.protobuf.message import Message
 from collections import OrderedDict
 from functools import reduce
 from re import match, sub
+from requests import get
 from json import loads
 
 
@@ -234,7 +235,8 @@ class GMapsAPIPublic(Transport):
     def hash_token(self, url: str) -> int:
         if not hasattr(self, 'token'):
             self.token = get(
-                'https://maps.google.com/maps/api/js', headers=USER_AGENT
+                'https://maps.google.com/maps/api/js',
+                headers={'User-Agent': USER_AGENT},
             ).text
             self.token = loads(self.token.split('apiLoad(')[1].split(', ')[0])[
                 4
