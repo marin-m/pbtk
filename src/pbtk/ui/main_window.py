@@ -191,9 +191,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.endpoints_selection.set_model(self.endpoints_model)
 
     def connect_actions(self):
-
         def show_about(*args):
-
             self.about_dialog.set_visible(True)
 
             if not self.debug_timer_source:
@@ -221,7 +219,6 @@ class MainWindow(Adw.ApplicationWindow):
         self.add_simple_action('show-about', show_about)
 
         def pick_proto_file(*args):
-
             def load_bytes_cb(open_result: Gio.File, result: Gio.AsyncResult):
                 try:
                     _data: bytes = open_result.load_bytes_finish(result)[
@@ -311,7 +308,6 @@ class MainWindow(Adw.ApplicationWindow):
         self.add_simple_action('go-back-to-main', go_back_to_main)
 
         def pick_resp_msg(*args):
-
             def load_bytes_cb(open_result: Gio.File, result: Gio.AsyncResult):
                 try:
                     _data: bytes = open_result.load_bytes_finish(result)[
@@ -452,13 +448,11 @@ class MainWindow(Adw.ApplicationWindow):
         self.add_simple_action('create-endpoint', create_endpoint)
 
     def add_simple_action(self, name, callback, param_type=None):
-
         action = Gio.SimpleAction.new(name, param_type)
         action.connect('activate', callback)
         self.add_action(action)
 
     def alert_popup(self, *args):
-
         dialog = Adw.AlertDialog.new(*args)
         dialog.add_response('ok', 'Ok')
         dialog.set_default_response('ok')
@@ -494,7 +488,6 @@ class MainWindow(Adw.ApplicationWindow):
 
     @Gtk.Template.Callback()
     def update_endpoints_list(self, *args):
-
         self.endpoints_list.remove_all()
 
         for entry in scandir(str(BASE_PATH / 'endpoints')):

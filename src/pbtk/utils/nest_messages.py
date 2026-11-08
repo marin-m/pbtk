@@ -338,7 +338,6 @@ def fix_naming(
     msg_path_to_obj,
     newloc_to_msg,
 ):
-
     # Keep track of the original full name of the generated block, as
     # it's the one we'll use when processing further references from
     # msg_to_referrers and other objects.

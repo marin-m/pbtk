@@ -128,17 +128,26 @@ class ProtobufItem(GObject.Object):
             if not was_initing:
                 fuzzer_window.initing_values = True
 
-            self.children = Gio.ListStore.new(ProtobufItem)
-            for child in self.desc.message_type.fields:
-                node = ProtobufItem.new(
-                    child, self, self.children, self.path + [child.full_name]
-                )
-                self.children.append(node)
-                node.connect('notify::is-set', fuzzer_window.node_value_set)
-                node.connect('notify::value', fuzzer_window.node_value_changed)
+            try:
+                self.children = Gio.ListStore.new(ProtobufItem)
+                for child in self.desc.message_type.fields:
+                    node = ProtobufItem.new(
+                        child,
+                        self,
+                        self.children,
+                        self.path + [child.full_name],
+                    )
+                    self.children.append(node)
+                    node.connect(
+                        'notify::is-set', fuzzer_window.node_value_set
+                    )
+                    node.connect(
+                        'notify::value', fuzzer_window.node_value_changed
+                    )
 
-            if not was_initing:
-                fuzzer_window.initing_values = False
+            finally:
+                if not was_initing:
+                    fuzzer_window.initing_values = False
 
         return self.children
 

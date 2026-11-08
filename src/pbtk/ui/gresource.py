@@ -14,7 +14,8 @@ ASSETS_DIR = realpath(join(SCRIPT_DIR, 'assets'))
 GENERATED_DIR = realpath(join(ASSETS_DIR, 'generated'))
 RESOURCES_PATH = realpath(join(ASSETS_DIR, 'pbtk.gresource'))
 
-makedirs(GENERATED_DIR, exist_ok=True)
+if access(GENERATED_DIR, W_OK):
+    makedirs(GENERATED_DIR, exist_ok=True)
 
 
 # Create a templated window object, in order

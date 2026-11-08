@@ -91,7 +91,6 @@ def register_extractor(
     pick_url=False,  # Pick URL rather than file
     depends=None,
 ):  # kwargs for assert_installed()
-
     def register_extractor_decorate(func):
         extractor_obj = Extractor()
         extractor_obj.name = readable_name

@@ -423,7 +423,6 @@ class FuzzerWindow(Adw.Window):
     """
 
     def connect_actions(self):
-
         self.action_group = Gio.SimpleActionGroup.new()
 
         self.insert_action_group('win', self.action_group)
@@ -435,7 +434,6 @@ class FuzzerWindow(Adw.Window):
         self.add_simple_action('open-proto-definition', open_proto_definition)
 
         def delete_current_endpoint(*args):
-
             dialog = Adw.AlertDialog.new('Delete this endpoint?')
             dialog.add_response('cancel', 'Cancel')
             dialog.add_response('delete', 'Delete')
@@ -476,7 +474,6 @@ class FuzzerWindow(Adw.Window):
         )
 
         def add_extra_data(*args):
-
             def on_choose(dialog: Adw.AlertDialog, result: Gio.AsyncResult):
                 result = dialog.choose_finish(result)
 
@@ -501,7 +498,6 @@ class FuzzerWindow(Adw.Window):
         self.add_simple_action('add-extra-data', add_extra_data)
 
         def remove_extra_data(*args):
-
             if self.extra_data_model_selection.get_selected_item():
                 self.extra_data_items.remove(
                     self.extra_data_model_selection.get_selected()
@@ -529,132 +525,139 @@ class FuzzerWindow(Adw.Window):
         return action
 
     def load(self, endpoint: dict, sample_id: int = 0):
-
         if self.initing_values:
             return
 
         self.initing_values = True
         self.processing_user_action = False
 
-        if endpoint != self.endpoint:
-            self.base_url = endpoint['request']['url']
-            self.pb_param = endpoint['request'].get('pb_param')
+        try:
+            if endpoint != self.endpoint:
+                self.base_url = endpoint['request']['url']
+                self.pb_param = endpoint['request'].get('pb_param')
 
-            self.transport_meta = transports[endpoint['request']['transport']]
-            self.transport = self.transport_meta.transport_class(
-                self.pb_param, self.base_url
-            )
-
-            self.extra_data_page.set_title(self.transport.ui_tab)
-
-            # Load Protobuf request message
-
-            self.current_req_proto = (
-                BASE_PATH / 'protos' / endpoint['request']['proto_path']
-            )
-
-            self.current_req_proto_msgs = list(
-                load_proto_msgs(self.current_req_proto)
-            )
-            self.pb_request_type = next(
-                (
-                    item
-                    for item in self.current_req_proto_msgs
-                    if item.name == endpoint['request']['proto_msg']
-                ),
-                None,
-            ).definition
-
-            # Load Protobuf response message, if any
-
-            if (
-                endpoint.get('response')
-                and endpoint['response']['format'] == 'raw_pb'
-            ):
-                self.current_resp_proto = (
-                    BASE_PATH / 'protos' / endpoint['response']['proto_path']
+                self.transport_meta = transports[
+                    endpoint['request']['transport']
+                ]
+                self.transport = self.transport_meta.transport_class(
+                    self.pb_param, self.base_url
                 )
 
-                self.current_resp_proto_msgs = list(
-                    load_proto_msgs(self.current_resp_proto)
+                self.extra_data_page.set_title(self.transport.ui_tab)
+
+                # Load Protobuf request message
+
+                self.current_req_proto = (
+                    BASE_PATH / 'protos' / endpoint['request']['proto_path']
                 )
-                self.pb_response_type = next(
+
+                self.current_req_proto_msgs = list(
+                    load_proto_msgs(self.current_req_proto)
+                )
+                self.pb_request_type = next(
                     (
                         item
-                        for item in self.current_resp_proto_msgs
-                        if item.name == endpoint['response']['proto_msg']
+                        for item in self.current_req_proto_msgs
+                        if item.name == endpoint['request']['proto_msg']
                     ),
                     None,
                 ).definition
 
-            # Load list of samples
+                # Load Protobuf response message, if any
 
-            with self.fuzzer_samples_list.freeze_notify():
-                self.fuzzer_samples_list.remove_all()
-
-                for raw_sample_data in endpoint['request'].get('samples', []):
-                    readable_sample_data = (
-                        raw_sample_data[self.pb_param]
-                        if self.pb_param
-                        else str(raw_sample_data)
+                if (
+                    endpoint.get('response')
+                    and endpoint['response']['format'] == 'raw_pb'
+                ):
+                    self.current_resp_proto = (
+                        BASE_PATH
+                        / 'protos'
+                        / endpoint['response']['proto_path']
                     )
 
-                    sample_item = RecordedSampleRow(
-                        raw_sample_data, readable_sample_data
+                    self.current_resp_proto_msgs = list(
+                        load_proto_msgs(self.current_resp_proto)
                     )
+                    self.pb_response_type = next(
+                        (
+                            item
+                            for item in self.current_resp_proto_msgs
+                            if item.name == endpoint['response']['proto_msg']
+                        ),
+                        None,
+                    ).definition
 
-                    self.fuzzer_samples_list.append(sample_item)
+                # Load list of samples
 
-        self.endpoint = endpoint
+                with self.fuzzer_samples_list.freeze_notify():
+                    self.fuzzer_samples_list.remove_all()
 
-        # Load currently selected sample into
-        # initial_pb_request + protocol_specific_params
+                    for raw_sample_data in endpoint['request'].get(
+                        'samples', []
+                    ):
+                        readable_sample_data = (
+                            raw_sample_data[self.pb_param]
+                            if self.pb_param
+                            else str(raw_sample_data)
+                        )
 
-        initial_pb_request = self.pb_request_type()
+                        sample_item = RecordedSampleRow(
+                            raw_sample_data, readable_sample_data
+                        )
 
-        sample = ''
-        if endpoint['request'].get('samples'):
-            sample = endpoint['request']['samples'][sample_id]
+                        self.fuzzer_samples_list.append(sample_item)
 
-        protocol_specific_params: dict[str, str] = self.transport.load_sample(
-            sample, initial_pb_request
-        )
+            self.endpoint = endpoint
 
-        # Present fuzzer window
+            # Load currently selected sample into
+            # initial_pb_request + protocol_specific_params
 
-        self.present()
+            initial_pb_request = self.pb_request_type()
 
-        # Get initial data into the Protobuf tree view
+            sample = ''
+            if endpoint['request'].get('samples'):
+                sample = endpoint['request']['samples'][sample_id]
 
-        self.proto_items.remove_all()
-
-        for desc in initial_pb_request.DESCRIPTOR.fields:
-            node = ProtobufItem.new(
-                desc, None, self.proto_items, [desc.full_name]
+            protocol_specific_params: dict[str, str] = (
+                self.transport.load_sample(sample, initial_pb_request)
             )
-            self.proto_items.append(node)
-            node.connect('notify::is-set', self.node_value_set)
-            node.connect('notify::value', self.node_value_changed)
 
-        self.use_sample_values(initial_pb_request, None, self.proto_items)
+            # Present fuzzer window
 
-        # Do the same for transport-specific data
+            self.present()
 
-        self.extra_data_items.remove_all()
+            # Get initial data into the Protobuf tree view
 
-        for key, value in protocol_specific_params.items():
-            new_item = ExtraDataItem(key, value)
-            self.extra_data_items.append(new_item)
-            new_item.connect('notify::value', self.update_fuzzer)
+            self.proto_items.remove_all()
 
-        # Load initial view
+            for desc in initial_pb_request.DESCRIPTOR.fields:
+                node = ProtobufItem.new(
+                    desc, None, self.proto_items, [desc.full_name]
+                )
+                self.proto_items.append(node)
+                node.connect('notify::is-set', self.node_value_set)
+                node.connect('notify::value', self.node_value_changed)
 
-        self.fuzzer_preview_html.load_uri('about:blank')
-        self.fuzzer_preview_buffer.set_text('')
+            self.use_sample_values(initial_pb_request, None, self.proto_items)
 
-        self.update_fuzzer()
+            # Do the same for transport-specific data
 
-        self.initing_values = False
+            self.extra_data_items.remove_all()
+
+            for key, value in protocol_specific_params.items():
+                new_item = ExtraDataItem(key, value)
+                self.extra_data_items.append(new_item)
+                new_item.connect('notify::value', self.update_fuzzer)
+
+            # Load initial view
+
+            self.fuzzer_preview_html.load_uri('about:blank')
+            self.fuzzer_preview_buffer.set_text('')
+
+            self.update_fuzzer()
+
+        finally:
+            self.initing_values = False
 
     def update_fuzzer(self, *args):
         pb_request: Message = self.pb_request_type()
@@ -761,7 +764,6 @@ class FuzzerWindow(Adw.Window):
         url: str,
         mime: str,
     ):
-
         out_mime = 'text/plain; charset=utf-8'
 
         try:
@@ -933,7 +935,6 @@ class FuzzerWindow(Adw.Window):
     """
 
     def prompt_rename(self, *args):
-
         item: ProtobufItem = (
             self.proto_model_selection.get_selected_item().get_item()
         )
@@ -1036,7 +1037,6 @@ class FuzzerWindow(Adw.Window):
                 )
 
     def alert_popup(self, *args):
-
         dialog = Adw.AlertDialog.new(*args)
         dialog.add_response('ok', 'Ok')
         dialog.set_default_response('ok')
@@ -1054,7 +1054,6 @@ class FuzzerWindow(Adw.Window):
         parent: ProtobufItem | None,
         tree_fields: Gio.ListStore[ProtobufItem],
     ):
-
         for field_desc, field_val in msg.ListFields():
             for node_index, node in reversed(list(enumerate(tree_fields))):
                 if node.desc.number == field_desc.number:
@@ -1104,7 +1103,6 @@ class FuzzerWindow(Adw.Window):
     """
 
     def node_value_changed(self, item: ProtobufItem, spec: GObject.ParamSpec):
-
         if self.initing_values:
             return
 
@@ -1119,10 +1117,12 @@ class FuzzerWindow(Adw.Window):
 
         # Check item as newly set if needed
 
-        if item.value and not item.is_set:
-            item.is_set = True
+        try:
+            if item.value and not item.is_set:
+                item.is_set = True
 
-        self.processing_user_action = False
+        finally:
+            self.processing_user_action = False
 
         # Log data change
 
@@ -1134,7 +1134,6 @@ class FuzzerWindow(Adw.Window):
         self.update_fuzzer()
 
     def node_value_set(self, item: ProtobufItem, spec: GObject.ParamSpec):
-
         if self.initing_values:
             return
 
@@ -1145,36 +1144,39 @@ class FuzzerWindow(Adw.Window):
         if not was_processing:
             self.processing_user_action = True
 
-        # a. Set all parents as set too
+        try:
+            # a. Set all parents as set too
 
-        parent = item.parent
-        while parent:
-            parent.is_set = True
-            parent = parent.parent
+            parent = item.parent
+            while parent:
+                parent.is_set = True
+                parent = parent.parent
 
-        # b. Duplicate repeated Protobuf item if needed
+            # b. Duplicate repeated Protobuf item if needed
 
-        if item.is_repeated and item.is_set:
-            for last_node_index, last_node in reversed(
-                list(enumerate(item.parent_tree))
-            ):
-                if last_node.proto_id == item.proto_id:
-                    break
-            else:
-                raise ValueError(
-                    'Item not found in Protobuf message: %r' % item.proto_id
-                )
+            if item.is_repeated and item.is_set:
+                for last_node_index, last_node in reversed(
+                    list(enumerate(item.parent_tree))
+                ):
+                    if last_node.proto_id == item.proto_id:
+                        break
+                else:
+                    raise ValueError(
+                        'Item not found in Protobuf message: %r'
+                        % item.proto_id
+                    )
 
-            if last_node == item:
-                node = ProtobufItem.new(
-                    item.desc, item.parent, item.parent_tree, item.path
-                )
-                item.parent_tree.insert(last_node_index + 1, node)
-                node.connect('notify::is-set', self.node_value_set)
-                node.connect('notify::value', self.node_value_changed)
+                if last_node == item:
+                    node = ProtobufItem.new(
+                        item.desc, item.parent, item.parent_tree, item.path
+                    )
+                    item.parent_tree.insert(last_node_index + 1, node)
+                    node.connect('notify::is-set', self.node_value_set)
+                    node.connect('notify::value', self.node_value_changed)
 
-        if not was_processing:
-            self.processing_user_action = False
+        finally:
+            if not was_processing:
+                self.processing_user_action = False
 
         # Ensure that we're the data source of
         # the value set before firing a

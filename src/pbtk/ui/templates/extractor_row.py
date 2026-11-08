@@ -29,7 +29,6 @@ class ExtractorRow(Adw.ActionRow):
     window: Adw.ApplicationWindow
 
     def __init__(self, data: Extractor, window: Adw.ApplicationWindow):
-
         super().__init__()
 
         self.window = window
@@ -45,7 +44,6 @@ class ExtractorRow(Adw.ActionRow):
         self.add_suffix(select_button)
 
     def on_clicked(self, target: Gtk.Button, *args):
-
         try:
             assert_installed(**(self.extractor.depends or {}))
         except ImportError as err:
