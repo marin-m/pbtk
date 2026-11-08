@@ -1,4 +1,4 @@
-from google.protobuf.descriptor import FieldDescriptor
+from google.protobuf.descriptor import FieldDescriptor, Descriptor
 from google.protobuf.message import Message
 from gi.repository import GObject, Gio
 from typing import Self
@@ -141,7 +141,12 @@ class ProtobufItem(GObject.Object):
 
 
 class ProtobufItemMessage(ProtobufItem):
-    value = GObject.Property(type=int)
+    message_type: Descriptor
+
+    def __init__(self, desc: FieldDescriptor, *args):
+        super().__init__(desc, *args)
+
+        self.message_type = desc.message_type
 
 
 class ProtobufItemFloat(ProtobufItem):

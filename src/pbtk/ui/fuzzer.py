@@ -276,7 +276,7 @@ class FuzzerWindow(Adw.Window):
 
     current_req_proto: Path
     current_req_proto_msgs: list[ProtoMessageDeclaration]
-    pb_request: Message
+    initial_pb_request: Message
 
     current_resp_proto: Path = None
     current_resp_proto_msgs: list[ProtoMessageDeclaration] = None
@@ -362,7 +362,7 @@ class FuzzerWindow(Adw.Window):
         self.current_req_proto_msgs = list(
             load_proto_msgs(self.current_req_proto)
         )
-        self.pb_request = next(
+        self.initial_pb_request = next(
             (
                 item
                 for item in self.current_req_proto_msgs
@@ -412,14 +412,14 @@ class FuzzerWindow(Adw.Window):
                 self.fuzzer_samples_list.append(sample_item)
 
         # Load currently selected sample into
-        # self.pb_request + protocol_specific_params
+        # self.initial_pb_request + protocol_specific_params
 
         sample = ''
         if endpoint['request'].get('samples'):
             sample = endpoint['request']['samples'][sample_id]
 
         protocol_specific_params: dict[str, str] = self.transport.load_sample(
-            sample, self.pb_request
+            sample, self.initial_pb_request
         )
 
         # Present fuzzer window
@@ -435,7 +435,7 @@ class FuzzerWindow(Adw.Window):
 
         self.proto_items.remove_all()
 
-        for desc in self.pb_request.DESCRIPTOR.fields:
+        for desc in self.initial_pb_request.DESCRIPTOR.fields:
             node = ProtobufItem.new(
                 desc, None, self.proto_items, [desc.full_name]
             )
@@ -443,7 +443,7 @@ class FuzzerWindow(Adw.Window):
             node.connect('notify::is-set', self.node_value_set)
             node.connect('notify::value', self.node_value_changed)
 
-        self.use_sample_values(self.pb_request, None, self.proto_items)
+        self.use_sample_values(self.initial_pb_request, None, self.proto_items)
 
         # Do the same for transport-specific data
 
@@ -463,7 +463,7 @@ class FuzzerWindow(Adw.Window):
 
     def update_fuzzer(self):
         request: Soup.Message = self.transport.create_request(
-            self.pb_request,
+            self.initial_pb_request,  # ❌ We should regerate this ⚠️
             {item.key: item.value for item in self.extra_data_items},
         )
 
@@ -761,7 +761,7 @@ class FuzzerWindow(Adw.Window):
             item.value,
         )
 
-        # ⚠️ TODO: call update_fuzzer
+        self.update_fuzzer()
 
     def node_value_set(self, item: ProtobufItem, spec: GObject.ParamSpec):
 
@@ -822,4 +822,4 @@ class FuzzerWindow(Adw.Window):
                 item.is_set,
             )
 
-            # ⚠️ TODO: call update_fuzzer
+            self.update_fuzzer()
