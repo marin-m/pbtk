@@ -434,7 +434,7 @@ class FuzzerWindow(Adw.Window):
         self.proto_items.remove_all()
 
         for desc in self.pb_request.DESCRIPTOR.fields:
-            node = ProtobufItem.new(desc, [desc.full_name])
+            node = ProtobufItem.new(desc, self.proto_items, [desc.full_name])
             self.proto_items.append(node)
             node.connect('notify::is-set', self.node_value_set)
             node.connect('notify::value', self.node_value_changed)
@@ -696,7 +696,7 @@ class FuzzerWindow(Adw.Window):
                     else:
                         node.value = instance
 
-                    node = ProtobufItem.new(node.desc, node.path)
+                    node = ProtobufItem.new(node.desc, tree_fields, node.path)
                     tree_fields.insert(node_index + 1, node)
                     node.connect('notify::is-set', self.node_value_set)
                     node.connect('notify::value', self.node_value_changed)
@@ -716,10 +716,82 @@ class FuzzerWindow(Adw.Window):
         node has been changed
     """
 
-    def node_value_changed(self, *args):
-        if not self.initing_values:
-            print('⚠️⚠️ WIP Protobuf data changed =>', args)
+    def node_value_changed(self, item: ProtobufItem, spec: GObject.ParamSpec):
+        # Ensure that we're the data source of
+        # the value set before firing a
+        # Fuzzer state update
 
-    def node_value_set(self, *args):
         if not self.initing_values:
-            print('⚠️⚠️ WIP Protobuf data set/unset =>', args)
+            # Check item as newly set if needed
+
+            self.initing_values = True
+
+            if item.value and not item.is_set:
+                item.is_set = True
+
+            self.initing_values = False
+
+            # Log data change
+
+            print(
+                '⚠️⚠️ WIP Protobuf data changed =>',
+                item.path,
+                '/',
+                item.field_name,
+                '/',
+                item.value,
+            )
+
+            # ⚠️ TODO: call update_fuzzer
+
+    def node_value_set(self, item: ProtobufItem, spec: GObject.ParamSpec):
+        # Do deferred triggers:
+
+        was_initing = self.initing_values
+
+        if not was_initing:
+            self.initing_values = True
+
+        # a. Set all parents as set too
+
+        # (⚠️ TODO)
+
+        # b. Duplicate repeated Protobuf item if needed
+
+        if item.is_repeated and item.is_set:
+            for last_node_index, last_node in reversed(
+                list(enumerate(item.parent_tree))
+            ):
+                if last_node.proto_id == item.proto_id:
+                    break
+            else:
+                raise ValueError(
+                    'Item not found in Protobuf message: %r' % item.proto_id
+                )
+
+            if last_node == item:
+                node = ProtobufItem.new(item.desc, item.parent_tree, item.path)
+                item.parent_tree.insert(last_node_index + 1, node)
+                node.connect('notify::is-set', self.node_value_set)
+                node.connect('notify::value', self.node_value_changed)
+
+        if not was_initing:
+            self.initing_values = False
+
+        # Ensure that we're the data source of
+        # the value set before firing a
+        # Fuzzer state update
+
+        if not self.initing_values:
+            # Log data change
+
+            print(
+                '⚠️⚠️ WIP Protobuf data set/unset =>',
+                item.path,
+                '/',
+                item.field_name,
+                '/',
+                item.is_set,
+            )
+
+            # ⚠️ TODO: call update_fuzzer

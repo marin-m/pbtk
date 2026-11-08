@@ -57,37 +57,45 @@ class ProtobufItem(GObject.Object):
     proto_id = GObject.Property(type=int)
     type_txt = GObject.Property(type=str)
 
+    parent_tree = GObject.Property(type=Gio.ListStore)  # of Self
+
     is_set = GObject.Property(type=bool, default=False)
     expanded = GObject.Property(type=bool, default=False)
 
     @staticmethod
-    def new(desc: FieldDescriptor, path: list[str]):
+    def new(desc: FieldDescriptor, *args):
         is_message = desc.cpp_type == desc.CPPTYPE_MESSAGE
 
         if not is_message:
             if desc.type == desc.TYPE_BOOL:
-                return ProtobufItemBool(desc, path)
+                return ProtobufItemBool(desc, *args)
 
             elif desc.cpp_type == desc.CPPTYPE_STRING:
                 # ⚠️ ⚠️ GTK+ is unlikely to accept bytes here
                 if desc.type != desc.TYPE_BYTES:
-                    return ProtobufItemString(desc, path)
+                    return ProtobufItemString(desc, *args)
                 else:
-                    return ProtobufItemBytes(desc, path)
+                    return ProtobufItemBytes(desc, *args)
 
             elif desc.cpp_type in (desc.CPPTYPE_DOUBLE, desc.CPPTYPE_FLOAT):
-                return ProtobufItemFloat(desc, path)
+                return ProtobufItemFloat(desc, *args)
 
             else:
-                return ProtobufItemInt(desc, path)
+                return ProtobufItemInt(desc, *args)
 
         else:
-            return ProtobufItemMessage(desc, path)
+            return ProtobufItemMessage(desc, *args)
 
-    def __init__(self, desc: FieldDescriptor, path: list[str]):
+    def __init__(
+        self,
+        desc: FieldDescriptor,
+        parent_tree: Gio.ListStore[Self],
+        path: list[str],
+    ):
         super().__init__()
 
         self.desc = desc
+        self.parent_tree = parent_tree
         self.path = path
 
         self.is_message = desc.cpp_type == desc.CPPTYPE_MESSAGE
@@ -116,7 +124,9 @@ class ProtobufItem(GObject.Object):
 
             self.children = Gio.ListStore.new(ProtobufItem)
             for child in self.desc.message_type.fields:
-                node = ProtobufItem.new(child, self.path + [child.full_name])
+                node = ProtobufItem.new(
+                    child, self.children, self.path + [child.full_name]
+                )
                 self.children.append(node)
                 node.connect('notify::is-set', fuzzer_window.node_value_set)
                 node.connect('notify::value', fuzzer_window.node_value_changed)
@@ -134,8 +144,8 @@ class ProtobufItemMessage(ProtobufItem):
 class ProtobufItemFloat(ProtobufItem):
     value = GObject.Property(type=float)
 
-    def __init__(self, desc: FieldDescriptor, path: list[str]):
-        super().__init__(desc, path)
+    def __init__(self, desc: FieldDescriptor, *args):
+        super().__init__(desc, *args)
 
         self.value = desc.default_value or 0.0
 
@@ -143,8 +153,8 @@ class ProtobufItemFloat(ProtobufItem):
 class ProtobufItemBool(ProtobufItem):
     value = GObject.Property(type=bool, default=False)
 
-    def __init__(self, desc: FieldDescriptor, path: list[str]):
-        super().__init__(desc, path)
+    def __init__(self, desc: FieldDescriptor, *args):
+        super().__init__(desc, *args)
 
         self.value = desc.default_value or False
 
@@ -152,8 +162,8 @@ class ProtobufItemBool(ProtobufItem):
 class ProtobufItemInt(ProtobufItem):
     value = GObject.Property(type=int)
 
-    def __init__(self, desc: FieldDescriptor, path: list[str]):
-        super().__init__(desc, path)
+    def __init__(self, desc: FieldDescriptor, *args):
+        super().__init__(desc, *args)
 
         self.value = desc.default_value or 0
 
@@ -161,8 +171,8 @@ class ProtobufItemInt(ProtobufItem):
 class ProtobufItemString(ProtobufItem):
     value = GObject.Property(type=str)
 
-    def __init__(self, desc: FieldDescriptor, path: list[str]):
-        super().__init__(desc, path)
+    def __init__(self, desc: FieldDescriptor, *args):
+        super().__init__(desc, *args)
 
         self.value = desc.default_value or ''
 
@@ -170,7 +180,7 @@ class ProtobufItemString(ProtobufItem):
 class ProtobufItemBytes(ProtobufItem):
     value = GObject.Property(type=str)
 
-    def __init__(self, desc: FieldDescriptor, path: list[str]):
-        super().__init__(desc, path)
+    def __init__(self, desc: FieldDescriptor, *args):
+        super().__init__(desc, *args)
 
         self.value = (desc.default_value or b'').decode('utf-8')
