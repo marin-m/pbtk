@@ -66,7 +66,10 @@ class ExtractorRow(Adw.ActionRow):
                         )
 
                     except GLib.GError as err:
-                        if err.message != 'Dismissed by user':
+                        if not (
+                            err.domain == 'gtk-dialog-error-quark'
+                            and err.code == Gtk.DialogError.DISMISSED
+                        ):
                             dialog = Adw.AlertDialog.new(
                                 'Could not open file', err.message
                             )

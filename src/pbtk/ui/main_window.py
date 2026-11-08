@@ -276,7 +276,10 @@ class MainWindow(Adw.ApplicationWindow):
                     open_result: Gio.File = file_dialog.open_finish(task)
 
                 except GLib.GError as err:
-                    if err.message != 'Dismissed by user':
+                    if not (
+                        err.domain == 'gtk-dialog-error-quark'
+                        and err.code == Gtk.DialogError.DISMISSED
+                    ):
                         self.alert_popup('Could not open file', err.message)
                 else:
                     open_result.load_bytes_async(None, load_bytes_cb)
@@ -347,7 +350,10 @@ class MainWindow(Adw.ApplicationWindow):
                     open_result: Gio.File = file_dialog.open_finish(task)
 
                 except GLib.GError as err:
-                    if err.message != 'Dismissed by user':
+                    if not (
+                        err.domain == 'gtk-dialog-error-quark'
+                        and err.code == Gtk.DialogError.DISMISSED
+                    ):
                         self.alert_popup('Could not open file', err.message)
                 else:
                     open_result.load_bytes_async(None, load_bytes_cb)
