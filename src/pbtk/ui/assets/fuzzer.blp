@@ -200,11 +200,13 @@ template $FuzzerWindow: Adw.Window {
 
                 [end]
                 Button extra_data_add {
+                  action-name: "win.add-extra-data";
                   label: "Add...";
                 }
 
                 [end]
                 Button extra_data_remove {
+                  action-name: "win.remove-extra-data";
                   label: "Remove...";
                 }
               }
@@ -288,5 +290,17 @@ Adw.AlertDialog rename_input_dialog {
   };
 
   heading: "Please enter a new name for the selected field";
+  prefer-wide-layout: true;
+}
+
+Adw.AlertDialog add_extra_field_dialog {
+  close-response: "cancel";
+  default-response: "ok";
+
+  extra-child: Entry add_extra_field_entry {
+    buffer: EntryBuffer add_extra_field_buffer {};
+  };
+
+  heading: "Name for the new extra field:";
   prefer-wide-layout: true;
 }

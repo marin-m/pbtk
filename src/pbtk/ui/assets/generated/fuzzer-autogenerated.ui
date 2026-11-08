@@ -282,11 +282,13 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                                 <property name="css-classes">fuzzer_fields_action_bar</property>
                                 <child type="end">
                                   <object class="GtkButton" id="extra_data_add">
+                                    <property name="action-name">win.add-extra-data</property>
                                     <property name="label">Add...</property>
                                   </object>
                                 </child>
                                 <child type="end">
                                   <object class="GtkButton" id="extra_data_remove">
+                                    <property name="action-name">win.remove-extra-data</property>
                                     <property name="label">Remove...</property>
                                   </object>
                                 </child>
@@ -397,6 +399,19 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
       </object>
     </property>
     <property name="heading">Please enter a new name for the selected field</property>
+    <property name="prefer-wide-layout">true</property>
+  </object>
+  <object class="AdwAlertDialog" id="add_extra_field_dialog">
+    <property name="close-response">cancel</property>
+    <property name="default-response">ok</property>
+    <property name="extra-child">
+      <object class="GtkEntry" id="add_extra_field_entry">
+        <property name="buffer">
+          <object class="GtkEntryBuffer" id="add_extra_field_buffer"></object>
+        </property>
+      </object>
+    </property>
+    <property name="heading">Name for the new extra field:</property>
     <property name="prefer-wide-layout">true</property>
   </object>
 </interface>

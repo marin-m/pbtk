@@ -303,14 +303,20 @@ class FuzzerWindow(Adw.Window):
     input_rename_entry: Gtk.Entry = Gtk.Template.Child()
     input_rename_buffer: Gtk.EntryBuffer = Gtk.Template.Child()
 
+    add_extra_field_dialog: Adw.AlertDialog = Gtk.Template.Child()
+    add_extra_field_entry: Gtk.Entry = Gtk.Template.Child()
+    add_extra_field_buffer: Gtk.EntryBuffer = Gtk.Template.Child()
+
     fuzzer_preview_html: WebKit.WebView = Gtk.Template.Child()
     fuzzer_preview_buffer: Gtk.TextBuffer = Gtk.Template.Child()
 
-    extra_data_page: Adw.ViewStackPage = Gtk.Template.Child()
-
-    proto_model_selection: Gtk.NoSelection = Gtk.Template.Child()
+    proto_model_selection: Gtk.SingleSelection = Gtk.Template.Child()
     proto_items = GObject.Property(type=Gio.ListStore)  # of ProtobufItem
 
+    extra_data_page: Adw.ViewStackPage = Gtk.Template.Child()
+    extra_data_remove: Gtk.Button = Gtk.Template.Child()
+
+    extra_data_model_selection: Gtk.SingleSelection = Gtk.Template.Child()
     extra_data_items: Gio.ListStore[ExtraDataItem] = Gtk.Template.Child()
 
     fuzzer_samples_combo_box: Gtk.DropDown = Gtk.Template.Child()
@@ -323,7 +329,7 @@ class FuzzerWindow(Adw.Window):
 
         self.http_session = Soup.Session.new()
 
-        # Initialize Protobuf items tree modem
+        # Initialize Protobuf items tree model
 
         self.proto_items = Gio.ListStore.new(ProtobufItem)
 
@@ -342,6 +348,15 @@ class FuzzerWindow(Adw.Window):
         self.rename_input_dialog.add_response('ok', 'Ok')
 
         self.rename_input_dialog.set_response_appearance(
+            'ok', Adw.ResponseAppearance.SUGGESTED
+        )
+
+        # Pre-draw extra field add prompt dialog
+
+        self.add_extra_field_dialog.add_response('cancel', 'Cancel')
+        self.add_extra_field_dialog.add_response('ok', 'Ok')
+
+        self.add_extra_field_dialog.set_response_appearance(
             'ok', Adw.ResponseAppearance.SUGGESTED
         )
 
@@ -369,13 +384,58 @@ class FuzzerWindow(Adw.Window):
 
         self.add_simple_action('open-proto-definition', open_proto_definition)
 
+        def add_extra_data(*args):
+
+            def on_choose(dialog: Adw.AlertDialog, result: Gio.AsyncResult):
+                result = dialog.choose_finish(result)
+
+                text = self.add_extra_field_buffer.get_text()
+
+                if result == 'ok' and text:
+                    if not match(r'^[a-zA-Z0-9_%-]+$', text):
+                        self.alert_popup(
+                            'This is not a valid alphanumeric name.'
+                        )
+                    else:
+                        new_item = ExtraDataItem(text, '')
+                        self.extra_data_items.append(new_item)
+                        new_item.connect('notify::value', self.update_fuzzer)
+                        self.update_fuzzer()
+
+            self.add_extra_field_buffer.set_text('', -1)
+
+            self.add_extra_field_dialog.choose(self, None, on_choose)
+            self.add_extra_field_entry.grab_focus()
+
+        self.add_simple_action('add-extra-data', add_extra_data)
+
+        def remove_extra_data(*args):
+
+            if self.extra_data_model_selection.get_selected_item():
+                self.extra_data_items.remove(
+                    self.extra_data_model_selection.get_selected()
+                )
+                self.update_fuzzer()
+
+        action = self.add_simple_action('remove-extra-data', remove_extra_data)
+        self.extra_data_model_selection.bind_property(
+            'selected-item',
+            action,
+            'enabled',
+            GObject.BindingFlags.SYNC_CREATE,
+            lambda _binding, value: value is not None,
+        )
+
         self.add_simple_action('prompt-rename', self.prompt_rename)
 
-    def add_simple_action(self, name, callback, param_type=None):
-
+    def add_simple_action(
+        self, name, callback, param_type=None
+    ) -> Gio.SimpleAction:
         action = Gio.SimpleAction.new(name, param_type)
         action.connect('activate', callback)
         self.action_group.add_action(action)
+
+        return action
 
     def load(self, endpoint: dict, sample_id: int = 0):
 
@@ -490,7 +550,9 @@ class FuzzerWindow(Adw.Window):
         self.extra_data_items.remove_all()
 
         for key, value in protocol_specific_params.items():
-            self.extra_data_items.append(ExtraDataItem(key, value))
+            new_item = ExtraDataItem(key, value)
+            self.extra_data_items.append(new_item)
+            new_item.connect('notify::value', self.update_fuzzer)
 
         # Load initial view
 
@@ -501,7 +563,7 @@ class FuzzerWindow(Adw.Window):
 
         self.initing_values = False
 
-    def update_fuzzer(self):
+    def update_fuzzer(self, *args):
         pb_request: Message = self.pb_request_type()
 
         def consume(pb_msg: Message, item: ProtobufItem):
