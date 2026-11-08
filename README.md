@@ -34,21 +34,24 @@ $ pbtk
 On most other distributions, you'll want to run it directly:
 
 ```console-session
-# For Ubuntu/Debian testing derivates:
-$ sudo apt install python3-pip git openjdk-8-jre gir1.2-adw-1 gir1.2-gtk-4.0
+# For Ubuntu/Debian derivates:
+sudo apt install python3-pip git openjdk-8-jre gir1.2-adw-1 \
+    blueprint-compiler gir1.2-gtk-4.0 gir1.2-soup-3.0 python3-gobject
 
 # Then, using UV:
-$ sudo snap install --classic astral-uv
-$ uv tool install pbtk
-$ pbtk
+sudo snap install --classic astral-uv
+uv tool install pbtk
+pbtk
 
-# Or using pipx:
-$ sudo apt install pipx
-$ pipx install pbtk
-$ pbtk
+# Or using pipx:
+sudo apt install pipx
+pipx install pbtk
+pbtk
 ```
 
-Windows is also supported (with the same modules required). Once you run the GUI, it should warn you on what you are missing depending on what you try to do.
+Windows is also supported. pbtk 2.x runs off GTK 4, but [pbtk 1.x](https://github.com/marin-m/pbtk/tree/qt-version-1.x) (last version is 1.1.5) ran off Qt 5.
+
+Once you run the GUI, it should warn you on what you are missing depending on what you try to do.
 
 ## Command line usage (installing through package manager)
 
@@ -169,7 +172,7 @@ def my_extractor(path):
 
     # Then, yield extracted .protos using a generator:
     for i in do_your_extraction_work():
-        yield proto_name + '.proto', proto_contents
+        yield ExtractorOutputFile(proto_name + '.proto', proto_contents)
 
     # Other kinds of information can be yield, such as endpoint information or progress to display.
 ```
@@ -179,29 +182,37 @@ def my_extractor(path):
 Transports are defined in `src/pbtk/utils/transports.py`. They are defined as a class preceded by a decorator, like this:
 
 ```python
-@register_transport(
-    name='my_transport',
-    description='Protobuf as raw POST data',
-    ui_data_form='hex strings',
-)
-class MyTransport:
-    def __init__(self, pb_param, url):
+@register_transport
+class MyTransport(Transport):
+    name = 'my_transport'
+    description = 'Protobuf as raw POST data'
+    ui_data_form = 'hex strings'
+
+    def __init__(self, pb_param: None, url: str):
         self.url = url
 
-    def serialize_sample(self, sample):
+    def serialize_sample(self, sample: str) -> str:
         # We got a sample of input data from the user.
         # Verify that it is valid in the form described through "ui_data_form" parameter, fail with an exception or return False otherwise.
         # Optionally modify this data prior to returning it.
         bytes.fromhex(sample)
         return sample
 
-    def load_sample(self, sample, pb_msg):
+    def load_sample(self, sample: str, pb_msg: Message):
         # Parse input data into the provided Protobuf object.
         pb_msg.ParseFromString(bytes.fromhex(sample))
 
-    def perform_request(self, pb_data, tab_data):
-        # Perform a request using the provided URL and Protobuf object, and optionally other transport-specific side data.
-        return post(url, pb_data.SerializeToString(), headers=USER_AGENT)
+    def create_request(
+        self, pb_data: Message, tab_data: None
+    ) -> Soup.Message:
+        # Create a HTTP request using the provided URL and Protobuf object,
+        # and optionally other transport-specific side data.
+
+        msg = Soup.Message.new('POST', self.url)
+        msg.set_request_body_from_bytes(
+            None, GLib.Bytes.new(pb_data.SerializeToString())
+        )
+        return msg
 ```
 
 ## Forthcoming improvements

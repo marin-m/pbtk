@@ -51,12 +51,13 @@ class JarWrapper(TemporaryDirectory):
                     self.handle_file(self.name + '/' + cls)
 
                 elif cls.endswith('.proto'):
-                    self.bonus_protos[cls] = jar.read(cls).decode('utf8')
+                    self.bonus_protos[cls] = ExtractorOutputFile(
+                        cls, jar.read(cls).decode('utf8')
+                    )
 
                 elif cls.endswith('.so'):
-                    self.bonus_protos.update(
-                        walk_binary(self.name + '/' + cls)
-                    )
+                    for item in walk_binary(self.name + '/' + cls):
+                        self.bonus_protos[item.name] = item
 
     def __enter__(self):
         super().__enter__()
