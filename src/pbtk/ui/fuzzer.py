@@ -27,10 +27,11 @@ type_checkers.SupportsOpenEnums = lambda x: True
 
 # And then do Protobuf imports
 from google.protobuf.internal.type_checkers import _VALUE_CHECKERS
+from google.protobuf.descriptor import FieldDescriptor
 from google.protobuf.message import Message
 
+from pbtk.datamodel.field import ProtobufItem, ProtobufItemBytes, ExtraDataItem
 from pbtk.datamodel.transport import Transport, TransportDefinition
-from pbtk.datamodel.field import ProtobufItem, ExtraDataItem
 from pbtk.datamodel.endpoint import RecordedSampleRow
 from pbtk.utils.common import (
     BASE_PATH,
@@ -276,11 +277,11 @@ class FuzzerWindow(Adw.Window):
 
     current_req_proto: Path
     current_req_proto_msgs: list[ProtoMessageDeclaration]
-    initial_pb_request: Message
+    pb_request_type: type[Message]
 
     current_resp_proto: Path = None
     current_resp_proto_msgs: list[ProtoMessageDeclaration] = None
-    pb_response: Message = None
+    pb_response_type: type[Message] = None
 
     fuzzer_preview_html: WebKit.WebView = Gtk.Template.Child()
     fuzzer_preview_buffer: Gtk.TextBuffer = Gtk.Template.Child()
@@ -362,14 +363,16 @@ class FuzzerWindow(Adw.Window):
         self.current_req_proto_msgs = list(
             load_proto_msgs(self.current_req_proto)
         )
-        self.initial_pb_request = next(
+        self.pb_request_type = next(
             (
                 item
                 for item in self.current_req_proto_msgs
                 if item.name == endpoint['request']['proto_msg']
             ),
             None,
-        ).definition()
+        ).definition
+
+        initial_pb_request = self.pb_request_type()
 
         # Load Protobuf response message, if any
 
@@ -384,14 +387,14 @@ class FuzzerWindow(Adw.Window):
             self.current_resp_proto_msgs = list(
                 load_proto_msgs(self.current_resp_proto)
             )
-            self.pb_response = next(
+            self.pb_response_type = next(
                 (
                     item
                     for item in self.current_resp_proto_msgs
                     if item.name == endpoint['response']['proto_msg']
                 ),
                 None,
-            ).definition()
+            ).definition
 
         # Load list of samples
 
@@ -412,14 +415,14 @@ class FuzzerWindow(Adw.Window):
                 self.fuzzer_samples_list.append(sample_item)
 
         # Load currently selected sample into
-        # self.initial_pb_request + protocol_specific_params
+        # initial_pb_request + protocol_specific_params
 
         sample = ''
         if endpoint['request'].get('samples'):
             sample = endpoint['request']['samples'][sample_id]
 
         protocol_specific_params: dict[str, str] = self.transport.load_sample(
-            sample, self.initial_pb_request
+            sample, initial_pb_request
         )
 
         # Present fuzzer window
@@ -435,7 +438,7 @@ class FuzzerWindow(Adw.Window):
 
         self.proto_items.remove_all()
 
-        for desc in self.initial_pb_request.DESCRIPTOR.fields:
+        for desc in initial_pb_request.DESCRIPTOR.fields:
             node = ProtobufItem.new(
                 desc, None, self.proto_items, [desc.full_name]
             )
@@ -443,7 +446,7 @@ class FuzzerWindow(Adw.Window):
             node.connect('notify::is-set', self.node_value_set)
             node.connect('notify::value', self.node_value_changed)
 
-        self.use_sample_values(self.initial_pb_request, None, self.proto_items)
+        self.use_sample_values(initial_pb_request, None, self.proto_items)
 
         # Do the same for transport-specific data
 
@@ -462,8 +465,46 @@ class FuzzerWindow(Adw.Window):
         self.initing_values = False
 
     def update_fuzzer(self):
+        pb_request: Message = self.pb_request_type()
+
+        def consume(pb_msg: Message, item: ProtobufItem):
+            if not item.is_set:
+                return
+
+            field: FieldDescriptor = pb_msg.DESCRIPTOR.fields_by_number[
+                item.proto_id
+            ]
+
+            if item.is_message:
+                if not item.is_repeated:
+                    sub_msg = getattr(pb_msg, field.name)
+                else:
+                    sub_msg = getattr(pb_msg, field.name).add()
+                sub_msg.SetInParent()
+                for child in item.get_children(self):
+                    consume(sub_msg, child)
+
+            else:
+                if not item.is_repeated:
+                    setattr(
+                        pb_msg,
+                        field.name,
+                        item.value.encode('utf-8')
+                        if isinstance(item, ProtobufItemBytes)
+                        else item.value,
+                    )
+                else:
+                    getattr(pb_msg, field.name).append(
+                        item.value.encode('utf-8')
+                        if isinstance(item, ProtobufItemBytes)
+                        else item.value
+                    )
+
+        for item in self.proto_items:
+            consume(pb_request, item)
+
         request: Soup.Message = self.transport.create_request(
-            self.initial_pb_request,  # ❌ We should regerate this ⚠️
+            pb_request,
             {item.key: item.value for item in self.extra_data_items},
         )
 
@@ -513,9 +554,7 @@ class FuzzerWindow(Adw.Window):
             )
             self.fuzzer_preview_buffer.set_text(meta, -1)
 
-            self.update_frame(
-                response, response_url, content_type, self.pb_response
-            )
+            self.update_frame(response, response_url, content_type)
 
         if self.http_cancellable:
             self.http_cancellable.cancel()
@@ -525,7 +564,10 @@ class FuzzerWindow(Adw.Window):
         )
 
     def update_frame(
-        self, data: bytes, url: str, mime: str, pbresp: Message | None = None
+        self,
+        data: bytes,
+        url: str,
+        mime: str,
     ):
 
         out_mime = 'text/plain; charset=utf-8'
@@ -567,7 +609,7 @@ class FuzzerWindow(Adw.Window):
                 pass
 
         elif 'protobuf' in mime:
-            data = self.parse_protobuf(data, pbresp)
+            data = self.parse_protobuf(data)
 
         elif 'kmz' in mime:
             with ZipFile(BytesIO(data)) as fd:
@@ -593,7 +635,7 @@ class FuzzerWindow(Adw.Window):
                     dec = decompress(dec)
 
                 out += b'%d %s\n' % (index, b'-' * 15)
-                out += self.parse_protobuf(dec, pbresp)
+                out += self.parse_protobuf(dec)
 
             data = out
 
@@ -612,7 +654,7 @@ class FuzzerWindow(Adw.Window):
                     except Exception:
                         pass
 
-                dec = self.parse_protobuf(dec, pbresp)
+                dec = self.parse_protobuf(dec)
                 if dec:
                     break
 
@@ -674,10 +716,12 @@ class FuzzerWindow(Adw.Window):
 
         return text_buffer
 
-    def parse_protobuf(self, data, pbresp):
-        if pbresp:
+    def parse_protobuf(self, data: bytes):
+        if self.pb_response_type:
             try:
-                return str(pbresp.FromString(data)).encode('utf8')
+                return str(self.pb_response_type.FromString(data)).encode(
+                    'utf8'
+                )
             except Exception:
                 pass
         return run(

@@ -66,14 +66,14 @@ def consume(obj: list[str], pb: Message, sep: str):
 
         field = pb.DESCRIPTOR.fields_by_number[int(index)]
         repeated = field.label == field.LABEL_REPEATED
-        field = field.name
+        field_name: str = field.name
 
         if type_ == fd.TYPE_MESSAGE:
             if not repeated:
-                getattr(pb, field).SetInParent()
-                consume(obj[: int(val)], getattr(pb, field), sep)
+                getattr(pb, field_name).SetInParent()
+                consume(obj[: int(val)], getattr(pb, field_name), sep)
             else:
-                consume(obj[: int(val)], getattr(pb, field).add(), sep)
+                consume(obj[: int(val)], getattr(pb, field_name).add(), sep)
 
             del obj[: int(val)]
             continue
@@ -98,9 +98,9 @@ def consume(obj: list[str], pb: Message, sep: str):
             val = int(val)
 
         if not repeated:
-            setattr(pb, field, val)
+            setattr(pb, field_name, val)
         else:
-            getattr(pb, field).append(val)
+            getattr(pb, field_name).append(val)
 
 
 """
