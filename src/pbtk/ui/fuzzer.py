@@ -250,12 +250,6 @@ class ProtoRowFieldValue(Gtk.Box):
                 'text',
                 GObject.BindingFlags.BIDIRECTIONAL
                 | GObject.BindingFlags.SYNC_CREATE,
-                lambda _binding, value: (
-                    value.decode('utf-8')
-                    if isinstance(value, bytes)
-                    else value
-                ),
-                lambda _binding, value: value,
             )
 
         elif isinstance(self.child, Gtk.CheckButton):
@@ -641,13 +635,17 @@ class FuzzerWindow(Adw.Window):
                     setattr(
                         pb_msg,
                         field.name,
-                        item.value.encode('utf-8')
+                        item.value.encode('latin1')
+                        .decode('unicode_escape')
+                        .encode('latin1')
                         if isinstance(item, ProtobufItemBytes)
                         else item.value,
                     )
                 else:
                     getattr(pb_msg, field.name).append(
-                        item.value.encode('utf-8')
+                        item.value.encode('latin1')
+                        .decode('unicode_escape')
+                        .encode('latin1')
                         if isinstance(item, ProtobufItemBytes)
                         else item.value
                     )

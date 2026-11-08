@@ -208,4 +208,9 @@ class ProtobufItemBytes(ProtobufItem):
     def __init__(self, desc: FieldDescriptor, *args):
         super().__init__(desc, *args)
 
-        self.value = (desc.default_value or b'').decode('utf-8')
+        self.value = (
+            (desc.default_value or b'')
+            .decode('latin1')
+            .encode('unicode_escape')
+            .decode('latin1')
+        )
