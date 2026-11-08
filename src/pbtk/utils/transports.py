@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 from urllib.parse import parse_qsl, quote_plus, urlencode, urlparse
 from base64 import urlsafe_b64decode, urlsafe_b64encode
+from urllib.request import urlopen, Request
 from google.protobuf.message import Message
 from collections import OrderedDict
 from functools import reduce
 from re import match, sub
-from requests import get
 from json import loads
 
 
@@ -239,10 +239,13 @@ class GMapsAPIPublic(Transport):
 
     def hash_token(self, url: str) -> int:
         if not hasattr(self, 'token'):
-            self.token = get(
-                'https://maps.google.com/maps/api/js',
-                headers={'User-Agent': USER_AGENT},
-            ).text
+            with urlopen(
+                Request(
+                    'https://maps.google.com/maps/api/js',
+                    headers={'User-Agent': USER_AGENT},
+                )
+            ) as request:
+                self.token = request.read().decode('utf-8')
             self.token = loads(self.token.split('apiLoad(')[1].split(', ')[0])[
                 4
             ][0]

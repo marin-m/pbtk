@@ -9,6 +9,7 @@ from zipfile import ZipFile
 from zlib import decompress
 from binascii import crc32
 from sys import float_info
+from logging import debug
 from struct import unpack
 from pathlib import Path
 from io import BytesIO
@@ -623,8 +624,6 @@ class FuzzerWindow(Adw.Window):
 
         self.present()
 
-        # ⚠️ 🪧 WIP... (importing code from pbtk._ui_legacy.gui.launch_fuzzer)
-
         # Get initial data into the Protobuf tree view
 
         self.proto_items.remove_all()
@@ -673,7 +672,8 @@ class FuzzerWindow(Adw.Window):
                     sub_msg = getattr(pb_msg, field.name)
                 else:
                     sub_msg = getattr(pb_msg, field.name).add()
-                sub_msg.SetInParent()
+                if hasattr(sub_msg, 'SetInParent'):
+                    sub_msg.SetInParent()
                 for child in item.get_children(self):
                     consume(sub_msg, child)
 
@@ -1126,13 +1126,9 @@ class FuzzerWindow(Adw.Window):
 
         # Log data change
 
-        print(
-            '⚠️⚠️ WIP Protobuf data changed =>',
-            item.path,
-            '/',
-            item.field_name,
-            '/',
-            item.value,
+        debug(
+            'Protobuf changed => %s / %s / %r'
+            % (item.path, item.field_name, item.value)
         )
 
         self.update_fuzzer()
@@ -1187,13 +1183,9 @@ class FuzzerWindow(Adw.Window):
         if not was_processing:
             # Log data change
 
-            print(
-                '⚠️⚠️ WIP Protobuf data set/unset =>',
-                item.path,
-                '/',
-                item.field_name,
-                '/',
-                item.is_set,
+            debug(
+                'Protobuf data set/unset => %s / %s / %r'
+                % (item.path, item.field_name, item.is_set)
             )
 
             self.update_fuzzer()
