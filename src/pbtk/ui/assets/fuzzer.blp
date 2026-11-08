@@ -1,0 +1,307 @@
+using Gtk 4.0;
+using Adw 1;
+using Gio 2.0;
+
+template $FuzzerWindow: Adw.Window {
+  content: Adw.ToolbarView {
+    content: Paned {
+      end-child: fuzzer_edit_pane;
+      position: 400;
+      position-set: true;
+      start-child: fuzzer_preview_pane;
+      wide-handle: true;
+
+      Paned fuzzer_preview_pane {
+        end-child: fuzzer_preview_raw;
+        orientation: vertical;
+        position: 300;
+        position-set: true;
+        start-child: fuzzer_preview_html;
+        wide-handle: true;
+
+        $WebKitWebView fuzzer_preview_html {}
+
+        ScrolledWindow fuzzer_preview_raw {
+          TextView fuzzer_preview_text {
+            buffer: TextBuffer fuzzer_preview_buffer {};
+
+            editable: false;
+            monospace: true;
+            wrap-mode: word_char;
+          }
+        }
+      }
+
+      Box fuzzer_edit_pane {
+        orientation: vertical;
+
+        Adw.InlineViewSwitcher fuzzer_view_switcher {
+          stack: fuzzer_view_stack;
+        }
+
+        Adw.ViewStack fuzzer_view_stack {
+          Adw.ViewStackPage proto_page {
+            child: Box {
+              orientation: vertical;
+
+              ScrolledWindow {
+                child: ColumnView {
+                  css-classes: [
+                    "proto_values",
+                  ];
+
+                  model: SingleSelection proto_model_selection {};
+
+                  reorderable: false;
+
+                  ColumnViewColumn {
+                    factory: BuilderListItemFactory {
+                      template ColumnViewCell {
+                        child: TreeExpander {
+                          list-row: bind template.item as <Gtk.TreeListRow>;
+
+                          child: $ProtoRowFieldName {
+                            item: bind template.item as <TreeListRow>.item;
+                            list-row: bind template.item;
+                          };
+                        };
+                      }
+                    };
+
+                    id: "name";
+                    resizable: true;
+                    title: "Name";
+                  }
+
+                  ColumnViewColumn {
+                    factory: BuilderListItemFactory {
+                      template ColumnViewCell {
+                        child: Label {
+                          xalign: 0;
+                          label: bind template.item as <TreeListRow>.item as <$ProtobufItem>.proto_id;
+                        };
+                      }
+                    };
+
+                    id: "id";
+                    resizable: true;
+                    title: "Id";
+                  }
+
+                  ColumnViewColumn {
+                    factory: BuilderListItemFactory {
+                      template ColumnViewCell {
+                        child: Label {
+                          xalign: 0;
+                          label: bind template.item as <TreeListRow>.item as <$ProtobufItem>.type_txt;
+                        };
+                      }
+                    };
+
+                    id: "type";
+                    resizable: true;
+                    title: "Type";
+                  }
+
+                  ColumnViewColumn {
+                    expand: true;
+
+                    factory: BuilderListItemFactory {
+                      template ColumnViewCell {
+                        child: $ProtoRowFieldValue {
+                          item: bind template.item as <TreeListRow>.item;
+                        };
+                      }
+                    };
+
+                    id: "value";
+                    title: "Value";
+                  }
+                };
+
+                vexpand: true;
+                vexpand-set: true;
+              }
+
+              ActionBar {
+                css-classes: [
+                  "fuzzer_fields_action_bar",
+                ];
+
+                [end]
+                Button proto_data_rename {
+                  action-name: "win.prompt-rename";
+                  label: "Rename field...";
+                }
+              }
+            };
+
+            name: "proto_page";
+            title: "Protobuf";
+          }
+
+          Adw.ViewStackPage extra_data_page {
+            child: Box {
+              orientation: vertical;
+
+              ScrolledWindow {
+                child: ColumnView {
+                  css-classes: [
+                    "extra_data_values",
+                  ];
+
+                  model: SingleSelection extra_data_model_selection {
+                    model: Gio.ListStore extra_data_items {
+                      item-type: typeof<$ExtraDataItem>;
+                    };
+                  };
+
+                  reorderable: false;
+
+                  ColumnViewColumn {
+                    factory: BuilderListItemFactory {
+                      template ColumnViewCell {
+                        child: Label {
+                          xalign: 0;
+                          label: bind template.item as <$ExtraDataItem>.key;
+                        };
+                      }
+                    };
+
+                    id: "name";
+                    resizable: true;
+                    title: "Name";
+                  }
+
+                  ColumnViewColumn {
+                    expand: true;
+
+                    factory: BuilderListItemFactory {
+                      template ColumnViewCell {
+                        child: $ExtraDataRowFieldValue {
+                          item: bind template.item;
+                        };
+                      }
+                    };
+
+                    id: "value";
+                    title: "Value";
+                  }
+                };
+
+                vexpand: true;
+                vexpand-set: true;
+              }
+
+              ActionBar {
+                css-classes: [
+                  "fuzzer_fields_action_bar",
+                ];
+
+                [end]
+                Button extra_data_add {
+                  action-name: "win.add-extra-data";
+                  label: "Add...";
+                }
+
+                [end]
+                Button extra_data_remove {
+                  action-name: "win.remove-extra-data";
+                  label: "Remove...";
+                }
+              }
+            };
+
+            name: "extra_data_page";
+            title: "GET";
+          }
+        }
+
+        Box fuzzer_samples_selector {
+          css-name: "button_box";
+          margin-bottom: 7;
+          margin-end: 7;
+          margin-start: 7;
+          margin-top: 7;
+          orientation: vertical;
+          spacing: 7;
+
+          Label {
+            label: "Set current values to preset:";
+          }
+
+          DropDown fuzzer_samples_combo_box {
+            enable-search: true;
+            expression: expr item as <$RecordedSampleRow>.readable_sample_data;
+
+            factory: BuilderListItemFactory {
+              template ListItem {
+                child: Label {
+                  ellipsize: end;
+                  has-tooltip: true;
+                  xalign: 0;
+                  tooltip-text: bind template.item as <$RecordedSampleRow>.readable_sample_data;
+                  label: bind template.item as <$RecordedSampleRow>.readable_sample_data;
+                };
+              }
+            };
+
+            model: Gio.ListStore fuzzer_samples_list {
+              item-type: typeof<$RecordedSampleRow>;
+            };
+
+            search-match-mode: substring;
+          }
+        }
+      }
+    };
+
+    [top]
+    Adw.HeaderBar {}
+
+    [bottom]
+    ActionBar {
+      [end]
+      Button {
+        action-name: "win.delete-current-endpoint";
+        label: "Delete current endpoint";
+      }
+
+      [end]
+      Button {
+        action-name: "win.open-proto-definition";
+        label: "Open proto definition";
+      }
+    }
+  };
+
+  default-height: 600;
+  default-width: 800;
+  destroy-with-parent: true;
+  hide-on-close: true;
+  title: "Fuzzer";
+}
+
+Adw.AlertDialog rename_input_dialog {
+  close-response: "cancel";
+  default-response: "ok";
+
+  extra-child: Entry input_rename_entry {
+    buffer: EntryBuffer input_rename_buffer {};
+  };
+
+  heading: "Please enter a new name for the selected field";
+  prefer-wide-layout: true;
+}
+
+Adw.AlertDialog add_extra_field_dialog {
+  close-response: "cancel";
+  default-response: "ok";
+
+  extra-child: Entry add_extra_field_entry {
+    buffer: EntryBuffer add_extra_field_buffer {};
+  };
+
+  heading: "Name for the new extra field:";
+  prefer-wide-layout: true;
+}

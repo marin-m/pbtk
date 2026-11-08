@@ -2,11 +2,14 @@ name: pbtk # you probably want to 'snapcraft register <name>'
 adopt-info: share
 title: pbtk
 license: GPL-3.0+
-base: core24 # the base snap is the execution environment for this snap
-version: '1.1.5' # just for humans, typically '1.2+git' or '1.3.2'
+base: core26 # the base snap is the execution environment for this snap
+version: '2.0.0' # just for humans, typically '1.2+git' or '1.3.2'
 
 grade: stable # must be 'stable' to release into candidate/stable channels
 confinement: strict # use 'strict' once you have the right plugs and slots
+
+environment:
+  PYTHONPATH: "$SNAP/gnome-platform/usr/lib/python3.14/lib-dynload:${PYTHONPATH}"
 
 plugs:
   shared-memory:
@@ -16,63 +19,60 @@ apps:
   pbtk:
     command: bin/pbtk
     desktop: usr/share/applications/re.fossplant.pbtk.desktop
-    environment:
-      # Concurrent paths for plugins:
-      # lib/python3.12/site-packages/PySide6/Qt/plugins/platforms/libqwayland-egl.so
-      # usr/lib/x86_64-linux-gnu/qt6/plugins/platforms/libqwayland-egl.so
-      # usr/lib/x86_64-linux-gnu/qt6/plugins/wayland-graphics-integration-client/libqt-plugin-wayland-egl.so
-      PYTHONPATH: $SNAP/usr/lib/python3:$SNAP/usr/lib/python3/dist-packages:$SNAP/usr/lib/python3/site-packages${PYTHONPATH:+:$PYTHONPATH}
-      # PATH: $SNAP/usr/lib/jvm/java-8-openjdk-$CRAFT_ARCH_BUILD_FOR/bin${PATH:+:$PATH}
-      # LD_LIBRARY_PATH: /usr/lib:/snap/kde-pyside6-core24-sdk/current/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
-      # QT_QPA_PLATFORM: xcb
-      # QT_QPA_PLATFORM_PLUGIN_PATH: $SNAP/lib/python3.12/site-packages/PySide6/Qt/plugins/platforms:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/qt6/plugins/platforms # Explicitly set plugin path
-      # LD_LIBRARY_PATH: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/mesa:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libproxy
-    extensions: [kde-neon-6]
+    extensions: [gnome]
     plugs:
       - home
       - unity7
 
   jar-extract:
     command: bin/pbtk-jar-extract
+    extensions: [gnome]
     plugs:
       - home
 
   from-binary:
     command: bin/pbtk-from-binary
+    extensions: [gnome]
     plugs:
       - home
 
   web-extract:
     command: bin/pbtk-web-extract
+    extensions: [gnome]
     plugs:
       - home
       - network
 
 parts:
+  python-runtime:
+    plugin: nil
+    stage-packages:
+      - libpython3.14-minimal
+      - libpython3.14-stdlib
+      - python3-minimal # for the "python3" symlink
+      - python3.14-minimal
+      - python3.14-venv
+
   pbtk:
+    after: [python-runtime]
     plugin: python
     source: .
 
     override-pull: |
-      snapcraftctl pull
-
-      sed -ri 's/"pyside.+",//g' pyproject.toml
-      sed -ri 's/"system-pyside.+",//g' pyproject.toml
+      craftctl default
 
   share:
     plugin: dump
-    source: packaging/assets/
+    source: src/pbtk/ui/assets/
     parse-info: [re.fossplant.pbtk.metainfo.xml]
     source-type: local
 
-    stage-snaps:
-      - kde-pyside6-core24-sdk
     stage-packages:
       - libdrm-common
       - openjdk-8-jre
 
     override-pull: |
-      snapcraftctl pull
+      craftctl default
 
       # Point icon to the correct location
       sed -i -e 's|Icon=re.fossplant.pbtk|Icon=/usr/share/icons/hicolor/scalable/apps/re.fossplant.pbtk.svg|g' re.fossplant.pbtk.desktop

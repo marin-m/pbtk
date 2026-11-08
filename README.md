@@ -15,7 +15,7 @@ pbtk (*Protobuf toolkit*) is a full-fledged set of scripts, accessible through a
 
 ## Installation
 
-PBTK requires Python ≥ 3.10, PySide 6, Python-Protobuf 3, and a handful of executable programs (chromium, jad, dex2jar...) for running extractor scripts.
+PBTK requires Python ≥ 3.10, GTK 4, Adwaita ≥ 1.8, Python-Protobuf 3, and a handful of executable programs (chromium, jad, dex2jar...) for running extractor scripts.
 
 Ubuntu users can install it using `snap`:
 
@@ -33,22 +33,25 @@ $ pbtk
 
 On most other distributions, you'll want to run it directly:
 
-```tcl
-# For Ubuntu/Debian testing derivates:
-$ sudo apt install python3-pip git openjdk-8-jre python3-qtpy-pyside6
+```console-session
+# For Ubuntu/Debian derivates:
+sudo apt install python3-pip git openjdk-8-jre gir1.2-adw-1 \
+    blueprint-compiler gir1.2-gtk-4.0 gir1.2-soup-3.0 python3-gobject
 
 # Then, using UV:
-$ sudo snap install --classic astral-uv
-$ uv tool install pbtk
-$ pbtk
+sudo snap install --classic astral-uv
+uv tool install pbtk
+pbtk
 
-# Or using pipx:
-$ sudo apt install pipx
-$ pipx install pbtk
-$ pbtk
+# Or using pipx:
+sudo apt install pipx
+pipx install pbtk
+pbtk
 ```
 
-Windows is also supported (with the same modules required). Once you run the GUI, it should warn you on what you are missing depending on what you try to do.
+Windows is also supported. pbtk 2.x runs off GTK 4, but [pbtk 1.x](https://github.com/marin-m/pbtk/tree/qt-version-1.x) (last version is 1.1.5) ran off Qt 5.
+
+Once you run the GUI, it should warn you on what you are missing depending on what you try to do.
 
 ## Command line usage (installing through package manager)
 
@@ -76,6 +79,7 @@ The GUI can be lanched through the main script:
 uv sync # Download dependencies to the .venv folder
 source .venv/bin/activate # Put the local scripts in $PATH for the current shell session
 uv tool install -e . # Put the local scripts in $PATH all time
+cp -a .github/hooks/* .git/hooks/ # Needed for contributing to code
 pbtk
 ```
 
@@ -157,16 +161,19 @@ PBTK uses two kinds of pluggable modules internally: extractors, and transports.
 Extractors are defined in `src/pbtk/extractors/*.py`. They are defined as a method preceded by a decorator, like this:
 
 ```python
-@register_extractor(name = 'my_extractor',
-                    desc = 'Extract Protobuf structures from Foobar code (*.foo, *.bar)',
-                    depends={'binaries': ['foobar-decompiler']})
+@register_extractor(
+    name='my_extractor',
+    readable_name='My Extractor',
+    description='Extract Protobuf structures from Foobar code (*.foo, *.bar)',
+    depends={'binaries': ['foobar-decompiler']},
+)
 def my_extractor(path):
     # Load contents of the `path` input file and do your stuff...
-    
+
     # Then, yield extracted .protos using a generator:
     for i in do_your_extraction_work():
-        yield proto_name + '.proto', proto_contents
-    
+        yield ExtractorOutputFile(proto_name + '.proto', proto_contents)
+
     # Other kinds of information can be yield, such as endpoint information or progress to display.
 ```
 
@@ -175,29 +182,37 @@ def my_extractor(path):
 Transports are defined in `src/pbtk/utils/transports.py`. They are defined as a class preceded by a decorator, like this:
 
 ```python
-@register_transport(
-    name = 'my_transport',
-    desc = 'Protobuf as raw POST data',
+@register_transport
+class MyTransport(Transport):
+    name = 'my_transport'
+    description = 'Protobuf as raw POST data'
     ui_data_form = 'hex strings'
-)
-class MyTransport():
-    def __init__(self, pb_param, url):
+
+    def __init__(self, pb_param: None, url: str):
         self.url = url
-    
-    def serialize_sample(self, sample):
+
+    def serialize_sample(self, sample: str) -> str:
         # We got a sample of input data from the user.
         # Verify that it is valid in the form described through "ui_data_form" parameter, fail with an exception or return False otherwise.
         # Optionally modify this data prior to returning it.
         bytes.fromhex(sample)
         return sample
-    
-    def load_sample(self, sample, pb_msg):
+
+    def load_sample(self, sample: str, pb_msg: Message):
         # Parse input data into the provided Protobuf object.
         pb_msg.ParseFromString(bytes.fromhex(sample))
-    
-    def perform_request(self, pb_data, tab_data):
-        # Perform a request using the provided URL and Protobuf object, and optionally other transport-specific side data.
-        return post(url, pb_data.SerializeToString(), headers=USER_AGENT)
+
+    def create_request(
+        self, pb_data: Message, tab_data: None
+    ) -> Soup.Message:
+        # Create a HTTP request using the provided URL and Protobuf object,
+        # and optionally other transport-specific side data.
+
+        msg = Soup.Message.new('POST', self.url)
+        msg.set_request_body_from_bytes(
+            None, GLib.Bytes.new(pb_data.SerializeToString())
+        )
+        return msg
 ```
 
 ## Forthcoming improvements
