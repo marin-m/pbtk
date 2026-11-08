@@ -76,9 +76,6 @@ class ProtoRowFieldName(Gtk.Box):
 
         self.set_spacing(4)
 
-        self.checkbox = Gtk.CheckButton.new()
-        self.append(self.checkbox)
-
         self.label = Gtk.Label.new('')
         self.append(self.label)
 
@@ -103,18 +100,25 @@ class ProtoRowFieldName(Gtk.Box):
         # ⚠️ Unbind property whenever it changes?
         self._item = item
 
+        if self.checkbox:
+            self.remove(self.checkbox)
+            self.checkbox = None
+
         self.label.set_label(
             item.field_name + ('+' if item.is_repeated else '')
         )
-        self.checkbox.set_visible(not item.is_required)
 
-        item.bind_property(
-            'is_set',
-            self.checkbox,
-            'active',
-            GObject.BindingFlags.BIDIRECTIONAL
-            | GObject.BindingFlags.SYNC_CREATE,
-        )
+        if not item.is_required:
+            self.checkbox = Gtk.CheckButton.new()
+            self.prepend(self.checkbox)
+
+            item.bind_property(
+                'is_set',
+                self.checkbox,
+                'active',
+                GObject.BindingFlags.BIDIRECTIONAL
+                | GObject.BindingFlags.SYNC_CREATE,
+            )
 
         item.bind_property('expanded', self.list_row, 'expanded')
 
@@ -204,7 +208,6 @@ class ProtoRowFieldValue(Gtk.Box):
             )
 
         elif isinstance(self.child, Gtk.CheckButton):
-            self.child.set_active(desc.default_value or False)
             self.item.bind_property(
                 'value',
                 self.child,
