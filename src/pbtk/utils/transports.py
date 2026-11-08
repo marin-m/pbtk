@@ -84,9 +84,11 @@ class Base64GET(Transport):
         self.url = url.split('?')[0]
 
     def serialize_sample(self, sample: str) -> dict | bool:
-        sample = OrderedDict(parse_qsl(sample))
+        sample = OrderedDict(parse_qsl(sample, keep_blank_values=True))
         if self.pb_param not in sample:
             return False
+        base64 = sample[self.pb_param]
+        urlsafe_b64decode(base64 + '=' * (4 - len(base64) % 4))
         return sample
 
     def load_sample(self, sample: dict, pb_msg: Message) -> dict:
@@ -133,7 +135,7 @@ class GMapsAPIPrivate(Transport):
         self.url = url.split('?')[0]
 
     def serialize_sample(self, sample: str) -> dict | bool:
-        sample = OrderedDict(parse_qsl(sample))
+        sample = OrderedDict(parse_qsl(sample, keep_blank_values=True))
         if self.pb_param not in sample:
             return False
         if 'token' in sample:
@@ -196,7 +198,10 @@ class GMapsAPIPublic(Transport):
     def parse_qs(self, sample: str) -> dict:
         pb = match(r'(?:&?\d[^&=]+)*', sample)
         return OrderedDict(
-            [(pb.group(0), ''), *parse_qsl(sample[pb.end() + 1 :], True)]
+            [
+                (pb.group(0), ''),
+                *parse_qsl(sample[pb.end() + 1 :], keep_blank_values=True),
+            ]
         )
 
     def rebuild_qs(self, sample: str) -> str:

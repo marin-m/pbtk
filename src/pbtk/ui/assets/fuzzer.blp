@@ -76,10 +76,9 @@ template $FuzzerWindow: Adw.Window {
                   ColumnViewColumn {
                     factory: BuilderListItemFactory {
                       template ColumnViewCell {
-                        child: $LabelWithOptionalTooltip {
+                        child: Label {
                           xalign: 0;
                           label: bind template.item as <TreeListRow>.item as <$ProtobufItem>.proto_id;
-                          item: bind template.item as <TreeListRow>.item;
                         };
                       }
                     };
@@ -92,10 +91,9 @@ template $FuzzerWindow: Adw.Window {
                   ColumnViewColumn {
                     factory: BuilderListItemFactory {
                       template ColumnViewCell {
-                        child: $LabelWithOptionalTooltip {
+                        child: Label {
                           xalign: 0;
                           label: bind template.item as <TreeListRow>.item as <$ProtobufItem>.type_txt;
-                          item: bind template.item as <TreeListRow>.item;
                         };
                       }
                     };
@@ -265,6 +263,7 @@ template $FuzzerWindow: Adw.Window {
     ActionBar {
       [end]
       Button {
+        action-name: "win.delete-current-endpoint";
         label: "Delete current endpoint";
       }
 

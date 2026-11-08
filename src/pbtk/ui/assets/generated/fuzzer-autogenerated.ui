@@ -108,18 +108,13 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
 <interface>
   <template class="GtkColumnViewCell">
     <property name="child">
-      <object class="LabelWithOptionalTooltip">
+      <object class="GtkLabel">
         <property name="xalign">0</property>
         <binding name="label">
           <lookup name="proto_id" type="ProtobufItem">
             <lookup name="item" type="GtkTreeListRow">
               <lookup name="item" type="GtkColumnViewCell">GtkColumnViewCell</lookup>
             </lookup>
-          </lookup>
-        </binding>
-        <binding name="item">
-          <lookup name="item" type="GtkTreeListRow">
-            <lookup name="item" type="GtkColumnViewCell">GtkColumnViewCell</lookup>
           </lookup>
         </binding>
       </object>
@@ -141,18 +136,13 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
 <interface>
   <template class="GtkColumnViewCell">
     <property name="child">
-      <object class="LabelWithOptionalTooltip">
+      <object class="GtkLabel">
         <property name="xalign">0</property>
         <binding name="label">
           <lookup name="type_txt" type="ProtobufItem">
             <lookup name="item" type="GtkTreeListRow">
               <lookup name="item" type="GtkColumnViewCell">GtkColumnViewCell</lookup>
             </lookup>
-          </lookup>
-        </binding>
-        <binding name="item">
-          <lookup name="item" type="GtkTreeListRow">
-            <lookup name="item" type="GtkColumnViewCell">GtkColumnViewCell</lookup>
           </lookup>
         </binding>
       </object>
@@ -379,6 +369,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
           <object class="GtkActionBar">
             <child type="end">
               <object class="GtkButton">
+                <property name="action-name">win.delete-current-endpoint</property>
                 <property name="label">Delete current endpoint</property>
               </object>
             </child>

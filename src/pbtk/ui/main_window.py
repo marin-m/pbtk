@@ -99,7 +99,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.set_application(app)
         self.app = app
 
-        self.fuzzer = FuzzerWindow()
+        self.fuzzer = FuzzerWindow(self)
         # self.fuzzer.set_modal(True)
         # self.fuzzer.set_transient_for(self)
 

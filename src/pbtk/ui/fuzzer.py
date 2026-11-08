@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
+from json import dumps, dump, loads, load
 from xml.dom.minidom import parseString
+from urllib.parse import urlparse
 from subprocess import run, PIPE
-from json import dumps, loads
 from base64 import b64encode
 from zipfile import ZipFile
 from zlib import decompress
@@ -11,6 +12,7 @@ from sys import float_info
 from struct import unpack
 from pathlib import Path
 from io import BytesIO
+from os import remove
 from re import match
 
 # Monkey-patch map object creation (suppressing the map_entry option
@@ -319,6 +321,8 @@ class FuzzerWindow(Adw.Window):
     base_url: str
     pb_param: str | None = None
 
+    parent: Adw.Window
+
     current_req_proto: Path
     current_req_proto_msgs: list[ProtoMessageDeclaration]
     pb_request_type: type[Message]
@@ -350,8 +354,10 @@ class FuzzerWindow(Adw.Window):
     fuzzer_samples_combo_box: Gtk.DropDown = Gtk.Template.Child()
     fuzzer_samples_list: Gio.ListStore = Gtk.Template.Child()
 
-    def __init__(self):
+    def __init__(self, parent: Adw.Window):
         super().__init__()
+
+        self.parent = parent
 
         # Initialize HTTP session
 
@@ -426,6 +432,47 @@ class FuzzerWindow(Adw.Window):
             Gtk.FileLauncher.new(proto_path).launch(self, None, None)
 
         self.add_simple_action('open-proto-definition', open_proto_definition)
+
+        def delete_current_endpoint(*args):
+
+            dialog = Adw.AlertDialog.new('Delete this endpoint?')
+            dialog.add_response('cancel', 'Cancel')
+            dialog.add_response('delete', 'Delete')
+
+            dialog.set_default_response('cancel')
+            dialog.set_close_response('cancel')
+
+            dialog.set_response_appearance(
+                'delete', Adw.ResponseAppearance.DESTRUCTIVE
+            )
+
+            def on_choose(dialog: Adw.AlertDialog, result: Gio.AsyncResult):
+                result = dialog.choose_finish(result)
+
+                if result == 'delete':
+                    path = str(
+                        BASE_PATH
+                        / 'endpoints'
+                        / (urlparse(self.base_url).netloc + '.json')
+                    )
+
+                    with open(path) as fd:
+                        json = load(fd)
+                    json.remove(self.endpoint)
+
+                    with open(path, 'w') as fd:
+                        dump(json, fd, ensure_ascii=False, indent=4)
+                    if not json:
+                        remove(path)
+
+                    self.close()
+                    self.parent.update_endpoints_list()
+
+            dialog.choose(self, None, on_choose)
+
+        self.add_simple_action(
+            'delete-current-endpoint', delete_current_endpoint
+        )
 
         def add_extra_data(*args):
 
