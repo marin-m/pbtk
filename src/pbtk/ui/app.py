@@ -86,11 +86,7 @@ class MainApplication(Adw.Application):
             error('Caught Python exception: \n' + tb_string)
 
             if self.window:
-                dialog = Adw.AlertDialog.new(
-                    '⚠️ Caught Python exception', tb_string
-                )
-                dialog.add_response('ok', 'Ok')
-                dialog.choose(self.window, None, None)
+                self.window.alert_popup('⚠️ Caught Python exception', tb_string)
 
         sys.excepthook = error_handler
 

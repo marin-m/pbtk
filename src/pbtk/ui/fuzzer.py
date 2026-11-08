@@ -11,6 +11,7 @@ from sys import float_info
 from struct import unpack
 from pathlib import Path
 from io import BytesIO
+from re import match
 
 # Monkey-patch map object creation (suppressing the map_entry option
 # from generated classes),
@@ -36,6 +37,7 @@ from pbtk.datamodel.endpoint import RecordedSampleRow
 from pbtk.utils.common import (
     BASE_PATH,
     ProtoMessageDeclaration,
+    ProtoFileDescription,
     load_proto_msgs,
     protoc,
     transports,
@@ -68,6 +70,7 @@ class ProtoRowFieldName(Gtk.Box):
 
     checkbox = GObject.Property(type=Gtk.CheckButton)
     label = GObject.Property(type=Gtk.Label)
+    repeated_suffix = GObject.Property(type=Gtk.Label)
 
     _item: ProtobufItem = None
     _list_row: Gtk.TreeListRow = None
@@ -77,8 +80,9 @@ class ProtoRowFieldName(Gtk.Box):
 
         self.set_spacing(4)
 
-        self.label = Gtk.Label.new('')
-        self.append(self.label)
+        self.repeated_suffix = Gtk.Label.new('+')
+        self.repeated_suffix.set_visible(False)
+        self.append(self.repeated_suffix)
 
         # ⚠️ TODO there should be click/hover handlers
         #    applied over the row nearby
@@ -105,9 +109,21 @@ class ProtoRowFieldName(Gtk.Box):
             self.remove(self.checkbox)
             self.checkbox = None
 
-        self.label.set_label(
-            item.field_name + ('+' if item.is_repeated else '')
+        if self.label:
+            self.remove(self.label)
+            self.label = None
+
+        self.label = Gtk.Label.new('')
+        self.prepend(self.label)
+
+        item.bind_property(
+            'field_name',
+            self.label,
+            'label',
+            GObject.BindingFlags.SYNC_CREATE,
         )
+
+        self.repeated_suffix.set_visible(item.is_repeated)
 
         if not item.is_required:
             self.checkbox = Gtk.CheckButton.new()
@@ -283,6 +299,10 @@ class FuzzerWindow(Adw.Window):
     current_resp_proto_msgs: list[ProtoMessageDeclaration] = None
     pb_response_type: type[Message] = None
 
+    rename_input_dialog: Adw.AlertDialog = Gtk.Template.Child()
+    input_rename_entry: Gtk.Entry = Gtk.Template.Child()
+    input_rename_buffer: Gtk.EntryBuffer = Gtk.Template.Child()
+
     fuzzer_preview_html: WebKit.WebView = Gtk.Template.Child()
     fuzzer_preview_buffer: Gtk.TextBuffer = Gtk.Template.Child()
 
@@ -299,7 +319,11 @@ class FuzzerWindow(Adw.Window):
     def __init__(self):
         super().__init__()
 
+        # Initialize HTTP session
+
         self.http_session = Soup.Session.new()
+
+        # Initialize Protobuf items tree modem
 
         self.proto_items = Gio.ListStore.new(ProtobufItem)
 
@@ -311,6 +335,17 @@ class FuzzerWindow(Adw.Window):
                 create_func=lambda item: item.get_children(self),
             )
         )
+
+        # Pre-draw URL prompt dialog
+
+        self.rename_input_dialog.add_response('cancel', 'Cancel')
+        self.rename_input_dialog.add_response('ok', 'Ok')
+
+        self.rename_input_dialog.set_response_appearance(
+            'ok', Adw.ResponseAppearance.SUGGESTED
+        )
+
+        # Connect actions
 
         self.connect_actions()
 
@@ -333,6 +368,8 @@ class FuzzerWindow(Adw.Window):
             Gtk.FileLauncher.new(proto_path).launch(self, None, None)
 
         self.add_simple_action('open-proto-definition', open_proto_definition)
+
+        self.add_simple_action('prompt-rename', self.prompt_rename)
 
     def add_simple_action(self, name, callback, param_type=None):
 
@@ -521,14 +558,9 @@ class FuzzerWindow(Adw.Window):
                     err.domain == 'g-io-error-quark'
                     and err.code == Gio.IOErrorEnum.CANCELLED
                 ):
-                    print(err.code, err.domain, err.args, err.message)
-                    dialog = Adw.AlertDialog.new(
+                    self.alert_popup(
                         'Could not send network request', err.message
                     )
-                    dialog.add_response('ok', 'Ok')
-                    dialog.set_default_response('ok')
-                    dialog.set_close_response('ok')
-                    dialog.choose(self, None, None)
                 return
 
             response_headers: dict[str, str] = {}
@@ -727,6 +759,128 @@ class FuzzerWindow(Adw.Window):
         return run(
             [protoc, '--decode_raw'], input=data, stdout=PIPE, stderr=PIPE
         ).stdout
+
+    """
+        Wheck field name is clicked, offer to rename the field
+
+        In order to rewrite field name in the .proto without discarding
+        comments or other information, we'll ask protoc to generate file
+        source information [1], that we'll parse and that will give us
+        text offset for it.
+
+        [1] https://github.com/google/protobuf/blob/7f3e23/src/google/protobuf/descriptor.proto#L715
+    """
+
+    def prompt_rename(self, *args):
+
+        item: ProtobufItem = (
+            self.proto_model_selection.get_selected_item().get_item()
+        )
+
+        def on_choose(dialog: Adw.AlertDialog, result: Gio.AsyncResult):
+            result = dialog.choose_finish(result)
+
+            text = self.input_rename_buffer.get_text()
+
+            if result == 'ok' and text:
+                if not match(r'^[a-zA-Z0-9_]+$', text):
+                    self.alert_popup('This is not a valid alphanumeric name.')
+                else:
+                    if self.do_rename(item, text):
+                        return
+                    self.alert_popup(
+                        'Field was not found in .proto, did you edit it elsewhere?'
+                    )
+
+        self.input_rename_buffer.set_text(item.field_name, -1)
+
+        self.rename_input_dialog.choose(self, None, on_choose)
+        self.input_rename_entry.grab_focus()
+
+    """
+        Rename a field contained in a .proto file, returns
+        a boolean indicating whether the concerned field
+        was found in the original file
+    """
+
+    def do_rename(self, item: ProtobufItem, new_name: str) -> bool:
+        file_desc: ProtoFileDescription = next(
+            load_proto_msgs(self.current_req_proto, True), None
+        )
+        file_set = file_desc.definition.file
+
+        """
+        First, recursively iterate over descriptor fields until we have
+        a numeric path that leads to it in the structure, as explained
+        in [1] above
+        """
+
+        for file_ in file_set:
+            field_path = self.find_path_for_field(
+                item, file_.message_type, [4], file_.package
+            )
+
+            if field_path:
+                for location in file_.source_code_info.location:
+                    if location.path == field_path:
+                        start_line, start_col, end_col = location.span[:3]
+
+                        # Once we have file position information, do
+                        # write the new field name in .proto
+
+                        file_path = str(file_desc.file_path / file_.name)
+                        with open(file_path) as fd:
+                            lines = fd.readlines()
+                        assert (
+                            lines[start_line][start_col:end_col]
+                            == item.field_name
+                        )
+
+                        lines[start_line] = (
+                            lines[start_line][:start_col]
+                            + new_name
+                            + lines[start_line][end_col:]
+                        )
+                        with open(file_path, 'w') as fd:
+                            fd.writelines(lines)
+
+                        # Update the name on GUI items corresponding to
+                        # this field and its duplicates (if repeated)
+
+                        for node in item.parent_tree:
+                            if node.proto_id == item.proto_id:
+                                node.field_name = new_name
+
+                        return True
+
+        return False
+
+    def find_path_for_field(
+        self, item: ProtobufItem, msg_types: list, path: list, pkg_prefix: str
+    ):
+        if pkg_prefix:
+            pkg_prefix += '.'
+
+        for i, msg in enumerate(msg_types):
+            if item.full_name.startswith(pkg_prefix + msg.name + '.'):
+                for j, field in enumerate(msg.field):
+                    if (
+                        pkg_prefix + msg.name + '.' + field.name
+                        == item.full_name
+                    ):
+                        return [*path, i, 2, j, 1]
+
+                return self.find_path_for_field(
+                    item, msg.nested_type, [*path, i, 3], pkg_prefix + msg.name
+                )
+
+    def alert_popup(self, *args):
+
+        dialog = Adw.AlertDialog.new(*args)
+        dialog.add_response('ok', 'Ok')
+        dialog.set_default_response('ok')
+        dialog.set_close_response('ok')
+        dialog.choose(self, None, None)
 
     """
         Parsing and rendering a Protobuf message parsed from

@@ -276,9 +276,8 @@ class MainWindow(Adw.ApplicationWindow):
                     open_result: Gio.File = file_dialog.open_finish(task)
 
                 except GLib.GError as err:
-                    if not (
-                        err.domain == 'gtk-dialog-error-quark'
-                        and err.code == Gtk.DialogError.DISMISSED
+                    if not err.matches(
+                        Gtk.DialogError.quark(), Gtk.DialogError.DISMISSED
                     ):
                         self.alert_popup('Could not open file', err.message)
                 else:
@@ -350,9 +349,8 @@ class MainWindow(Adw.ApplicationWindow):
                     open_result: Gio.File = file_dialog.open_finish(task)
 
                 except GLib.GError as err:
-                    if not (
-                        err.domain == 'gtk-dialog-error-quark'
-                        and err.code == Gtk.DialogError.DISMISSED
+                    if not err.matches(
+                        Gtk.DialogError.quark(), Gtk.DialogError.DISMISSED
                     ):
                         self.alert_popup('Could not open file', err.message)
                 else:

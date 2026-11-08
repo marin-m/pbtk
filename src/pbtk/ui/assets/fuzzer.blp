@@ -130,6 +130,7 @@ template $FuzzerWindow: Adw.Window {
 
                 [end]
                 Button proto_data_rename {
+                  action-name: "win.prompt-rename";
                   label: "Rename field...";
                 }
               }
@@ -276,4 +277,16 @@ template $FuzzerWindow: Adw.Window {
   destroy-with-parent: true;
   hide-on-close: true;
   title: "Fuzzer";
+}
+
+Adw.AlertDialog rename_input_dialog {
+  close-response: "cancel";
+  default-response: "ok";
+
+  extra-child: Entry input_rename_entry {
+    buffer: EntryBuffer input_rename_buffer {};
+  };
+
+  heading: "Please enter a new name for the selected field";
+  prefer-wide-layout: true;
 }

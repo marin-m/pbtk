@@ -156,9 +156,9 @@ if __name__ == '__main__':
     sep = '!' if args.pburl_data[0] == '!' else '&'
 
     msg = None
-    for name, cls in load_proto_msgs(args.proto_file):
-        if not args.proto_msg_name or args.proto_msg_name == name:
-            msg = cls()
+    for item in load_proto_msgs(args.proto_file):
+        if not args.proto_msg_name or args.proto_msg_name == item.name:
+            msg = item.definition()
             break
     if not msg:
         raise ValueError('Provided message name was not found in .proto.')

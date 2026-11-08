@@ -204,7 +204,7 @@ class ProtoMessageDeclaration(GObject.Object):
     __gtype_name__ = 'ProtoMessageDeclaration'
 
     name = GObject.Property(type=str)
-    definition: Message
+    definition: type[Message]
 
     def __init__(self, name, definition):
         super().__init__()

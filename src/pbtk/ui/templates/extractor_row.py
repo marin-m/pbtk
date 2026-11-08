@@ -49,9 +49,7 @@ class ExtractorRow(Adw.ActionRow):
         try:
             assert_installed(**(self.extractor.depends or {}))
         except ImportError as err:
-            dialog = Adw.AlertDialog.new(err.msg)
-            dialog.add_response('ok', 'Ok')
-            dialog.choose(self.window, None, None)
+            self.window.alert_popup('Dependency error', err.msg)
 
         else:
             if not self.extractor.pick_url:
@@ -66,17 +64,12 @@ class ExtractorRow(Adw.ActionRow):
                         )
 
                     except GLib.GError as err:
-                        if not (
-                            err.domain == 'gtk-dialog-error-quark'
-                            and err.code == Gtk.DialogError.DISMISSED
+                        if not err.matches(
+                            Gtk.DialogError.quark(), Gtk.DialogError.DISMISSED
                         ):
-                            dialog = Adw.AlertDialog.new(
+                            self.window.alert_popup(
                                 'Could not open file', err.message
                             )
-                            dialog.add_response('ok', 'Ok')
-                            dialog.set_default_response('ok')
-                            dialog.set_close_response('ok')
-                            dialog.choose(self, None, None)
                         return
 
                     inputs = ExtractorInputs()
@@ -203,9 +196,7 @@ class ExtractorRow(Adw.ActionRow):
 
         # ⚠️ TODO display a pop-up?
 
-        dialog = Adw.AlertDialog.new('Information', information.info)
-        dialog.add_response('ok', 'Ok')
-        dialog.choose(self.window, None, None)
+        self.window.alert_popup('Information', information.info)
 
         self.window.extraction_text_view.set_visible(True)
         self.window.extraction_text_buffer.insert(
@@ -252,11 +243,9 @@ class ExtractorRow(Adw.ActionRow):
                     % join(folder_item.name, file_item.name),
                 )
 
-        # dialog = Adw.AlertDialog.new(
+        # self.window.alert_popup(
         #     'Information', 'Task done, %d files were saved' % num_files_out
         # )
-        # dialog.add_response('ok', 'Ok')
-        # dialog.choose(self.window, None, None)
 
         self.window.present()
         self.window.extracting_status_page.set_paintable(None)

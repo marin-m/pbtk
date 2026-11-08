@@ -192,6 +192,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                                 <property name="css-classes">fuzzer_fields_action_bar</property>
                                 <child type="end">
                                   <object class="GtkButton" id="proto_data_rename">
+                                    <property name="action-name">win.prompt-rename</property>
                                     <property name="label">Rename field...</property>
                                   </object>
                                 </child>
@@ -385,4 +386,17 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
     <property name="hide-on-close">true</property>
     <property name="title">Fuzzer</property>
   </template>
+  <object class="AdwAlertDialog" id="rename_input_dialog">
+    <property name="close-response">cancel</property>
+    <property name="default-response">ok</property>
+    <property name="extra-child">
+      <object class="GtkEntry" id="input_rename_entry">
+        <property name="buffer">
+          <object class="GtkEntryBuffer" id="input_rename_buffer"></object>
+        </property>
+      </object>
+    </property>
+    <property name="heading">Please enter a new name for the selected field</property>
+    <property name="prefer-wide-layout">true</property>
+  </object>
 </interface>

@@ -51,9 +51,8 @@ class ProtobufItem(GObject.Object):
     is_required: bool
     is_repeated: bool
 
-    field_name = GObject.Property(
-        type=str
-    )  # ⚠️ TODO this should be editable eventually...
+    field_name = GObject.Property(type=str)  # May be edited
+    full_name = GObject.Property(type=str)
     proto_id = GObject.Property(type=int)
     type_txt = GObject.Property(type=str)
 
@@ -106,6 +105,7 @@ class ProtobufItem(GObject.Object):
         self.is_repeated = desc.label == desc.LABEL_REPEATED
 
         self.field_name = desc.full_name.rsplit('.', 1).pop()
+        self.full_name = desc.full_name
         self.proto_id = desc.number
         self.type_txt = TYPE_NAME_LUT[desc.type]
 
