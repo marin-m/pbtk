@@ -260,6 +260,7 @@ class FuzzerWindow(Adw.Window):
     __gtype_name__ = 'FuzzerWindow'
 
     initing_values: bool = True
+    processing_user_action: bool = False
 
     action_group = GObject.Property(type=Gio.ActionGroup)
 
@@ -430,16 +431,19 @@ class FuzzerWindow(Adw.Window):
         # Get initial data into the Protobuf tree view
 
         self.initing_values = True
+        self.processing_user_action = False
 
         self.proto_items.remove_all()
 
         for desc in self.pb_request.DESCRIPTOR.fields:
-            node = ProtobufItem.new(desc, self.proto_items, [desc.full_name])
+            node = ProtobufItem.new(
+                desc, None, self.proto_items, [desc.full_name]
+            )
             self.proto_items.append(node)
             node.connect('notify::is-set', self.node_value_set)
             node.connect('notify::value', self.node_value_changed)
 
-        self.use_sample_values(self.pb_request, self.proto_items)
+        self.use_sample_values(self.pb_request, None, self.proto_items)
 
         # Do the same for transport-specific data
 
@@ -671,7 +675,10 @@ class FuzzerWindow(Adw.Window):
     """
 
     def use_sample_values(
-        self, msg: Message, tree_fields: Gio.ListStore[ProtobufItem]
+        self,
+        msg: Message,
+        parent: ProtobufItem | None,
+        tree_fields: Gio.ListStore[ProtobufItem],
     ):
 
         for field_desc, field_val in msg.ListFields():
@@ -690,23 +697,29 @@ class FuzzerWindow(Adw.Window):
                     if field_desc.cpp_type == field_desc.CPPTYPE_MESSAGE:
                         node.expanded = True
                         self.use_sample_values(
-                            instance, node.get_children(self)
+                            instance, node, node.get_children(self)
                         )
 
                     else:
                         node.value = instance
 
-                    node = ProtobufItem.new(node.desc, tree_fields, node.path)
+                    node = ProtobufItem.new(
+                        node.desc, parent, tree_fields, node.path
+                    )
                     tree_fields.insert(node_index + 1, node)
                     node.connect('notify::is-set', self.node_value_set)
                     node.connect('notify::value', self.node_value_changed)
+
+                    node_index += 1
 
             else:
                 node.is_set = True
 
                 if field_desc.cpp_type == field_desc.CPPTYPE_MESSAGE:
                     node.expanded = True
-                    self.use_sample_values(field_val, node.get_children(self))
+                    self.use_sample_values(
+                        field_val, node, node.get_children(self)
+                    )
 
                 else:
                     node.value = field_val
@@ -717,44 +730,57 @@ class FuzzerWindow(Adw.Window):
     """
 
     def node_value_changed(self, item: ProtobufItem, spec: GObject.ParamSpec):
+
+        if self.initing_values:
+            return
+
         # Ensure that we're the data source of
         # the value set before firing a
         # Fuzzer state update
 
-        if not self.initing_values:
-            # Check item as newly set if needed
+        if self.processing_user_action:
+            return
 
-            self.initing_values = True
+        self.processing_user_action = True
 
-            if item.value and not item.is_set:
-                item.is_set = True
+        # Check item as newly set if needed
 
-            self.initing_values = False
+        if item.value and not item.is_set:
+            item.is_set = True
 
-            # Log data change
+        self.processing_user_action = False
 
-            print(
-                '⚠️⚠️ WIP Protobuf data changed =>',
-                item.path,
-                '/',
-                item.field_name,
-                '/',
-                item.value,
-            )
+        # Log data change
 
-            # ⚠️ TODO: call update_fuzzer
+        print(
+            '⚠️⚠️ WIP Protobuf data changed =>',
+            item.path,
+            '/',
+            item.field_name,
+            '/',
+            item.value,
+        )
+
+        # ⚠️ TODO: call update_fuzzer
 
     def node_value_set(self, item: ProtobufItem, spec: GObject.ParamSpec):
+
+        if self.initing_values:
+            return
+
         # Do deferred triggers:
 
-        was_initing = self.initing_values
+        was_processing = self.processing_user_action
 
-        if not was_initing:
-            self.initing_values = True
+        if not was_processing:
+            self.processing_user_action = True
 
         # a. Set all parents as set too
 
-        # (⚠️ TODO)
+        parent = item.parent
+        while parent:
+            parent.is_set = True
+            parent = parent.parent
 
         # b. Duplicate repeated Protobuf item if needed
 
@@ -770,19 +796,21 @@ class FuzzerWindow(Adw.Window):
                 )
 
             if last_node == item:
-                node = ProtobufItem.new(item.desc, item.parent_tree, item.path)
+                node = ProtobufItem.new(
+                    item.desc, item.parent, item.parent_tree, item.path
+                )
                 item.parent_tree.insert(last_node_index + 1, node)
                 node.connect('notify::is-set', self.node_value_set)
                 node.connect('notify::value', self.node_value_changed)
 
-        if not was_initing:
-            self.initing_values = False
+        if not was_processing:
+            self.processing_user_action = False
 
         # Ensure that we're the data source of
         # the value set before firing a
         # Fuzzer state update
 
-        if not self.initing_values:
+        if not was_processing:
             # Log data change
 
             print(

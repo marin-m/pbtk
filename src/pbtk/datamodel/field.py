@@ -57,6 +57,7 @@ class ProtobufItem(GObject.Object):
     proto_id = GObject.Property(type=int)
     type_txt = GObject.Property(type=str)
 
+    parent: Self | None
     parent_tree = GObject.Property(type=Gio.ListStore)  # of Self
 
     is_set = GObject.Property(type=bool, default=False)
@@ -89,12 +90,14 @@ class ProtobufItem(GObject.Object):
     def __init__(
         self,
         desc: FieldDescriptor,
+        parent: Self | None,
         parent_tree: Gio.ListStore[Self],
         path: list[str],
     ):
         super().__init__()
 
         self.desc = desc
+        self.parent = parent
         self.parent_tree = parent_tree
         self.path = path
 
@@ -125,7 +128,7 @@ class ProtobufItem(GObject.Object):
             self.children = Gio.ListStore.new(ProtobufItem)
             for child in self.desc.message_type.fields:
                 node = ProtobufItem.new(
-                    child, self.children, self.path + [child.full_name]
+                    child, self, self.children, self.path + [child.full_name]
                 )
                 self.children.append(node)
                 node.connect('notify::is-set', fuzzer_window.node_value_set)
