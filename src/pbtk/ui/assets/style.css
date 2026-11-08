@@ -6,3 +6,7 @@
 .extra_data_values cell {
     padding: 2px;
 }
+
+.fuzzer_fields_action_bar box {
+    padding-bottom: 0;
+}

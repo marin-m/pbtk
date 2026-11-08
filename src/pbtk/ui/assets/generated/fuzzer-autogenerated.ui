@@ -189,6 +189,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                             </child>
                             <child>
                               <object class="GtkActionBar">
+                                <property name="css-classes">fuzzer_fields_action_bar</property>
                                 <child type="end">
                                   <object class="GtkButton" id="proto_data_rename">
                                     <property name="label">Rename field...</property>
@@ -277,6 +278,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                             </child>
                             <child>
                               <object class="GtkActionBar">
+                                <property name="css-classes">fuzzer_fields_action_bar</property>
                                 <child type="end">
                                   <object class="GtkButton" id="extra_data_add">
                                     <property name="label">Add...</property>
