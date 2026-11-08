@@ -20,6 +20,7 @@ from google.protobuf.internal import type_checkers
 
 type_checkers.SupportsOpenEnums = lambda x: True
 
+from importlib.metadata import version
 from traceback import format_exception
 from argparse import ArgumentParser
 from logging import debug, error
@@ -43,7 +44,13 @@ def main():
     args = ArgumentParser(
         description='A tool for reverse engineering Protobuf-based apps'
     )
+    args.add_argument('-V', '--version', action='store_true')
+
     args = args.parse_args()
+
+    if args.version:
+        print('pbtk version ' + version('pbtk'))
+        exit(0)
 
     GLib.set_prgname('re.fossplant.pbtk')
 
