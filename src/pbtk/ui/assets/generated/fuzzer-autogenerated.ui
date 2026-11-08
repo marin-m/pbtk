@@ -108,13 +108,18 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
 <interface>
   <template class="GtkColumnViewCell">
     <property name="child">
-      <object class="GtkLabel">
+      <object class="LabelWithOptionalTooltip">
         <property name="xalign">0</property>
         <binding name="label">
           <lookup name="proto_id" type="ProtobufItem">
             <lookup name="item" type="GtkTreeListRow">
               <lookup name="item" type="GtkColumnViewCell">GtkColumnViewCell</lookup>
             </lookup>
+          </lookup>
+        </binding>
+        <binding name="item">
+          <lookup name="item" type="GtkTreeListRow">
+            <lookup name="item" type="GtkColumnViewCell">GtkColumnViewCell</lookup>
           </lookup>
         </binding>
       </object>
@@ -136,13 +141,18 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
 <interface>
   <template class="GtkColumnViewCell">
     <property name="child">
-      <object class="GtkLabel">
+      <object class="LabelWithOptionalTooltip">
         <property name="xalign">0</property>
         <binding name="label">
           <lookup name="type_txt" type="ProtobufItem">
             <lookup name="item" type="GtkTreeListRow">
               <lookup name="item" type="GtkColumnViewCell">GtkColumnViewCell</lookup>
             </lookup>
+          </lookup>
+        </binding>
+        <binding name="item">
+          <lookup name="item" type="GtkTreeListRow">
+            <lookup name="item" type="GtkColumnViewCell">GtkColumnViewCell</lookup>
           </lookup>
         </binding>
       </object>

@@ -80,6 +80,9 @@ class ProtobufItem(GObject.Object):
             elif desc.cpp_type in (desc.CPPTYPE_DOUBLE, desc.CPPTYPE_FLOAT):
                 return ProtobufItemFloat(desc, *args)
 
+            elif desc.type == desc.TYPE_ENUM:
+                return ProtobufItemEnum(desc, *args)
+
             else:
                 return ProtobufItemInt(desc, *args)
 
@@ -174,6 +177,20 @@ class ProtobufItemInt(ProtobufItem):
         super().__init__(desc, *args)
 
         self.value = desc.default_value or 0
+
+
+class ProtobufItemEnum(ProtobufItem):
+    value = GObject.Property(type=GObject.TYPE_INT64)
+    tooltip = GObject.Property(type=str)
+
+    def __init__(self, desc: FieldDescriptor, *args):
+        super().__init__(desc, *args)
+
+        self.value = desc.default_value or 0
+
+        self.tooltip = '\n'.join(
+            '%d : %s' % (val.number, val.name) for val in desc.enum_type.values
+        )
 
 
 class ProtobufItemString(ProtobufItem):

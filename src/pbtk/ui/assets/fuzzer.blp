@@ -76,9 +76,10 @@ template $FuzzerWindow: Adw.Window {
                   ColumnViewColumn {
                     factory: BuilderListItemFactory {
                       template ColumnViewCell {
-                        child: Label {
+                        child: $LabelWithOptionalTooltip {
                           xalign: 0;
                           label: bind template.item as <TreeListRow>.item as <$ProtobufItem>.proto_id;
+                          item: bind template.item as <TreeListRow>.item;
                         };
                       }
                     };
@@ -91,9 +92,10 @@ template $FuzzerWindow: Adw.Window {
                   ColumnViewColumn {
                     factory: BuilderListItemFactory {
                       template ColumnViewCell {
-                        child: Label {
+                        child: $LabelWithOptionalTooltip {
                           xalign: 0;
                           label: bind template.item as <TreeListRow>.item as <$ProtobufItem>.type_txt;
+                          item: bind template.item as <TreeListRow>.item;
                         };
                       }
                     };

@@ -31,7 +31,12 @@ from google.protobuf.internal.type_checkers import _VALUE_CHECKERS
 from google.protobuf.descriptor import FieldDescriptor
 from google.protobuf.message import Message
 
-from pbtk.datamodel.field import ProtobufItem, ProtobufItemBytes, ExtraDataItem
+from pbtk.datamodel.field import (
+    ProtobufItem,
+    ProtobufItemEnum,
+    ProtobufItemBytes,
+    ExtraDataItem,
+)
 from pbtk.datamodel.transport import Transport, TransportDefinition
 from pbtk.datamodel.endpoint import RecordedSampleRow
 from pbtk.utils.common import (
@@ -116,6 +121,11 @@ class ProtoRowFieldName(Gtk.Box):
         self.label = Gtk.Label.new('')
         self.prepend(self.label)
 
+        if isinstance(item, ProtobufItemEnum):
+            self.set_tooltip_text(item.tooltip)
+        else:
+            self.set_tooltip_text(None)
+
         item.bind_property(
             'field_name',
             self.label,
@@ -138,6 +148,25 @@ class ProtoRowFieldName(Gtk.Box):
             )
 
         item.bind_property('expanded', self.list_row, 'expanded')
+
+
+class LabelWithOptionalTooltip(Gtk.Label):
+    __gtype_name__ = 'LabelWithOptionalTooltip'
+
+    _item: ProtobufItem = None
+
+    @GObject.Property(type=ProtobufItem)
+    def item(self):
+        return self._item
+
+    @item.setter
+    def item(self, item: ProtobufItem):
+        self._item = item
+
+        if isinstance(item, ProtobufItemEnum):
+            self.set_tooltip_text(item.tooltip)
+        else:
+            self.set_tooltip_text(None)
 
 
 class ProtoRowFieldValue(Gtk.Box):
@@ -196,6 +225,11 @@ class ProtoRowFieldValue(Gtk.Box):
                 _VALUE_CHECKERS[cpp_type]._MAX,
                 1,
             )
+
+        if isinstance(item, ProtobufItemEnum):
+            self.set_tooltip_text(item.tooltip)
+        else:
+            self.set_tooltip_text(None)
 
         if isinstance(self.child, Gtk.SpinButton):
             self.child.set_update_policy(Gtk.SpinButtonUpdatePolicy.IF_VALID)
