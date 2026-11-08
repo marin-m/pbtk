@@ -56,24 +56,22 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                     <child>
                       <object class="AdwViewStackPage" id="proto_page">
                         <property name="child">
-                          <object class="GtkScrolledWindow">
-                            <property name="child">
-                              <object class="GtkColumnView">
-                                <property name="css-classes">proto_values</property>
-                                <property name="model">
-                                  <object class="GtkSingleSelection" id="proto_model_selection"></object>
-                                </property>
-                                <property name="reorderable">false</property>
-                                <property name="row-factory">
-                                  <object class="GtkSignalListItemFactory">
-                                    <signal name="setup" handler="setup_proto_field_row"/>
-                                  </object>
-                                </property>
-                                <child>
-                                  <object class="GtkColumnViewColumn">
-                                    <property name="factory">
-                                      <object class="GtkBuilderListItemFactory">
-                                        <property name="bytes"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+                          <object class="GtkBox">
+                            <property name="orientation">1</property>
+                            <child>
+                              <object class="GtkScrolledWindow">
+                                <property name="child">
+                                  <object class="GtkColumnView">
+                                    <property name="css-classes">proto_values</property>
+                                    <property name="model">
+                                      <object class="GtkSingleSelection" id="proto_model_selection"></object>
+                                    </property>
+                                    <property name="reorderable">false</property>
+                                    <child>
+                                      <object class="GtkColumnViewColumn">
+                                        <property name="factory">
+                                          <object class="GtkBuilderListItemFactory">
+                                            <property name="bytes"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <template class="GtkColumnViewCell">
     <property name="child">
@@ -95,18 +93,18 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
     </property>
   </template>
 </interface>]]></property>
+                                          </object>
+                                        </property>
+                                        <property name="id">name</property>
+                                        <property name="resizable">true</property>
+                                        <property name="title">Name</property>
                                       </object>
-                                    </property>
-                                    <property name="id">name</property>
-                                    <property name="resizable">true</property>
-                                    <property name="title">Name</property>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkColumnViewColumn">
-                                    <property name="factory">
-                                      <object class="GtkBuilderListItemFactory">
-                                        <property name="bytes"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+                                    </child>
+                                    <child>
+                                      <object class="GtkColumnViewColumn">
+                                        <property name="factory">
+                                          <object class="GtkBuilderListItemFactory">
+                                            <property name="bytes"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <template class="GtkColumnViewCell">
     <property name="child">
@@ -123,18 +121,18 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
     </property>
   </template>
 </interface>]]></property>
+                                          </object>
+                                        </property>
+                                        <property name="id">id</property>
+                                        <property name="resizable">true</property>
+                                        <property name="title">Id</property>
                                       </object>
-                                    </property>
-                                    <property name="id">id</property>
-                                    <property name="resizable">true</property>
-                                    <property name="title">Id</property>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkColumnViewColumn">
-                                    <property name="factory">
-                                      <object class="GtkBuilderListItemFactory">
-                                        <property name="bytes"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+                                    </child>
+                                    <child>
+                                      <object class="GtkColumnViewColumn">
+                                        <property name="factory">
+                                          <object class="GtkBuilderListItemFactory">
+                                            <property name="bytes"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <template class="GtkColumnViewCell">
     <property name="child">
@@ -151,19 +149,19 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
     </property>
   </template>
 </interface>]]></property>
+                                          </object>
+                                        </property>
+                                        <property name="id">type</property>
+                                        <property name="resizable">true</property>
+                                        <property name="title">Type</property>
                                       </object>
-                                    </property>
-                                    <property name="id">type</property>
-                                    <property name="resizable">true</property>
-                                    <property name="title">Type</property>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkColumnViewColumn">
-                                    <property name="expand">true</property>
-                                    <property name="factory">
-                                      <object class="GtkBuilderListItemFactory">
-                                        <property name="bytes"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+                                    </child>
+                                    <child>
+                                      <object class="GtkColumnViewColumn">
+                                        <property name="expand">true</property>
+                                        <property name="factory">
+                                          <object class="GtkBuilderListItemFactory">
+                                            <property name="bytes"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <template class="GtkColumnViewCell">
     <property name="child">
@@ -177,14 +175,27 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
     </property>
   </template>
 </interface>]]></property>
+                                          </object>
+                                        </property>
+                                        <property name="id">value</property>
+                                        <property name="title">Value</property>
                                       </object>
-                                    </property>
-                                    <property name="id">value</property>
-                                    <property name="title">Value</property>
+                                    </child>
+                                  </object>
+                                </property>
+                                <property name="vexpand">true</property>
+                                <property name="vexpand-set">true</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkActionBar">
+                                <child type="end">
+                                  <object class="GtkButton" id="proto_data_rename">
+                                    <property name="label">Rename field...</property>
                                   </object>
                                 </child>
                               </object>
-                            </property>
+                            </child>
                           </object>
                         </property>
                         <property name="name">proto_page</property>
@@ -261,6 +272,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                                   </object>
                                 </property>
                                 <property name="vexpand">true</property>
+                                <property name="vexpand-set">true</property>
                               </object>
                             </child>
                             <child>
@@ -268,6 +280,11 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                                 <child type="end">
                                   <object class="GtkButton" id="extra_data_add">
                                     <property name="label">Add...</property>
+                                  </object>
+                                </child>
+                                <child type="end">
+                                  <object class="GtkButton" id="extra_data_remove">
+                                    <property name="label">Remove...</property>
                                   </object>
                                 </child>
                               </object>
@@ -291,7 +308,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                     <property name="spacing">7</property>
                     <child>
                       <object class="GtkLabel">
-                        <property name="label">Set current values to:</property>
+                        <property name="label">Set current values to preset:</property>
                       </object>
                     </child>
                     <child>

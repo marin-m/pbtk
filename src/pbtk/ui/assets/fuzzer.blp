@@ -126,7 +126,7 @@ template $FuzzerWindow: Adw.Window {
               ActionBar {
                 [end]
                 Button proto_data_rename {
-                  label: "Rename...";
+                  label: "Rename field...";
                 }
               }
             };
@@ -193,6 +193,11 @@ template $FuzzerWindow: Adw.Window {
                 Button extra_data_add {
                   label: "Add...";
                 }
+
+                [end]
+                Button extra_data_remove {
+                  label: "Remove...";
+                }
               }
             };
 
@@ -211,7 +216,7 @@ template $FuzzerWindow: Adw.Window {
           spacing: 7;
 
           Label {
-            label: "Set current values to:";
+            label: "Set current values to preset:";
           }
 
           DropDown fuzzer_samples_combo_box {
