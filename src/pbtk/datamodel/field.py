@@ -109,12 +109,20 @@ class ProtobufItem(GObject.Object):
             return None
 
         if not self.children:
+            was_initing = fuzzer_window.initing_values
+
+            if not was_initing:
+                fuzzer_window.initing_values = True
+
             self.children = Gio.ListStore.new(ProtobufItem)
             for child in self.desc.message_type.fields:
                 node = ProtobufItem.new(child, self.path + [child.full_name])
                 self.children.append(node)
                 node.connect('notify::is-set', fuzzer_window.node_value_set)
                 node.connect('notify::value', fuzzer_window.node_value_changed)
+
+            if not was_initing:
+                fuzzer_window.initing_values = False
 
         return self.children
 
@@ -165,4 +173,4 @@ class ProtobufItemBytes(ProtobufItem):
     def __init__(self, desc: FieldDescriptor, path: list[str]):
         super().__init__(desc, path)
 
-        self.value = desc.default_value or b''
+        self.value = (desc.default_value or b'').decode('utf-8')

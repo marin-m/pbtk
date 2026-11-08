@@ -256,6 +256,8 @@ class ExtraDataRowFieldValue(Gtk.Box):
 class FuzzerWindow(Adw.Window):
     __gtype_name__ = 'FuzzerWindow'
 
+    initing_values: bool = True
+
     action_group = GObject.Property(type=Gio.ActionGroup)
 
     http_session: Soup.Session
@@ -424,6 +426,8 @@ class FuzzerWindow(Adw.Window):
 
         # Get initial data into the Protobuf tree view
 
+        self.initing_values = True
+
         self.proto_items.remove_all()
 
         for desc in self.pb_request.DESCRIPTOR.fields:
@@ -447,6 +451,8 @@ class FuzzerWindow(Adw.Window):
         self.fuzzer_preview_buffer.set_text('')
 
         self.update_fuzzer()
+
+        self.initing_values = False
 
     def update_fuzzer(self):
         request: Soup.Message = self.transport.create_request(
@@ -708,7 +714,9 @@ class FuzzerWindow(Adw.Window):
     """
 
     def node_value_changed(self, *args):
-        print('⚠️⚠️ WIP Protobuf data changed =>', args)
+        if not self.initing_values:
+            print('⚠️⚠️ WIP Protobuf data changed =>', args)
 
     def node_value_set(self, *args):
-        print('⚠️⚠️ WIP Protobuf data set/unset =>', args)
+        if not self.initing_values:
+            print('⚠️⚠️ WIP Protobuf data set/unset =>', args)
