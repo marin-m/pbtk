@@ -53,7 +53,7 @@ class ProtobufItem(GObject.Object):
 
     field_name = GObject.Property(type=str)  # May be edited
     full_name = GObject.Property(type=str)
-    proto_id = GObject.Property(type=int)
+    proto_id = GObject.Property(type=GObject.TYPE_INT64)
     type_txt = GObject.Property(type=str)
 
     parent: Self | None
@@ -168,7 +168,7 @@ class ProtobufItemBool(ProtobufItem):
 
 
 class ProtobufItemInt(ProtobufItem):
-    value = GObject.Property(type=int)
+    value = GObject.Property(type=GObject.TYPE_INT64)
 
     def __init__(self, desc: FieldDescriptor, *args):
         super().__init__(desc, *args)
