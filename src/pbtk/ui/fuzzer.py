@@ -471,9 +471,24 @@ class FuzzerWindow(Adw.Window):
         #    SHOULD BE TRANSPOSED TOO
 
         def on_recv(http_session: Soup.Session, result: Gio.AsyncResult):
-            response: bytes = self.http_session.send_and_read_finish(
-                result
-            ).get_data()
+            try:
+                response: bytes = self.http_session.send_and_read_finish(
+                    result
+                ).get_data()
+            except GLib.GError as err:
+                if not (
+                    err.domain == 'g-io-error-quark'
+                    and err.code == Gio.IOErrorEnum.CANCELLED
+                ):
+                    print(err.code, err.domain, err.args, err.message)
+                    dialog = Adw.AlertDialog.new(
+                        'Could not send network request', err.message
+                    )
+                    dialog.add_response('ok', 'Ok')
+                    dialog.set_default_response('ok')
+                    dialog.set_close_response('ok')
+                    dialog.choose(self, None, None)
+                return
 
             response_headers: dict[str, str] = {}
 
