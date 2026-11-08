@@ -276,7 +276,7 @@ class ExtraDataRowFieldValue(Gtk.Box):
 class FuzzerWindow(Adw.Window):
     __gtype_name__ = 'FuzzerWindow'
 
-    initing_values: bool = True
+    initing_values: bool = False
     processing_user_action: bool = False
 
     action_group = GObject.Property(type=Gio.ActionGroup)
@@ -284,7 +284,7 @@ class FuzzerWindow(Adw.Window):
     http_session: Soup.Session
     http_cancellable: Gio.Cancellable = None
 
-    endpoint: dict
+    endpoint: dict = None
     transport_meta: TransportDefinition
     transport: Transport
 
@@ -358,6 +358,21 @@ class FuzzerWindow(Adw.Window):
 
         self.add_extra_field_dialog.set_response_appearance(
             'ok', Adw.ResponseAppearance.SUGGESTED
+        )
+
+        # Event callbacks
+
+        def on_sample_selected(*args):
+            if (
+                not self.initing_values
+                and self.fuzzer_samples_combo_box.get_selected_item()
+            ):
+                self.load(
+                    self.endpoint, self.fuzzer_samples_combo_box.get_selected()
+                )
+
+        self.fuzzer_samples_combo_box.connect(
+            'notify::selected-item', on_sample_selected
         )
 
         # Connect actions
@@ -439,80 +454,87 @@ class FuzzerWindow(Adw.Window):
 
     def load(self, endpoint: dict, sample_id: int = 0):
 
-        self.endpoint = endpoint
+        if self.initing_values:
+            return
 
-        self.base_url = endpoint['request']['url']
-        self.pb_param = endpoint['request'].get('pb_param')
+        self.initing_values = True
+        self.processing_user_action = False
 
-        self.transport_meta = transports[endpoint['request']['transport']]
-        self.transport = self.transport_meta.transport_class(
-            self.pb_param, self.base_url
-        )
+        if endpoint != self.endpoint:
+            self.base_url = endpoint['request']['url']
+            self.pb_param = endpoint['request'].get('pb_param')
 
-        self.extra_data_page.set_title(self.transport.ui_tab)
-
-        # Load Protobuf request message
-
-        self.current_req_proto = (
-            BASE_PATH / 'protos' / endpoint['request']['proto_path']
-        )
-
-        self.current_req_proto_msgs = list(
-            load_proto_msgs(self.current_req_proto)
-        )
-        self.pb_request_type = next(
-            (
-                item
-                for item in self.current_req_proto_msgs
-                if item.name == endpoint['request']['proto_msg']
-            ),
-            None,
-        ).definition
-
-        initial_pb_request = self.pb_request_type()
-
-        # Load Protobuf response message, if any
-
-        if (
-            endpoint.get('response')
-            and endpoint['response']['format'] == 'raw_pb'
-        ):
-            self.current_resp_proto = (
-                BASE_PATH / 'protos' / endpoint['response']['proto_path']
+            self.transport_meta = transports[endpoint['request']['transport']]
+            self.transport = self.transport_meta.transport_class(
+                self.pb_param, self.base_url
             )
 
-            self.current_resp_proto_msgs = list(
-                load_proto_msgs(self.current_resp_proto)
+            self.extra_data_page.set_title(self.transport.ui_tab)
+
+            # Load Protobuf request message
+
+            self.current_req_proto = (
+                BASE_PATH / 'protos' / endpoint['request']['proto_path']
             )
-            self.pb_response_type = next(
+
+            self.current_req_proto_msgs = list(
+                load_proto_msgs(self.current_req_proto)
+            )
+            self.pb_request_type = next(
                 (
                     item
-                    for item in self.current_resp_proto_msgs
-                    if item.name == endpoint['response']['proto_msg']
+                    for item in self.current_req_proto_msgs
+                    if item.name == endpoint['request']['proto_msg']
                 ),
                 None,
             ).definition
 
-        # Load list of samples
+            # Load Protobuf response message, if any
 
-        with self.fuzzer_samples_list.freeze_notify():
-            self.fuzzer_samples_list.remove_all()
-
-            for raw_sample_data in endpoint['request'].get('samples', []):
-                readable_sample_data = (
-                    raw_sample_data[self.pb_param]
-                    if self.pb_param
-                    else str(raw_sample_data)
+            if (
+                endpoint.get('response')
+                and endpoint['response']['format'] == 'raw_pb'
+            ):
+                self.current_resp_proto = (
+                    BASE_PATH / 'protos' / endpoint['response']['proto_path']
                 )
 
-                sample_item = RecordedSampleRow(
-                    raw_sample_data, readable_sample_data
+                self.current_resp_proto_msgs = list(
+                    load_proto_msgs(self.current_resp_proto)
                 )
+                self.pb_response_type = next(
+                    (
+                        item
+                        for item in self.current_resp_proto_msgs
+                        if item.name == endpoint['response']['proto_msg']
+                    ),
+                    None,
+                ).definition
 
-                self.fuzzer_samples_list.append(sample_item)
+            # Load list of samples
+
+            with self.fuzzer_samples_list.freeze_notify():
+                self.fuzzer_samples_list.remove_all()
+
+                for raw_sample_data in endpoint['request'].get('samples', []):
+                    readable_sample_data = (
+                        raw_sample_data[self.pb_param]
+                        if self.pb_param
+                        else str(raw_sample_data)
+                    )
+
+                    sample_item = RecordedSampleRow(
+                        raw_sample_data, readable_sample_data
+                    )
+
+                    self.fuzzer_samples_list.append(sample_item)
+
+        self.endpoint = endpoint
 
         # Load currently selected sample into
         # initial_pb_request + protocol_specific_params
+
+        initial_pb_request = self.pb_request_type()
 
         sample = ''
         if endpoint['request'].get('samples'):
@@ -529,9 +551,6 @@ class FuzzerWindow(Adw.Window):
         # ⚠️ 🪧 WIP... (importing code from pbtk._ui_legacy.gui.launch_fuzzer)
 
         # Get initial data into the Protobuf tree view
-
-        self.initing_values = True
-        self.processing_user_action = False
 
         self.proto_items.remove_all()
 
