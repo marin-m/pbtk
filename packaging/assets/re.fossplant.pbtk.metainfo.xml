@@ -57,6 +57,12 @@ https://hughsie.github.io/oars/index.html
 -->
   <content_rating type="oars-1.1" />
   <releases>
+    <release version="1.1.5" date="2026-11-08">
+      <description>
+        <p>Pin the Protobuf library version to 3.x so that it works fully with the bundled `protoc` binary</p>
+        <p>Last release before porting the app to GTK 4/Adwaita</p>
+      </description>
+    </release>
     <release version="1.1.4" date="2026-11-01">
       <description>
         <p>Fix a syntax error that prevented working with recent Python versions</p>
