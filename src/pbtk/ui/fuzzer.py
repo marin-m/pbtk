@@ -109,7 +109,11 @@ class ProtoRowFieldName(Gtk.Box):
         self.checkbox.set_visible(not item.is_required)
 
         item.bind_property(
-            'is_set', self.checkbox, 'active', GObject.BindingFlags.SYNC_CREATE
+            'is_set',
+            self.checkbox,
+            'active',
+            GObject.BindingFlags.BIDIRECTIONAL
+            | GObject.BindingFlags.SYNC_CREATE,
         )
 
         item.bind_property('expanded', self.list_row, 'expanded')
@@ -207,8 +211,6 @@ class ProtoRowFieldValue(Gtk.Box):
                 'active',
                 GObject.BindingFlags.BIDIRECTIONAL
                 | GObject.BindingFlags.SYNC_CREATE,
-                lambda _binding, value: value,
-                lambda _binding, value: value,
             )
 
         if self.child:
@@ -299,7 +301,7 @@ class FuzzerWindow(Adw.Window):
                 self.proto_items,
                 passthrough=False,
                 autoexpand=False,
-                create_func=lambda item: item.get_children(),
+                create_func=lambda item: item.get_children(self),
             )
         )
 
@@ -425,7 +427,10 @@ class FuzzerWindow(Adw.Window):
         self.proto_items.remove_all()
 
         for desc in self.pb_request.DESCRIPTOR.fields:
-            self.proto_items.append(ProtobufItem(desc, [desc.full_name]))
+            node = ProtobufItem.new(desc, [desc.full_name])
+            self.proto_items.append(node)
+            node.connect('notify::is-set', self.node_value_set)
+            node.connect('notify::value', self.node_value_changed)
 
         self.use_sample_values(self.pb_request, self.proto_items)
 
@@ -675,20 +680,35 @@ class FuzzerWindow(Adw.Window):
 
                     if field_desc.cpp_type == field_desc.CPPTYPE_MESSAGE:
                         node.expanded = True
-                        self.use_sample_values(instance, node.get_children())
+                        self.use_sample_values(
+                            instance, node.get_children(self)
+                        )
 
                     else:
                         node.value = instance
 
-                    node = ProtobufItem(node.desc, node.path)
+                    node = ProtobufItem.new(node.desc, node.path)
                     tree_fields.insert(node_index + 1, node)
+                    node.connect('notify::is-set', self.node_value_set)
+                    node.connect('notify::value', self.node_value_changed)
 
             else:
                 node.is_set = True
 
                 if field_desc.cpp_type == field_desc.CPPTYPE_MESSAGE:
                     node.expanded = True
-                    self.use_sample_values(field_val, node.get_children())
+                    self.use_sample_values(field_val, node.get_children(self))
 
                 else:
                     node.value = field_val
+
+    """
+        Callback when the value of an individual Protobuf
+        node has been changed
+    """
+
+    def node_value_changed(self, *args):
+        print('⚠️⚠️ WIP Protobuf data changed =>', args)
+
+    def node_value_set(self, *args):
+        print('⚠️⚠️ WIP Protobuf data set/unset =>', args)

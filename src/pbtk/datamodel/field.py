@@ -57,9 +57,32 @@ class ProtobufItem(GObject.Object):
     proto_id = GObject.Property(type=int)
     type_txt = GObject.Property(type=str)
 
-    value = GObject.Property(type=object)
     is_set = GObject.Property(type=bool, default=False)
     expanded = GObject.Property(type=bool, default=False)
+
+    @staticmethod
+    def new(desc: FieldDescriptor, path: list[str]):
+        is_message = desc.cpp_type == desc.CPPTYPE_MESSAGE
+
+        if not is_message:
+            if desc.type == desc.TYPE_BOOL:
+                return ProtobufItemBool(desc, path)
+
+            elif desc.cpp_type == desc.CPPTYPE_STRING:
+                # ⚠️ ⚠️ GTK+ is unlikely to accept bytes here
+                if desc.type != desc.TYPE_BYTES:
+                    return ProtobufItemString(desc, path)
+                else:
+                    return ProtobufItemBytes(desc, path)
+
+            elif desc.cpp_type in (desc.CPPTYPE_DOUBLE, desc.CPPTYPE_FLOAT):
+                return ProtobufItemFloat(desc, path)
+
+            else:
+                return ProtobufItemInt(desc, path)
+
+        else:
+            return ProtobufItemMessage(desc, path)
 
     def __init__(self, desc: FieldDescriptor, path: list[str]):
         super().__init__()
@@ -75,22 +98,7 @@ class ProtobufItem(GObject.Object):
         self.proto_id = desc.number
         self.type_txt = TYPE_NAME_LUT[desc.type]
 
-        if desc.type == desc.TYPE_BOOL:
-            self.value = desc.default_value or False
-
-        elif desc.cpp_type == desc.CPPTYPE_STRING:
-            # ⚠️ ⚠️ GTK+ is unlikely to accept bytes here
-            self.value = desc.default_value or (
-                '' if desc.type != desc.TYPE_BYTES else b''
-            )
-
-        elif desc.cpp_type in (desc.CPPTYPE_DOUBLE, desc.CPPTYPE_FLOAT):
-            self.value = desc.default_value or 0.0
-
-        elif not self.is_message:
-            self.value = desc.default_value or 0
-
-    def get_children(self):
+    def get_children(self, fuzzer_window):
         """
         The list of children is loaded lazily only
         when the current node is visible in the
@@ -103,8 +111,58 @@ class ProtobufItem(GObject.Object):
         if not self.children:
             self.children = Gio.ListStore.new(ProtobufItem)
             for child in self.desc.message_type.fields:
-                self.children.append(
-                    ProtobufItem(child, self.path + [child.full_name])
-                )
+                node = ProtobufItem.new(child, self.path + [child.full_name])
+                self.children.append(node)
+                node.connect('notify::is-set', fuzzer_window.node_value_set)
+                node.connect('notify::value', fuzzer_window.node_value_changed)
 
         return self.children
+
+
+class ProtobufItemMessage(ProtobufItem):
+    value = GObject.Property(type=int)
+
+
+class ProtobufItemFloat(ProtobufItem):
+    value = GObject.Property(type=float)
+
+    def __init__(self, desc: FieldDescriptor, path: list[str]):
+        super().__init__(desc, path)
+
+        self.value = desc.default_value or 0.0
+
+
+class ProtobufItemBool(ProtobufItem):
+    value = GObject.Property(type=bool, default=False)
+
+    def __init__(self, desc: FieldDescriptor, path: list[str]):
+        super().__init__(desc, path)
+
+        self.value = desc.default_value or False
+
+
+class ProtobufItemInt(ProtobufItem):
+    value = GObject.Property(type=int)
+
+    def __init__(self, desc: FieldDescriptor, path: list[str]):
+        super().__init__(desc, path)
+
+        self.value = desc.default_value or 0
+
+
+class ProtobufItemString(ProtobufItem):
+    value = GObject.Property(type=str)
+
+    def __init__(self, desc: FieldDescriptor, path: list[str]):
+        super().__init__(desc, path)
+
+        self.value = desc.default_value or ''
+
+
+class ProtobufItemBytes(ProtobufItem):
+    value = GObject.Property(type=str)
+
+    def __init__(self, desc: FieldDescriptor, path: list[str]):
+        super().__init__(desc, path)
+
+        self.value = desc.default_value or b''
