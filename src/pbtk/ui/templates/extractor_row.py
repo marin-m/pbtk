@@ -1,4 +1,4 @@
-#!/usr/bin/env
+#!/usr/bin/env python3
 from pbtk.datamodel.extractor import (
     Extractor,
     ExtractorProgress,
