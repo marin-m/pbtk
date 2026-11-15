@@ -57,6 +57,13 @@ https://hughsie.github.io/oars/index.html
 -->
   <content_rating type="oars-1.1" />
   <releases>
+    <release version="2.0.1" date="2026-11-15">
+      <description>
+        <ul>
+          <li>Fix opening the application with Snapcraft, making the application non-singleton</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.0.0" date="2026-11-08">
       <description>
         <ul>
@@ -119,12 +126,12 @@ https://hughsie.github.io/oars/index.html
     <binary>pbtk-jar-extract</binary>
     <binary>pbtk-from-binary</binary>
     <binary>pbtk-web-extract</binary>
-    <mediatype>application/x-pie-executable</mediatype>
+    <!--mediatype>application/x-pie-executable</mediatype>
     <mediatype>application/x-executable</mediatype>
     <mediatype>application/x-sharedlib</mediatype>
     <mediatype>application/vnd.microsoft.portable-executable</mediatype>
     <mediatype>application/octet-stream</mediatype>
     <mediatype>application/x-msdownload</mediatype>
-    <mediatype>application/java-archive</mediatype>
+    <mediatype>application/java-archive</mediatype-->
   </provides>
 </component>
