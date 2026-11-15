@@ -1,10 +1,11 @@
 [Desktop Entry]
 Categories=Utility;GTK;Development;
-Exec=pbtk %f
+Exec=pbtk
+# Exec=pbtk %f
 Icon=re.fossplant.pbtk
 # See https://github.com/lemenkov/shared-mime-info/blob/master/freedesktop.org.xml.in
 # regarding the applicable mime types
-MimeType=application/x-pie-executable;application/x-executable;application/x-sharedlib;application/vnd.microsoft.portable-executable;application/octet-stream;application/x-msdownload;application/java-archive;
+# MimeType=application/x-pie-executable;application/x-executable;application/x-sharedlib;application/vnd.microsoft.portable-executable;application/octet-stream;application/x-msdownload;application/java-archive;
 StartupNotify=true
 StartupWMClass=pbtk
 Terminal=false

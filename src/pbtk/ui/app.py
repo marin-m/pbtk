@@ -37,7 +37,7 @@ import gi
 gi.require_version('Adw', '1')
 gi.require_version('Gtk', '4.0')
 
-from gi.repository import Adw, Gtk, Gdk, GLib
+from gi.repository import Adw, Gtk, Gdk, Gio, GLib
 
 
 def main():
@@ -54,7 +54,10 @@ def main():
 
     GLib.set_prgname('re.fossplant.pbtk')
 
-    app = MainApplication(application_id='re.fossplant.pbtk')
+    app = MainApplication(
+        application_id='re.fossplant.pbtk',
+        flags=Gio.ApplicationFlags.NON_UNIQUE,
+    )
     app.run()
 
 
