@@ -29,7 +29,8 @@ template $MainWindow: Adw.ApplicationWindow {
             }
 
             Adw.ActionRow {
-              action-name: "win.pick-proto-file";
+              action-name: "navigation.push";
+              action-target: "\"proto_select_page\"";
               activatable: true;
               title: "Step 2: Link .protos to endpoints";
 
@@ -204,6 +205,24 @@ template $MainWindow: Adw.ApplicationWindow {
 
       tag: "extracting_page";
       title: "Extraction progress";
+    }
+
+    Adw.NavigationPage proto_select_page {
+      child: Adw.ToolbarView {
+        content: ScrolledWindow {
+          child: ListView {
+            factory: BuilderListItemFactory {};
+
+            model: NoSelection {};
+          };
+        };
+
+        [top]
+        Adw.HeaderBar {}
+      };
+
+      tag: "proto_select_page";
+      title: "Choose a Protobuf message...";
     }
 
     Adw.NavigationPage new_endpoint_page {
