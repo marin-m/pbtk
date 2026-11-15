@@ -9,6 +9,7 @@ from zipfile import ZipFile
 from zlib import decompress
 from binascii import crc32
 from sys import float_info
+from os.path import isabs
 from logging import debug
 from struct import unpack
 from pathlib import Path
@@ -548,7 +549,13 @@ class FuzzerWindow(Adw.Window):
                 # Load Protobuf request message
 
                 self.current_req_proto = (
-                    BASE_PATH / 'protos' / endpoint['request']['proto_path']
+                    endpoint['request']['proto_path']
+                    if isabs(endpoint['request']['proto_path'])
+                    else (
+                        BASE_PATH
+                        / 'protos'
+                        / endpoint['request']['proto_path']
+                    )
                 )
 
                 self.current_req_proto_msgs = list(
@@ -570,9 +577,13 @@ class FuzzerWindow(Adw.Window):
                     and endpoint['response']['format'] == 'raw_pb'
                 ):
                     self.current_resp_proto = (
-                        BASE_PATH
-                        / 'protos'
-                        / endpoint['response']['proto_path']
+                        endpoint['response']['proto_path']
+                        if isabs(endpoint['response']['proto_path'])
+                        else (
+                            BASE_PATH
+                            / 'protos'
+                            / endpoint['response']['proto_path']
+                        )
                     )
 
                     self.current_resp_proto_msgs = list(

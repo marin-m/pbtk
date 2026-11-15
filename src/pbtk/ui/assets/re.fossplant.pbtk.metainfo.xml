@@ -61,6 +61,7 @@ https://hughsie.github.io/oars/index.html
       <description>
         <ul>
           <li>Fix opening the application with Snapcraft, making the application non-singleton</li>
+          <li>Accept absolute disk paths when opening endpoint definitions in the Fuzzer facility</li>
         </ul>
       </description>
     </release>
