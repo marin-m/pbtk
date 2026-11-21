@@ -21,19 +21,19 @@
   </description>
   <screenshots>
     <screenshot type="default">
-      <image type="source">https://camo.githubusercontent.com/23b3f6d5f5eb9068f47dcbf67fd0bfc7ebc05d433b8f21d3596bd2df885603d2/68747470733a2f2f692e696d6775722e636f6d2f377736414271792e706e67</image>
+      <image type="source">https://raw.githubusercontent.com/marin-m/pbtk/qt-version-1.x/packaging/assets/screenshots/1-fuzzer-screen.png</image>
       <caption>pbtk: Fuzzer screen</caption>
     </screenshot>
     <screenshot>
-      <image type="source">https://camo.githubusercontent.com/8581ae3bc734be1f01d7167bccf05cc86e94cebde44dad6b5d0a53842c89c66a/68747470733a2f2f692e696d6775722e636f6d2f6f56737970574e2e706e67</image>
+      <image type="source">https://raw.githubusercontent.com/marin-m/pbtk/qt-version-1.x/packaging/assets/screenshots/2-welcome-screen.png</image>
       <caption>pbtk: Welcome screen</caption>
     </screenshot>
     <screenshot>
-      <image type="source">https://camo.githubusercontent.com/ab99476f43edee9734c1fdc2518cb9f21f6d644d776c74ebe5ee8e2226521977/68747470733a2f2f692e696d6775722e636f6d2f326c566d476f472e706e67</image>
+      <image type="source">https://raw.githubusercontent.com/marin-m/pbtk/qt-version-1.x/packaging/assets/screenshots/4-fuzzer-with-response.png</image>
       <caption>pbtk: Fuzzer screen with Protobuf response</caption>
     </screenshot>
     <screenshot>
-      <image type="source">https://camo.githubusercontent.com/bae5d3ae615cf05bbad1248039b110dfaf7b656fb9cd656dd9525497de2da303/68747470733a2f2f692e696d6775722e636f6d2f6a6875363870472e706e67</image>
+      <image type="source">https://raw.githubusercontent.com/marin-m/pbtk/qt-version-1.x/packaging/assets/screenshots/3-endpoint-creation.png</image>
       <caption>pbtk: Network endpoint selection screen</caption>
     </screenshot>
   </screenshots>
