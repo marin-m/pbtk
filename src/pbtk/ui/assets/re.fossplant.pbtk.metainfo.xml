@@ -57,9 +57,13 @@ https://hughsie.github.io/oars/index.html
 -->
   <content_rating type="oars-1.1" />
   <releases>
-    <release version="2.0.1" date="2026-11-15">
+    <release version="2.0.1" date="2026-11-26">
       <description>
         <ul>
+          <li>Add support for picking up .proto files in sandboxed environments (Flatpak, Snap)</li>
+          <li>Fix the network permission for Snap</li>
+          <li>Display Fuzzer-related errors in the Fuzzer window</li>
+          <li>Don't print a WebKit warning when loading an empty HTML page</li>
           <li>Fix opening the application with Snapcraft, making the application non-singleton</li>
           <li>Accept absolute disk paths when opening endpoint definitions in the Fuzzer facility</li>
         </ul>
