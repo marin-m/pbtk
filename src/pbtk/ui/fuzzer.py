@@ -885,7 +885,7 @@ class FuzzerWindow(Adw.Window):
         # correctly raw images:
         if 'html' in out_mime:
             self.fuzzer_preview_html.load_bytes(
-                GLib.Bytes.new(data), None, out_mime, url
+                GLib.Bytes.new(data or b'\n'), None, out_mime, url
             )
 
         else:
