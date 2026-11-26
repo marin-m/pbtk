@@ -363,7 +363,7 @@ def handle_jar(path: str) -> Generator[ExtractorThreadMessage]:
         yield from nest_and_print_to_files(msg_path_to_obj, msg_to_referrers)
 
         # If we got an APK and it contained .so's with embedded metadata or .protos, yield them
-        yield from jar.bonus_protos.items()
+        yield from jar.bonus_protos.values()
 
 
 """
@@ -862,13 +862,17 @@ def extract_lite(
                     code.raw,
                     flags=MULTILINE,
                 )
-                if fdefault_type and fdefault_type.group(1) in gen_classes:
+                if (
+                    fdefault_type
+                    and fdefault_type.group(1) in gen_classes
+                    and ftype != 'enum'
+                ):
                     fenumormsg = fdefault_type.group(1)
                     if ftype == 'bytes':
                         ftype = 'message'
 
                 # Parse default value if it denotes a message type
-                if '.DEFAULT_INSTANCE' in fdefault:
+                if '.DEFAULT_INSTANCE' in fdefault and ftype != 'enum':
                     fenumormsg = (
                         fdefault.split('.DEFAULT_INSTANCE')[0]
                         .split('(')[-1]

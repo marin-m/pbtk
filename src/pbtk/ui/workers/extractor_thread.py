@@ -91,7 +91,9 @@ class ExtractorThread(Thread):
                         GLib.idle_add(self.worker.progress.emit, thread_msg)
 
                     else:
-                        raise ValueError
+                        raise ValueError(
+                            'Could not handle: %r' % (thread_msg,)
+                        )
             except Exception as err:
                 thread_msg = ExtractorErrorMessage(
                     'Error while extracting "%s": %s'
