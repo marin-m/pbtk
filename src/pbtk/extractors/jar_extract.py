@@ -5,8 +5,9 @@ from google.protobuf.descriptor_pb2 import (
     FieldDescriptorProto,
 )
 from re import findall, MULTILINE, search, split, sub, escape, finditer
-from logging import debug, warning, info, error, getLogger, DEBUG
+from pbtk.utils.logging_central import LoggingCentral
 from collections import OrderedDict, defaultdict
+from logging import debug, warning, info, error
 from collections.abc import Generator
 from itertools import count, product
 from string import ascii_lowercase
@@ -1382,7 +1383,7 @@ label_consts = {
 
 
 def main():
-    getLogger().setLevel(DEBUG)
+    LoggingCentral(debug_mode=True)
 
     extractor_main('jar_extract')
 

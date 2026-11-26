@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from urllib.parse import quote, quote_plus, unquote_plus, parse_qsl, urlencode
-from logging import getLogger, DEBUG, debug, info, error
+from logging import getLogger, DEBUG, debug, info
 from tempfile import TemporaryDirectory
 from collections.abc import Generator
 from collections import OrderedDict
@@ -27,6 +27,7 @@ from pbtk.datamodel.extractor import (
 )
 from pbtk.utils.transports import GMapsAPIPublic, GMapsAPIPrivate
 from pbtk.utils.common import register_extractor, extractor_main
+from pbtk.utils.logging_central import LoggingCentral
 
 """
     Protobuf-URL (named internally JsProtoUrl) is the way I call the
@@ -165,7 +166,7 @@ def pburl_extract(url) -> Generator[ExtractorThreadMessage]:
                 on_close=on_close,
             ).run_forever()
 
-            debug('[i] CDP connection succeeded')
+            debug('CDP connection succeeded')
 
             if teardown_reason:
                 yield ExtractorErrorMessage(teardown_reason)
@@ -212,7 +213,7 @@ def pburl_extract(url) -> Generator[ExtractorThreadMessage]:
         del proto_to_urls[proto]
 
         info(
-            '[i] Extracted Protobuf declaration: %r => %r'
+            'Extracted Protobuf declaration: %r => %r'
             % (pbname, proto_to_urls[pbname])
         )
 
@@ -233,7 +234,7 @@ def on_open(ws):
 
 
 def on_close(ws, *args):
-    debug('[i] CDP connection closed')
+    debug('CDP connection closed')
 
 
 def send(ws, call, params=None, data=None):
@@ -253,7 +254,7 @@ def on_message(ws, msg):
 
         msg = loads(msg)
 
-        # debug('[i] Received Websocket message: %r' % msg)
+        # debug('Received Websocket message: %r' % msg)
 
         if 'method' in msg:
             call, msg = msg['method'], msg['params']
@@ -537,7 +538,7 @@ def on_message(ws, msg):
                                 }
                             },
                         )
-                        info('[i] Script successfully hooked 🥳 🎉')
+                        info('Script successfully hooked 🥳 🎉')
 
                 awaiting_srcs.remove(sid)
                 if not awaiting_srcs:
@@ -608,20 +609,19 @@ def logUrl(url):
                     }
                 )
 
-            info('[i] Captured URL: %r - %r - %r' % (url, qs, data))
+            info('Captured URL: %r - %r - %r' % (url, qs, data))
             if proto not in proto_to_urls:
                 proto_to_urls[proto] = set()
             proto_to_urls[proto].add(url)
             return
 
     info(
-        '[i] Did not capture URL: %r - %r - across => %r'
-        % (url, data, sent_msgs)
+        'Did not capture URL: %r - %r - across => %r' % (url, data, sent_msgs)
     )
 
 
 def main():
-    getLogger().setLevel(DEBUG)
+    LoggingCentral(debug_mode=True)
 
     extractor_main('pburl_extract')
 

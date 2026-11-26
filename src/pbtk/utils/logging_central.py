@@ -21,7 +21,7 @@ import sys
 
 
 MEMORY_LOG_LINES = 5000
-LOG_FORMAT = '[{asctime}] [ui {process}] - {levelname} - {message} ({pathname_last}:{lineno})'
+LOG_FORMAT = '[{asctime}] [pid {process}] - {levelname} - {message} ({pathname_last}:{lineno})'
 
 # if '--service' in join(sys.argv).lower():
 #     LOG_FORMAT = LOG_FORMAT.replace('ui ', 'service ')
@@ -32,7 +32,7 @@ BASE_FORMATTER = Formatter(fmt=LOG_FORMAT, style='{')
 class NoColorFormatter(Formatter):
     def format(self, record):
         record.pathname_last = split(
-            r'diagng/', record.pathname, flags=IGNORECASE
+            r'pbtk/', record.pathname, flags=IGNORECASE
         ).pop()
         return BASE_FORMATTER.format(record)
 

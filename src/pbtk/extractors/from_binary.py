@@ -4,13 +4,13 @@ from google.protobuf.internal.decoder import _DecodeVarint
 
 from collections.abc import Generator
 from os.path import dirname, realpath
-from logging import getLogger, DEBUG
 from typing import Union
 
 __import__('sys').path.append(dirname(realpath(__file__)) + '/../..')
 from pbtk.utils.common import register_extractor, extractor_main
 from pbtk.datamodel.extractor import ExtractorOutputFile
 from pbtk.utils.descpb_to_proto import descpb_to_proto
+from pbtk.utils.logging_central import LoggingCentral
 
 """
     This script extracts Protobufs metadata embedded into an executable
@@ -87,7 +87,7 @@ def walk_binary(binr: Union[str, bytes]) -> Generator[ExtractorOutputFile]:
 
 
 def main():
-    getLogger().setLevel(DEBUG)
+    LoggingCentral(debug_mode=True)
 
     extractor_main('from_binary')
 

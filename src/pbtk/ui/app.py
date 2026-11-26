@@ -29,7 +29,7 @@ import sys
 # Register resources
 import pbtk.ui.gresource
 
-from pbtk.ui.logging_central import LoggingCentral
+from pbtk.utils.logging_central import LoggingCentral
 from pbtk.ui.main_window import MainWindow
 
 import gi

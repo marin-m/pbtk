@@ -356,17 +356,17 @@ def extractor_save(
                 raise ValueError
 
         elif isinstance(thread_msg, ExtractorInfoMessage):
-            info('[i] %s' % thread_msg.info)
+            info('%s' % thread_msg.info)
 
         elif isinstance(thread_msg, ExtractorErrorMessage):
-            error('[!] %s' % thread_msg.info)
+            error('%s' % thread_msg.info)
 
         elif isinstance(thread_msg, ExtractorProgress):
             if thread_msg.progress is None:
-                debug('[i] %s' % thread_msg.info)
+                debug('%s' % thread_msg.info)
             else:
                 debug(
-                    '[i] %s (%s %%)'
+                    '%s (%.4g %%)'
                     % (thread_msg.info, thread_msg.progress * 100.0)
                 )
 
