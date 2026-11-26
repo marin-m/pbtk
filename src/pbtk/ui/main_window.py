@@ -67,7 +67,9 @@ class MainWindow(Adw.ApplicationWindow):
     # Step #2 - Define an HTTPS endpoint
 
     proto_inodes = GObject.Property(type=Gtk.MapListModel)
+    proto_inodes_model = GObject.Property(type=Gtk.SortListModel)
     proto_inodes_selection: Gtk.NoSelection = Gtk.Template.Child()
+    proto_resp_inodes_selection: Gtk.NoSelection = Gtk.Template.Child()
 
     selected_req_proto = GObject.Property(type=Gio.File)
     selected_resp_proto = GObject.Property(type=Gio.File)
@@ -186,21 +188,23 @@ class MainWindow(Adw.ApplicationWindow):
             self.global_extraction_dir
         ).get_children()
 
-        self.proto_inodes_selection.set_model(
-            Gtk.SortListModel.new(
-                Gtk.TreeListModel.new(
-                    self.proto_inodes,
-                    passthrough=False,
-                    autoexpand=True,
-                    create_func=lambda item: item.get_children(),
-                ),
-                Gtk.TreeListRowSorter.new(
-                    Gtk.StringSorter.new(
-                        Gtk.PropertyExpression.new(ProtoInode, None, 'label')
-                    )
-                ),
-            )
+        self.proto_inodes_model = Gtk.SortListModel.new(
+            Gtk.TreeListModel.new(
+                self.proto_inodes,
+                passthrough=False,
+                autoexpand=False,
+                create_func=lambda item: item.get_children(),
+            ),
+            Gtk.TreeListRowSorter.new(
+                Gtk.StringSorter.new(
+                    Gtk.PropertyExpression.new(ProtoInode, None, 'label')
+                )
+            ),
         )
+
+        self.proto_inodes_selection.set_model(self.proto_inodes_model)
+
+        self.proto_resp_inodes_selection.set_model(self.proto_inodes_model)
 
         # Model for list of known HTTP(S) endpoints
 
@@ -241,84 +245,6 @@ class MainWindow(Adw.ApplicationWindow):
 
         self.add_simple_action('show-about', show_about)
 
-        def pick_proto_file(*args):
-            def load_bytes_cb(open_result: Gio.File, result: Gio.AsyncResult):
-                try:
-                    _data: bytes = open_result.load_bytes_finish(result)[
-                        0
-                    ].get_data()
-
-                except GLib.GError as err:
-                    self.alert_popup('Could not read file', err.message)
-
-                else:
-                    messages: list[ProtoMessageDeclaration] = list(
-                        load_proto_msgs(open_result.get_path())
-                    )
-
-                    if not messages:
-                        self.alert_popup(
-                            'There is no message defined in this .proto.'
-                        )
-                        return
-
-                    self.endpoint_req_msgs.splice(
-                        0, self.endpoint_req_msgs.get_n_items(), messages
-                    )
-
-                    self.endpoint_resp_msgs.splice(
-                        0,
-                        self.endpoint_resp_msgs.get_n_items(),
-                        messages,
-                    )
-
-                    self.endpoint_msg_section.set_description(
-                        'Pick a message loaded from "<a href="file://%s">%s</a>":'
-                        % (
-                            GLib.markup_escape_text(open_result.get_path()),
-                            GLib.markup_escape_text(open_result.get_path()),
-                        )
-                    )
-
-                    self.endpoint_resp_msg_file.set_subtitle(
-                        open_result.get_path()
-                    )
-
-                    self.selected_req_proto = open_result
-                    self.selected_resp_proto = open_result
-
-                    self.main_nav_view.push_by_tag('new_endpoint_page')
-
-            def file_picked(
-                file_dialog: Gtk.FileDialog, task: Gio.AsyncResult
-            ):
-                try:
-                    open_result: Gio.File = file_dialog.open_finish(task)
-
-                except GLib.GError as err:
-                    if not err.matches(
-                        Gtk.DialogError.quark(), Gtk.DialogError.DISMISSED
-                    ):
-                        self.alert_popup('Could not open file', err.message)
-                else:
-                    open_result.load_bytes_async(None, load_bytes_cb)
-
-            proto_filter = Gtk.FileFilter.new()
-            proto_filter.set_name('Protobuf definition (*.proto)')
-            proto_filter.add_suffix('proto')
-
-            filters = Gio.ListStore.new(Gtk.FileFilter)
-            filters.append(proto_filter)
-
-            file_picker = Gtk.FileDialog()
-            file_picker.set_initial_folder(
-                Gio.File.new_for_path(self.global_extraction_dir)
-            )
-            file_picker.set_filters(filters)
-            file_picker.open(self, callback=file_picked)
-
-        self.add_simple_action('pick-proto-file', pick_proto_file)
-
         def open_proto_dir(*args):
             proto_dir = Gio.File.new_for_path(self.global_extraction_dir)
             Gtk.FileLauncher.new(proto_dir).launch(self, None, None)
@@ -329,67 +255,6 @@ class MainWindow(Adw.ApplicationWindow):
             self.main_nav_view.pop_to_tag('main_page')
 
         self.add_simple_action('go-back-to-main', go_back_to_main)
-
-        def pick_resp_msg(*args):
-            def load_bytes_cb(open_result: Gio.File, result: Gio.AsyncResult):
-                try:
-                    _data: bytes = open_result.load_bytes_finish(result)[
-                        0
-                    ].get_data()
-                except GLib.GError as err:
-                    self.alert_popup('Could not read file', err.message)
-                else:
-                    msgs: list[ProtoMessageDeclaration] = list(
-                        load_proto_msgs(open_result.get_path())
-                    )
-
-                    if not msgs:
-                        self.alert_popup(
-                            'There is no message defined in this .proto.'
-                        )
-                        return
-
-                    self.endpoint_resp_msgs.splice(
-                        0,
-                        self.endpoint_resp_msgs.get_n_items(),
-                        msgs,
-                    )
-
-                    self.endpoint_resp_msg_file.set_subtitle(
-                        open_result.get_path()
-                    )
-
-                    self.selected_resp_proto = open_result
-
-            def file_picked(
-                file_dialog: Gtk.FileDialog, task: Gio.AsyncResult
-            ):
-                try:
-                    open_result: Gio.File = file_dialog.open_finish(task)
-
-                except GLib.GError as err:
-                    if not err.matches(
-                        Gtk.DialogError.quark(), Gtk.DialogError.DISMISSED
-                    ):
-                        self.alert_popup('Could not open file', err.message)
-                else:
-                    open_result.load_bytes_async(None, load_bytes_cb)
-
-            proto_filter = Gtk.FileFilter.new()
-            proto_filter.set_name('Protobuf definition (*.proto)')
-            proto_filter.add_suffix('proto')
-
-            filters = Gio.ListStore.new(Gtk.FileFilter)
-            filters.append(proto_filter)
-
-            file_picker = Gtk.FileDialog()
-            file_picker.set_initial_folder(
-                Gio.File.new_for_path(self.global_extraction_dir)
-            )
-            file_picker.set_filters(filters)
-            file_picker.open(self, callback=file_picked)
-
-        self.add_simple_action('pick-resp-msg', pick_resp_msg)
 
         def create_endpoint(*args):
             request_pb: ProtoMessageDeclaration = (
@@ -498,6 +363,109 @@ class MainWindow(Adw.ApplicationWindow):
         )
 
         self.pb_param_subform.set_visible(current_transport.has_pb_param)
+
+    @Gtk.Template.Callback()
+    def proto_inode_selected(self, list_view: Gtk.ListView, position: int):
+        tree_list_row: Gtk.TreeListRow = self.proto_inodes_model.get_item(
+            position
+        )
+        inode_row: ProtoInode = tree_list_row.get_item()
+
+        if not inode_row.is_directory:
+
+            def load_bytes_cb(open_result: Gio.File, result: Gio.AsyncResult):
+                try:
+                    _data: bytes = open_result.load_bytes_finish(result)[
+                        0
+                    ].get_data()
+
+                except GLib.GError as err:
+                    self.alert_popup('Could not read file', err.message)
+
+                else:
+                    messages: list[ProtoMessageDeclaration] = list(
+                        load_proto_msgs(open_result.get_path())
+                    )
+
+                    if not messages:
+                        self.alert_popup(
+                            'There is no message defined in this .proto.'
+                        )
+                        return
+
+                    self.endpoint_req_msgs.splice(
+                        0, self.endpoint_req_msgs.get_n_items(), messages
+                    )
+
+                    self.endpoint_resp_msgs.splice(
+                        0,
+                        self.endpoint_resp_msgs.get_n_items(),
+                        messages,
+                    )
+
+                    self.endpoint_msg_section.set_description(
+                        'Pick a message loaded from "<a href="file://%s">%s</a>":'
+                        % (
+                            GLib.markup_escape_text(open_result.get_path()),
+                            GLib.markup_escape_text(open_result.get_path()),
+                        )
+                    )
+
+                    self.endpoint_resp_msg_file.set_subtitle(
+                        open_result.get_path()
+                    )
+
+                    self.selected_req_proto = open_result
+                    self.selected_resp_proto = open_result
+
+                    self.main_nav_view.push_by_tag('new_endpoint_page')
+
+            inode_row.file_obj.load_bytes_async(None, load_bytes_cb)
+
+    @Gtk.Template.Callback()
+    def proto_resp_inode_selected(
+        self, list_view: Gtk.ListView, position: int
+    ):
+        tree_list_row: Gtk.TreeListRow = self.proto_inodes_model.get_item(
+            position
+        )
+        inode_row: ProtoInode = tree_list_row.get_item()
+
+        if not inode_row.is_directory:
+
+            def load_bytes_cb(open_result: Gio.File, result: Gio.AsyncResult):
+                try:
+                    _data: bytes = open_result.load_bytes_finish(result)[
+                        0
+                    ].get_data()
+                except GLib.GError as err:
+                    self.alert_popup('Could not read file', err.message)
+                else:
+                    msgs: list[ProtoMessageDeclaration] = list(
+                        load_proto_msgs(open_result.get_path())
+                    )
+
+                    if not msgs:
+                        self.alert_popup(
+                            'There is no message defined in this .proto.'
+                        )
+                        return
+
+                    self.endpoint_resp_msgs.splice(
+                        0,
+                        self.endpoint_resp_msgs.get_n_items(),
+                        msgs,
+                    )
+
+                    self.endpoint_resp_msg_file.set_subtitle(
+                        open_result.get_path()
+                    )
+
+                    self.selected_resp_proto = open_result
+
+                    self.main_nav_view.pop()
+
+            inode_row.file_obj.load_bytes_async(None, load_bytes_cb)
 
     @Gtk.Template.Callback()
     def endpoint_row_selected(self, list_view: Gtk.ListView, position: int):

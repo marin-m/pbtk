@@ -276,6 +276,8 @@ pill</property>
                         <property name="model">
                           <object class="GtkNoSelection" id="proto_inodes_selection"></object>
                         </property>
+                        <property name="single-click-activate">true</property>
+                        <signal name="activate" handler="proto_inode_selected"/>
                       </object>
                     </property>
                   </object>
@@ -439,7 +441,8 @@ pill</property>
                             <property name="visible">false</property>
                             <child type="suffix">
                               <object class="GtkButton" id="pick_resp_msg_file_button">
-                                <property name="action-name">win.pick-resp-msg</property>
+                                <property name="action-name">navigation.push</property>
+                                <property name="action-target">"proto_resp_select_page"</property>
                                 <property name="child">
                                   <object class="AdwButtonContent">
                                     <property name="icon-name">document-open-symbolic</property>
@@ -509,6 +512,73 @@ suggested-action</property>
             </property>
             <property name="tag">new_endpoint_page</property>
             <property name="title">Define a new HTTPS endpoint</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwNavigationPage" id="proto_resp_select_page">
+            <property name="child">
+              <object class="AdwToolbarView">
+                <property name="content">
+                  <object class="GtkScrolledWindow">
+                    <property name="child">
+                      <object class="GtkListView">
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="bytes"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkTreeExpander">
+        <binding name="list-row">
+          <lookup name="item" type="GtkListItem">GtkListItem</lookup>
+        </binding>
+        <property name="child">
+          <object class="GtkLabel">
+            <property name="use-markup">false</property>
+            <property name="margin-bottom">7</property>
+            <property name="margin-top">7</property>
+            <property name="margin-start">7</property>
+            <property name="margin-end">7</property>
+            <property name="ellipsize">3</property>
+            <property name="has-tooltip">true</property>
+            <binding name="tooltip-text">
+              <lookup name="label" type="ProtoInode">
+                <lookup name="item" type="GtkTreeListRow">
+                  <lookup name="item" type="GtkListItem">GtkListItem</lookup>
+                </lookup>
+              </lookup>
+            </binding>
+            <binding name="label">
+              <lookup name="label" type="ProtoInode">
+                <lookup name="item" type="GtkTreeListRow">
+                  <lookup name="item" type="GtkListItem">GtkListItem</lookup>
+                </lookup>
+              </lookup>
+            </binding>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>]]></property>
+                          </object>
+                        </property>
+                        <property name="model">
+                          <object class="GtkNoSelection" id="proto_resp_inodes_selection"></object>
+                        </property>
+                        <property name="single-click-activate">true</property>
+                        <signal name="activate" handler="proto_resp_inode_selected"/>
+                      </object>
+                    </property>
+                  </object>
+                </property>
+                <child type="top">
+                  <object class="AdwHeaderBar"></object>
+                </child>
+              </object>
+            </property>
+            <property name="tag">proto_resp_select_page</property>
+            <property name="title">Choose a Protobuf message...</property>
           </object>
         </child>
         <child>

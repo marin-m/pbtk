@@ -232,6 +232,9 @@ template $MainWindow: Adw.ApplicationWindow {
             };
 
             model: NoSelection proto_inodes_selection {};
+
+            single-click-activate: true;
+            activate => $proto_inode_selected();
           };
         };
 
@@ -353,7 +356,8 @@ template $MainWindow: Adw.ApplicationWindow {
 
               [suffix]
               Button pick_resp_msg_file_button {
-                action-name: "win.pick-resp-msg";
+                action-name: "navigation.push";
+                action-target: "\"proto_resp_select_page\"";
 
                 child: Adw.ButtonContent {
                   icon-name: "document-open-symbolic";
@@ -408,6 +412,45 @@ template $MainWindow: Adw.ApplicationWindow {
 
       tag: "new_endpoint_page";
       title: "Define a new HTTPS endpoint";
+    }
+
+    Adw.NavigationPage proto_resp_select_page {
+      child: Adw.ToolbarView {
+        content: ScrolledWindow {
+          child: ListView {
+            factory: BuilderListItemFactory {
+              template ListItem {
+                child: TreeExpander {
+                  list-row: bind template.item as <Gtk.TreeListRow>;
+
+                  child: Label {
+                    use-markup: false;
+                    margin-bottom: 7;
+                    margin-top: 7;
+                    margin-start: 7;
+                    margin-end: 7;
+                    ellipsize: end;
+                    has-tooltip: true;
+                    tooltip-text: bind template.item as <TreeListRow>.item as <$ProtoInode>.label;
+                    label: bind template.item as <TreeListRow>.item as <$ProtoInode>.label;
+                  };
+                };
+              }
+            };
+
+            model: NoSelection proto_resp_inodes_selection {};
+
+            single-click-activate: true;
+            activate => $proto_resp_inode_selected();
+          };
+        };
+
+        [top]
+        Adw.HeaderBar {}
+      };
+
+      tag: "proto_resp_select_page";
+      title: "Choose a Protobuf message...";
     }
 
     Adw.NavigationPage endpoint_selection_page {
