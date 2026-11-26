@@ -72,12 +72,15 @@ class ProtoInode(GObject.Object):
 
         self.is_directory = file_type == Gio.FileType.DIRECTORY
 
-        if self.is_directory:
+        return self
+
+    def get_children(self):
+        if self.is_directory and self.wrapped_children is None:
             self.children_monitor = Gtk.DirectoryList.new(
                 'standard::*', self.file_obj
             )
             self.wrapped_children = Gtk.MapListModel.new(
-                self.children_monitor, cls.from_file_info
+                self.children_monitor, ProtoInode.from_file_info
             )
 
-        return self
+        return self.wrapped_children

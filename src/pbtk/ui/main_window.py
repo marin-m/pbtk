@@ -184,7 +184,7 @@ class MainWindow(Adw.ApplicationWindow):
 
         self.proto_inodes = ProtoInode.from_path(
             self.global_extraction_dir
-        ).wrapped_children
+        ).get_children()
 
         self.proto_inodes_selection.set_model(
             Gtk.SortListModel.new(
@@ -192,7 +192,7 @@ class MainWindow(Adw.ApplicationWindow):
                     self.proto_inodes,
                     passthrough=False,
                     autoexpand=True,
-                    create_func=lambda item: item.wrapped_children,
+                    create_func=lambda item: item.get_children(),
                 ),
                 Gtk.TreeListRowSorter.new(
                     Gtk.StringSorter.new(
