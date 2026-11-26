@@ -213,14 +213,9 @@ class ProtobufItemString(ProtobufItem):
 
 
 class ProtobufItemBytes(ProtobufItem):
-    value = GObject.Property(type=str)
+    value = GObject.Property(type=object)
 
     def __init__(self, desc: FieldDescriptor, *args):
         super().__init__(desc, *args)
 
-        self.value = (
-            (desc.default_value or b'')
-            .decode('latin1')
-            .encode('unicode_escape')
-            .decode('latin1')
-        )
+        self.value = desc.default_value or b''

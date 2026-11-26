@@ -248,13 +248,32 @@ class ProtoRowFieldValue(Gtk.Box):
             )
 
         elif isinstance(self.child, Gtk.Entry):
-            self.item.bind_property(
-                'value',
-                self.child.get_buffer(),
-                'text',
-                GObject.BindingFlags.BIDIRECTIONAL
-                | GObject.BindingFlags.SYNC_CREATE,
-            )
+            if desc.type != desc.TYPE_BYTES:
+                self.item.bind_property(
+                    'value',
+                    self.child.get_buffer(),
+                    'text',
+                    GObject.BindingFlags.BIDIRECTIONAL
+                    | GObject.BindingFlags.SYNC_CREATE,
+                )
+            else:
+                self.item.bind_property(
+                    'value',
+                    self.child.get_buffer(),
+                    'text',
+                    GObject.BindingFlags.BIDIRECTIONAL
+                    | GObject.BindingFlags.SYNC_CREATE,
+                    lambda _binding, value: (
+                        value.decode('latin1')
+                        .encode('unicode_escape')
+                        .decode('latin1')
+                    ),
+                    lambda _binding, value: (
+                        value.encode('latin1')
+                        .decode('unicode_escape')
+                        .encode('latin1')
+                    ),
+                )
 
         elif isinstance(self.child, Gtk.CheckButton):
             self.item.bind_property(
@@ -696,20 +715,10 @@ class FuzzerWindow(Adw.Window):
                     setattr(
                         pb_msg,
                         field.name,
-                        item.value.encode('latin1')
-                        .decode('unicode_escape')
-                        .encode('latin1')
-                        if isinstance(item, ProtobufItemBytes)
-                        else item.value,
+                        item.value,
                     )
                 else:
-                    getattr(pb_msg, field.name).append(
-                        item.value.encode('latin1')
-                        .decode('unicode_escape')
-                        .encode('latin1')
-                        if isinstance(item, ProtobufItemBytes)
-                        else item.value
-                    )
+                    getattr(pb_msg, field.name).append(item.value)
 
         for item in self.proto_items:
             consume(pb_request, item)
