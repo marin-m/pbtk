@@ -372,7 +372,10 @@ class MainWindow(Adw.ApplicationWindow):
         )
         inode_row: ProtoInode = tree_list_row.get_item()
 
-        if not inode_row.is_directory:
+        if inode_row.is_directory:
+            tree_list_row.set_expanded(not tree_list_row.get_expanded())
+
+        else:
 
             def load_bytes_cb(open_result: Gio.File, result: Gio.AsyncResult):
                 try:
@@ -432,7 +435,10 @@ class MainWindow(Adw.ApplicationWindow):
         )
         inode_row: ProtoInode = tree_list_row.get_item()
 
-        if not inode_row.is_directory:
+        if inode_row.is_directory:
+            tree_list_row.set_expanded(not tree_list_row.get_expanded())
+
+        else:
 
             def load_bytes_cb(open_result: Gio.File, result: Gio.AsyncResult):
                 try:
@@ -482,6 +488,8 @@ class MainWindow(Adw.ApplicationWindow):
 
         if endpoint_row.endpoint:
             self.fuzzer.load(endpoint_row.endpoint)
+        else:
+            tree_list_row.set_expanded(not tree_list_row.get_expanded())
 
     @Gtk.Template.Callback()
     def update_endpoints_list(self, *args):
