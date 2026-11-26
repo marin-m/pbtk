@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 
 import gi
 
+from pbtk.datamodel.proto_inode import ProtoInode
 from pbtk.datamodel.endpoint import EndpointListRow
 from pbtk.datamodel.extractor import Extractor
 from pbtk.datamodel.transport import TransportDefinition
@@ -64,6 +65,9 @@ class MainWindow(Adw.ApplicationWindow):
     extraction_text_buffer: Gtk.TextBuffer = Gtk.Template.Child()
 
     # Step #2 - Define an HTTPS endpoint
+
+    proto_inodes = GObject.Property(type=Gtk.MapListModel)
+    proto_inodes_selection: Gtk.NoSelection = Gtk.Template.Child()
 
     selected_req_proto = GObject.Property(type=Gio.File)
     selected_resp_proto = GObject.Property(type=Gio.File)
@@ -176,10 +180,22 @@ class MainWindow(Adw.ApplicationWindow):
             GObject.BindingFlags.SYNC_CREATE,
         )
 
-        # ➡️ WIP: Use a signal-based factory
-        #    in order to build selectable
-        #    endpoint rows with on-click signals
-        #    (cf. https://discourse.gnome.org/t/how-to-get-item-under-gtk-4-listview/21184/5)
+        # Model for extracted on-disk `.proto` files
+
+        self.proto_inodes = ProtoInode.from_path(
+            self.global_extraction_dir
+        ).wrapped_children
+
+        self.proto_inodes_selection.set_model(
+            Gtk.TreeListModel.new(
+                self.proto_inodes,
+                passthrough=False,
+                autoexpand=True,
+                create_func=lambda item: item.wrapped_children,
+            )
+        )
+
+        # Model for list of known HTTP(S) endpoints
 
         self.endpoints_list = Gio.ListStore.new(EndpointListRow)
         self.endpoints_model = Gtk.TreeListModel.new(

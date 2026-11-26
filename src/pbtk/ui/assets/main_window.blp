@@ -211,9 +211,24 @@ template $MainWindow: Adw.ApplicationWindow {
       child: Adw.ToolbarView {
         content: ScrolledWindow {
           child: ListView {
-            factory: BuilderListItemFactory {};
+            factory: BuilderListItemFactory {
+              template ListItem {
+                child: TreeExpander {
+                  list-row: bind template.item as <Gtk.TreeListRow>;
 
-            model: NoSelection {};
+                  child: Label {
+                    use-markup: false;
+                    margin-bottom: 7;
+                    margin-top: 7;
+                    margin-start: 7;
+                    margin-end: 7;
+                    label: bind template.item as <TreeListRow>.item as <$ProtoInode>.label;
+                  };
+                };
+              }
+            };
+
+            model: NoSelection proto_inodes_selection {};
           };
         };
 
