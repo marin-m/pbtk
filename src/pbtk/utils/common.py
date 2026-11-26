@@ -366,7 +366,8 @@ def extractor_save(
                 debug('[i] %s' % thread_msg.info)
             else:
                 debug(
-                    '[i] %s (%s %%)' % (thread_msg.info, thread_msg.progress)
+                    '[i] %s (%s %%)'
+                    % (thread_msg.info, thread_msg.progress * 100.0)
                 )
 
     return nb_written, wrote_endpoints

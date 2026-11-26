@@ -401,7 +401,7 @@ class ClassWrapper:
         )
         if annote is None:
             warning(
-                "Note: Jad annotation couldn't be parsed: %r / %s / %s",
+                "Jad annotation couldn't be parsed: %r / %s / %s",
                 repr(name + '(' + args),
                 self.cls,
                 self.annotes,

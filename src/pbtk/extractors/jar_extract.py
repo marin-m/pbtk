@@ -5,7 +5,7 @@ from google.protobuf.descriptor_pb2 import (
     FieldDescriptorProto,
 )
 from re import findall, MULTILINE, search, split, sub, escape, finditer
-from logging import debug, warning, error, getLogger, DEBUG
+from logging import debug, warning, info, error, getLogger, DEBUG
 from collections import OrderedDict, defaultdict
 from collections.abc import Generator
 from itertools import count, product
@@ -387,7 +387,7 @@ def extract_lite(
 ):
     code = jar.decomp(cls)
 
-    error('\nIn %s:' % cls)
+    debug('Entering "%s"' % cls)
     if not code.raw:
         error('(Jad failed)')
         return
@@ -982,7 +982,7 @@ def extract_lite(
 
                 fields[fnumber] = (flabel, ftype, fenumormsg, fdefault, var)
 
-    debug(fields)
+    info('Extracted Protobuf message: %r' % fields)
 
     """
     Final step: Build the DescriptorProto object
@@ -1282,7 +1282,7 @@ def extract_j2me(
         my_namer = namer()
         summary = {}
 
-        debug('\nIn %s.%s:' % (cls, var))
+        debug('Entering "%s.%s"' % (cls, var))
         message.name = var
 
         if fields:

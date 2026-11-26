@@ -191,15 +191,20 @@ pill</property>
                           </object>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="extraction_text_view">
-                            <property name="buffer">
-                              <object class="GtkTextBuffer" id="extraction_text_buffer"></object>
-                            </property>
-                            <property name="editable">false</property>
-                            <property name="height-request">230</property>
-                            <property name="monospace">true</property>
-                            <property name="visible">false</property>
-                            <property name="wrap-mode">3</property>
+                          <object class="GtkScrolledWindow">
+                            <property name="min-content-height">170</property>
+                            <child>
+                              <object class="GtkTextView" id="extraction_text_view">
+                                <property name="buffer">
+                                  <object class="GtkTextBuffer" id="extraction_text_buffer"></object>
+                                </property>
+                                <property name="editable">false</property>
+                                <property name="height-request">230</property>
+                                <property name="monospace">true</property>
+                                <property name="visible">false</property>
+                                <property name="wrap-mode">3</property>
+                              </object>
+                            </child>
                           </object>
                         </child>
                       </object>

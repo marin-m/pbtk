@@ -177,14 +177,18 @@ template $MainWindow: Adw.ApplicationWindow {
               }
             }
 
-            TextView extraction_text_view {
-              buffer: TextBuffer extraction_text_buffer {};
+            ScrolledWindow {
+              min-content-height: 170;
 
-              editable: false;
-              height-request: 230;
-              monospace: true;
-              visible: false;
-              wrap-mode: word_char;
+              TextView extraction_text_view {
+                buffer: TextBuffer extraction_text_buffer {};
+
+                editable: false;
+                height-request: 230;
+                monospace: true;
+                visible: false;
+                wrap-mode: word_char;
+              }
             }
           };
 

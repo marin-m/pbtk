@@ -178,7 +178,7 @@ class ExtractorRow(Adw.ActionRow):
     ):
         debug(
             'Extraction progress: %g %% - %s',
-            progress.progress or 0.0,
+            (progress.progress or 0.0) * 100.0,
             progress.info,
         )
 

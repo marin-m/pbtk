@@ -95,7 +95,7 @@ class ExtractorThread(Thread):
             except Exception as err:
                 thread_msg = ExtractorErrorMessage(
                     'Error while extracting "%s": %s'
-                    % (input_item.file_path_or_url, format_exc(err))
+                    % (input_item.file_path_or_url, format_exc())
                 )
                 GLib.idle_add(self.worker.error.emit, thread_msg)
 
