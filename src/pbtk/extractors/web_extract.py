@@ -118,11 +118,15 @@ def pburl_extract(url) -> Generator[ExtractorThreadMessage]:
             chrome = Popen(cmd)  # , stdout=DEVNULL, stderr=DEVNULL
         else:
             chrome = None
-            cmd[0] = '$(which google-chrome || which chromium-browser)'
+            cmd[0] = (
+                '$(which google-chrome || which chromium-browser || which chromium)'
+            )
             yield ExtractorInfoMessage(
                 "Can't launch Chrome or a Chromium-based "
                 + 'browser, please launch yourself: "'
-                + join(cmd)
+                + cmd[0]
+                + ' '
+                + join(cmd[1:])
                 + '", interact with it, and close it'
             )
 
