@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 
 from gi.repository import GObject, Gio
-from typing import Optional
-
-
-# ⚠️ XX WIP...
 
 
 class RecordedSampleRow(GObject.Object):

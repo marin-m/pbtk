@@ -95,8 +95,9 @@ class MainApplication(Adw.Application):
 
             error('Caught Python exception: \n' + tb_string)
 
-            if self.window:
-                self.window.alert_popup('⚠️ Caught Python exception', tb_string)
+            window = self.get_active_window() or self.window
+            if window:
+                window.alert_popup('⚠️ Caught Python exception', tb_string)
 
         sys.excepthook = error_handler
 

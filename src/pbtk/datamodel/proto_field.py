@@ -1,5 +1,6 @@
+#!/usr/bin/env python3
+
 from google.protobuf.descriptor import FieldDescriptor, Descriptor
-from google.protobuf.message import Message
 from gi.repository import GObject, Gio
 from typing import Self
 
@@ -212,14 +213,9 @@ class ProtobufItemString(ProtobufItem):
 
 
 class ProtobufItemBytes(ProtobufItem):
-    value = GObject.Property(type=str)
+    value = GObject.Property(type=object)
 
     def __init__(self, desc: FieldDescriptor, *args):
         super().__init__(desc, *args)
 
-        self.value = (
-            (desc.default_value or b'')
-            .decode('latin1')
-            .encode('unicode_escape')
-            .decode('latin1')
-        )
+        self.value = desc.default_value or b''

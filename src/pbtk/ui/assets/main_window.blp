@@ -29,7 +29,8 @@ template $MainWindow: Adw.ApplicationWindow {
             }
 
             Adw.ActionRow {
-              action-name: "win.pick-proto-file";
+              action-name: "navigation.push";
+              action-target: "\"proto_select_page\"";
               activatable: true;
               title: "Step 2: Link .protos to endpoints";
 
@@ -206,6 +207,45 @@ template $MainWindow: Adw.ApplicationWindow {
       title: "Extraction progress";
     }
 
+    Adw.NavigationPage proto_select_page {
+      child: Adw.ToolbarView {
+        content: ScrolledWindow {
+          child: ListView {
+            factory: BuilderListItemFactory {
+              template ListItem {
+                child: TreeExpander {
+                  list-row: bind template.item as <Gtk.TreeListRow>;
+
+                  child: Label {
+                    use-markup: false;
+                    margin-bottom: 7;
+                    margin-top: 7;
+                    margin-start: 7;
+                    margin-end: 7;
+                    ellipsize: end;
+                    has-tooltip: true;
+                    tooltip-text: bind template.item as <TreeListRow>.item as <$ProtoInode>.label;
+                    label: bind template.item as <TreeListRow>.item as <$ProtoInode>.label;
+                  };
+                };
+              }
+            };
+
+            model: NoSelection proto_inodes_selection {};
+
+            single-click-activate: true;
+            activate => $proto_inode_selected();
+          };
+        };
+
+        [top]
+        Adw.HeaderBar {}
+      };
+
+      tag: "proto_select_page";
+      title: "Choose a Protobuf message...";
+    }
+
     Adw.NavigationPage new_endpoint_page {
       child: Adw.ToolbarView {
         content: Adw.PreferencesPage {
@@ -316,7 +356,8 @@ template $MainWindow: Adw.ApplicationWindow {
 
               [suffix]
               Button pick_resp_msg_file_button {
-                action-name: "win.pick-resp-msg";
+                action-name: "navigation.push";
+                action-target: "\"proto_resp_select_page\"";
 
                 child: Adw.ButtonContent {
                   icon-name: "document-open-symbolic";
@@ -373,6 +414,45 @@ template $MainWindow: Adw.ApplicationWindow {
       title: "Define a new HTTPS endpoint";
     }
 
+    Adw.NavigationPage proto_resp_select_page {
+      child: Adw.ToolbarView {
+        content: ScrolledWindow {
+          child: ListView {
+            factory: BuilderListItemFactory {
+              template ListItem {
+                child: TreeExpander {
+                  list-row: bind template.item as <Gtk.TreeListRow>;
+
+                  child: Label {
+                    use-markup: false;
+                    margin-bottom: 7;
+                    margin-top: 7;
+                    margin-start: 7;
+                    margin-end: 7;
+                    ellipsize: end;
+                    has-tooltip: true;
+                    tooltip-text: bind template.item as <TreeListRow>.item as <$ProtoInode>.label;
+                    label: bind template.item as <TreeListRow>.item as <$ProtoInode>.label;
+                  };
+                };
+              }
+            };
+
+            model: NoSelection proto_resp_inodes_selection {};
+
+            single-click-activate: true;
+            activate => $proto_resp_inode_selected();
+          };
+        };
+
+        [top]
+        Adw.HeaderBar {}
+      };
+
+      tag: "proto_resp_select_page";
+      title: "Choose a Protobuf message...";
+    }
+
     Adw.NavigationPage endpoint_selection_page {
       child: Adw.ToolbarView {
         content: ScrolledWindow {
@@ -414,6 +494,7 @@ template $MainWindow: Adw.ApplicationWindow {
   default-height: 520;
   default-width: 720;
   icon-name: "re.fossplant.pbtk";
+  close-request => $on_close();
 }
 
 Adw.AlertDialog url_input_dialog {
