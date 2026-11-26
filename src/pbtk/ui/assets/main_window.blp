@@ -222,6 +222,9 @@ template $MainWindow: Adw.ApplicationWindow {
                     margin-top: 7;
                     margin-start: 7;
                     margin-end: 7;
+                    ellipsize: end;
+                    has-tooltip: true;
+                    tooltip-text: bind template.item as <TreeListRow>.item as <$ProtoInode>.label;
                     label: bind template.item as <TreeListRow>.item as <$ProtoInode>.label;
                   };
                 };

@@ -187,11 +187,18 @@ class MainWindow(Adw.ApplicationWindow):
         ).wrapped_children
 
         self.proto_inodes_selection.set_model(
-            Gtk.TreeListModel.new(
-                self.proto_inodes,
-                passthrough=False,
-                autoexpand=True,
-                create_func=lambda item: item.wrapped_children,
+            Gtk.SortListModel.new(
+                Gtk.TreeListModel.new(
+                    self.proto_inodes,
+                    passthrough=False,
+                    autoexpand=True,
+                    create_func=lambda item: item.wrapped_children,
+                ),
+                Gtk.TreeListRowSorter.new(
+                    Gtk.StringSorter.new(
+                        Gtk.PropertyExpression.new(ProtoInode, None, 'label')
+                    )
+                ),
             )
         )
 

@@ -249,6 +249,15 @@ pill</property>
             <property name="margin-top">7</property>
             <property name="margin-start">7</property>
             <property name="margin-end">7</property>
+            <property name="ellipsize">3</property>
+            <property name="has-tooltip">true</property>
+            <binding name="tooltip-text">
+              <lookup name="label" type="ProtoInode">
+                <lookup name="item" type="GtkTreeListRow">
+                  <lookup name="item" type="GtkListItem">GtkListItem</lookup>
+                </lookup>
+              </lookup>
+            </binding>
             <binding name="label">
               <lookup name="label" type="ProtoInode">
                 <lookup name="item" type="GtkTreeListRow">
