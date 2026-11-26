@@ -35,7 +35,7 @@ from google.protobuf.internal.type_checkers import _VALUE_CHECKERS
 from google.protobuf.descriptor import FieldDescriptor
 from google.protobuf.message import Message
 
-from pbtk.datamodel.field import (
+from pbtk.datamodel.proto_field import (
     ProtobufItem,
     ProtobufItemEnum,
     ProtobufItemBytes,

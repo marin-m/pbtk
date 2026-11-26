@@ -1,5 +1,6 @@
+#!/usr/bin/env python3
+
 from google.protobuf.descriptor import FieldDescriptor, Descriptor
-from google.protobuf.message import Message
 from gi.repository import GObject, Gio
 from typing import Self
 
