@@ -11,7 +11,7 @@ pbtk (*Protobuf toolkit*) is a full-fledged set of scripts, accessible through a
 
 - **Editing, replaying and fuzzing data** sent to Protobuf network endpoints, through a handy graphical interface that allows you to edit live the fields for a Protobuf message and view the result.
 
-<img src="packaging/assets/screenshots/1-fuzzer-screen.png?raw=true" alt="The pbtk editor GUI">
+<img src="packaging/screenshots/1-fuzzer-screen.png?raw=true" alt="The pbtk editor GUI">
 
 ## Installation
 
@@ -96,29 +96,29 @@ Let's say you're reverse engineering an Android application. You explored a bit 
 
 You open PBTK and are greeted in a meaningful manner:
 
-![The welcome screen](packaging/assets/screenshots/2-welcome-screen.png?raw=true)
+![The welcome screen](packaging/screenshots/2-welcome-screen.png?raw=true)
 
 The first step is getting your .protos into text format. If you're targeting an Android app, dropping in an APK and waiting should do the magic work! (unless it's a really exotic implementation)
 
-![Done screen](packaging/assets/screenshots/2b-done-popup.png?raw=true)
+![Done screen](packaging/screenshots/2b-done-popup.png?raw=true)
 
 This being done, you jump to `~/.pbtk/protos/<your APK name>` (either through the command line, or the button on the bottom of the welcome screen to open your file browser, the way you prefer). All the app's .protos are indeed here.
 
 Back in your decompiler, you stumbled upon the class that constructs data sent to the HTTPS endpoint that interests you. It serializes the Protobuf message by calling a class made of generated code.
 
-![Your decompiler](packaging/assets/screenshots/2c-jad-window.png?raw=true)
+![Your decompiler](packaging/screenshots/2c-jad-window.png?raw=true)
 
 This latter class should have a perfect match inside your .protos directory (i.e `com.foo.bar.a.b` will match `com/foo/bar/a/b.proto`). Either way, grepping its name should enable you to reference it.
 
 That's great: the next thing is going to **Step 2**, selecting your desired input .proto, and filling some information about your endpoint.
 
-![Endpoint creation form](packaging/assets/screenshots/3-endpoint-creation.png?raw=true)
+![Endpoint creation form](packaging/screenshots/3-endpoint-creation.png?raw=true)
 
 You may also give some sample raw Protobuf data, that was sent to this endpoint, captured through mitmproxy or Wireshark, and that you'll paste in a hex-encoded form.
 
 **Step 3** is about the fun part of clicking buttons and seeing what happens! You have a tree view representing every field in the Protobuf structure (repeated fields are suffixed by "+", required fields don't have checkboxes).
 
-![Fuzzer window with response](packaging/assets/screenshots/4-fuzzer-with-response.png?raw=true)
+![Fuzzer window with response](packaging/screenshots/4-fuzzer-with-response.png?raw=true)
 
 Just hover a field to have focus. If the field is an integer type, use the mouse wheel to increment/decrement it. Enum information appears on hover too.
 

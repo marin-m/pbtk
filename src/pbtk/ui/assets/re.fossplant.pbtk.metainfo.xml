@@ -21,19 +21,19 @@
   </description>
   <screenshots>
     <screenshot type="default">
-      <image type="source">https://raw.githubusercontent.com/marin-m/pbtk/qt-version-1.x/packaging/assets/screenshots/1-fuzzer-screen.png</image>
+      <image type="source">https://raw.githubusercontent.com/marin-m/pbtk/master/packaging/screenshots/1-fuzzer-screen.png</image>
       <caption>pbtk: Fuzzer screen</caption>
     </screenshot>
     <screenshot>
-      <image type="source">https://raw.githubusercontent.com/marin-m/pbtk/qt-version-1.x/packaging/assets/screenshots/2-welcome-screen.png</image>
+      <image type="source">https://raw.githubusercontent.com/marin-m/pbtk/master/packaging/screenshots/2-welcome-screen.png</image>
       <caption>pbtk: Welcome screen</caption>
     </screenshot>
     <screenshot>
-      <image type="source">https://raw.githubusercontent.com/marin-m/pbtk/qt-version-1.x/packaging/assets/screenshots/4-fuzzer-with-response.png</image>
+      <image type="source">https://raw.githubusercontent.com/marin-m/pbtk/master/packaging/screenshots/4-fuzzer-with-response.png</image>
       <caption>pbtk: Fuzzer screen with Protobuf response</caption>
     </screenshot>
     <screenshot>
-      <image type="source">https://raw.githubusercontent.com/marin-m/pbtk/qt-version-1.x/packaging/assets/screenshots/3-endpoint-creation.png</image>
+      <image type="source">https://raw.githubusercontent.com/marin-m/pbtk/master/packaging/screenshots/3-endpoint-creation.png</image>
       <caption>pbtk: Network endpoint selection screen</caption>
     </screenshot>
   </screenshots>
