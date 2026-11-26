@@ -106,6 +106,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.app = app
 
         self.fuzzer = FuzzerWindow(self)
+        self.fuzzer.set_application(app)
         # self.fuzzer.set_modal(True)
         # self.fuzzer.set_transient_for(self)
 
@@ -466,6 +467,11 @@ class MainWindow(Adw.ApplicationWindow):
                     self.main_nav_view.pop()
 
             inode_row.file_obj.load_bytes_async(None, load_bytes_cb)
+
+    @Gtk.Template.Callback()
+    def on_close(self, *args):
+        self.fuzzer.close()
+        self.fuzzer.set_application(None)
 
     @Gtk.Template.Callback()
     def endpoint_row_selected(self, list_view: Gtk.ListView, position: int):

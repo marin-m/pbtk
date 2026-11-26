@@ -645,6 +645,7 @@ suggested-action</property>
     <property name="default-height">520</property>
     <property name="default-width">720</property>
     <property name="icon-name">re.fossplant.pbtk</property>
+    <signal name="close-request" handler="on_close"/>
   </template>
   <object class="AdwAlertDialog" id="url_input_dialog">
     <property name="close-response">cancel</property>

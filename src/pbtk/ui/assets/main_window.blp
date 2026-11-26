@@ -494,6 +494,7 @@ template $MainWindow: Adw.ApplicationWindow {
   default-height: 520;
   default-width: 720;
   icon-name: "re.fossplant.pbtk";
+  close-request => $on_close();
 }
 
 Adw.AlertDialog url_input_dialog {
