@@ -61,6 +61,7 @@ https://hughsie.github.io/oars/index.html
       <description>
         <ul>
           <li>Add support for picking up .proto files in sandboxed environments (Flatpak, Snap)</li>
+          <li>Fix the Java extractor</li>
           <li>Fix the network permission for Snap</li>
           <li>Display Fuzzer-related errors in the Fuzzer window</li>
           <li>Don't print a WebKit warning when loading an empty HTML page</li>

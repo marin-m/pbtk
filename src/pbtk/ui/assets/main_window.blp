@@ -166,7 +166,7 @@ template $MainWindow: Adw.ApplicationWindow {
               }
 
               Button open_extracted_button {
-                action-name: "win.open-proto-dir";
+                action-name: "win.open-extracted-proto-dir";
 
                 css-classes: [
                   "suggested-action",
@@ -178,7 +178,7 @@ template $MainWindow: Adw.ApplicationWindow {
             }
 
             ScrolledWindow {
-              min-content-height: 170;
+              min-content-height: 175;
 
               TextView extraction_text_view {
                 buffer: TextBuffer extraction_text_buffer {};

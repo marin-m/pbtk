@@ -4,6 +4,7 @@ from collections import OrderedDict, defaultdict
 from importlib.metadata import version
 from json import load
 from os import scandir
+from os.path import exists
 from urllib.parse import urlparse
 
 import gi
@@ -53,6 +54,7 @@ class MainWindow(Adw.ApplicationWindow):
     extractor_objs = GObject.Property(type=Gio.ListStore)  # Of Extractor
     extractors_list: Adw.PreferencesGroup = Gtk.Template.Child()
 
+    last_extraction_dir = GObject.Property(type=str)
     global_extraction_dir = GObject.Property(type=str)
 
     # Step 1 - Extract Proto cefinitions from file
@@ -245,6 +247,17 @@ class MainWindow(Adw.ApplicationWindow):
             self.about_dialog.present(self)
 
         self.add_simple_action('show-about', show_about)
+
+        def open_extracted_proto_dir(*args):
+            if self.last_extraction_dir and exists(self.last_extraction_dir):
+                proto_dir = Gio.File.new_for_path(self.last_extraction_dir)
+            else:
+                proto_dir = Gio.File.new_for_path(self.global_extraction_dir)
+            Gtk.FileLauncher.new(proto_dir).launch(self, None, None)
+
+        self.add_simple_action(
+            'open-extracted-proto-dir', open_extracted_proto_dir
+        )
 
         def open_proto_dir(*args):
             proto_dir = Gio.File.new_for_path(self.global_extraction_dir)

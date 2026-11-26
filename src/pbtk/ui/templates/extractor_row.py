@@ -10,9 +10,11 @@ from pbtk.datamodel.extractor import (
 )
 from pbtk.utils.common import extractor_save, assert_installed, BASE_PATH
 from pbtk.ui.workers.extractor_thread import ExtractorWorker
-from urllib.parse import urlparse
 
 from logging import debug, info, error
+from urllib.parse import urlparse
+from os.path import join
+from pathlib import Path
 
 import gi
 
@@ -20,8 +22,6 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 
 from gi.repository import Gtk, Gio, GLib, Adw
-from os.path import join
-from pathlib import Path
 
 
 class ExtractorRow(Adw.ActionRow):
@@ -72,13 +72,21 @@ class ExtractorRow(Adw.ActionRow):
 
                     inputs = ExtractorInputs()
 
-                    for pos in range(files.get_n_items()):
-                        file_item: Gio.File = files.get_item(pos)
+                    for file_item in files:
                         file_path: str = file_item.get_path()
                         out_folder_name: str = Path(file_path).stem
 
                         inputs.inputs.append(
                             ExtractorInputArgument(file_path, out_folder_name)
+                        )
+
+                    if files.get_n_items() == 1:
+                        self.window.last_extraction_dir = join(
+                            self.window.global_extraction_dir, out_folder_name
+                        )
+                    else:
+                        self.window.last_extraction_dir = (
+                            self.window.global_extraction_dir
                         )
 
                     # Show progress dialog

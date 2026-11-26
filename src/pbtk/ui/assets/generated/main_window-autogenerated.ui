@@ -182,7 +182,7 @@ corresponding .blp file and regenerate this file with blueprint-compiler.
                             </child>
                             <child>
                               <object class="GtkButton" id="open_extracted_button">
-                                <property name="action-name">win.open-proto-dir</property>
+                                <property name="action-name">win.open-extracted-proto-dir</property>
                                 <property name="css-classes">suggested-action
 pill</property>
                                 <property name="label">Open extracted files</property>
@@ -192,7 +192,7 @@ pill</property>
                         </child>
                         <child>
                           <object class="GtkScrolledWindow">
-                            <property name="min-content-height">170</property>
+                            <property name="min-content-height">175</property>
                             <child>
                               <object class="GtkTextView" id="extraction_text_view">
                                 <property name="buffer">
