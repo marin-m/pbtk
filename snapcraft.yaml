@@ -22,6 +22,8 @@ apps:
     extensions: [gnome]
     plugs:
       - home
+      - network
+      - network-status
       - unity7
 
   jar-extract:
@@ -42,6 +44,7 @@ apps:
     plugs:
       - home
       - network
+      - network-status
 
 parts:
   python-runtime:
@@ -83,7 +86,9 @@ parts:
 
       mkdir -p bin
       mkdir -p usr/bin
+      rm -f bin/java
       ln -s ../usr/lib/jvm/java-8-openjdk-$CRAFT_ARCH_BUILD_FOR/bin/java bin/java
+      rm -f usr/bin/java
       ln -s ../../usr/lib/jvm/java-8-openjdk-$CRAFT_ARCH_BUILD_FOR/bin/java usr/bin/java
 
       mkdir -p usr/lib/jvm/java-8-openjdk-$CRAFT_ARCH_BUILD_FOR/jre/lib/security

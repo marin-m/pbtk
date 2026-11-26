@@ -2,6 +2,7 @@
 
 from json import dumps, dump, loads, load
 from xml.dom.minidom import parseString
+from logging import debug, warning
 from urllib.parse import urlparse
 from subprocess import run, PIPE
 from base64 import b64encode
@@ -10,7 +11,6 @@ from zlib import decompress
 from binascii import crc32
 from sys import float_info
 from os.path import isabs
-from logging import debug
 from struct import unpack
 from pathlib import Path
 from io import BytesIO
@@ -744,6 +744,7 @@ class FuzzerWindow(Adw.Window):
                     self.alert_popup(
                         'Could not send network request', err.message
                     )
+                    warning('Could not send network request: ' + err.message)
                 return
 
             response_headers: dict[str, str] = {}

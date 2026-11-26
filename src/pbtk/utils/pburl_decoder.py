@@ -2,7 +2,7 @@
 from base64 import urlsafe_b64decode, urlsafe_b64encode
 from re import match
 from urllib.parse import quote, unquote
-from warnings import warn
+from logging import warning
 
 from google.protobuf.descriptor import FieldDescriptor as fd
 from google.protobuf.message import Message
@@ -59,7 +59,7 @@ def consume(obj: list[str], pb: Message, sep: str):
         type_ = types_dec[type_]
 
         if int(index) not in pb.DESCRIPTOR.fields_by_number:
-            warn('Unknown index: !' + field)
+            warning('Unknown index: !' + field)
             if type_ == fd.TYPE_MESSAGE:
                 del obj[: int(val)]
             continue
