@@ -49,7 +49,7 @@ pipx install pbtk
 pbtk
 ```
 
-Windows is also supported. pbtk 2.x runs off GTK 4, but [pbtk 1.x](https://github.com/marin-m/pbtk/tree/qt-version-1.x) (last version is 1.1.5) ran off Qt 5.
+Windows is also supported. pbtk 2.x uses GTK 4, but [pbtk 1.x](https://github.com/marin-m/pbtk/tree/qt-version-1.x) (last version is 1.1.5) uses Qt 5.
 
 Once you run the GUI, it should warn you on what you are missing depending on what you try to do.
 
